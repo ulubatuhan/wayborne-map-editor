@@ -75,7 +75,7 @@ CSS uses **logical** properties (`border-inline-start`, `padding-inline-end`, `i
 — the `#workspace` grid reverses its columns under `dir="rtl"`, so the tool rail moves to the right and the options
 panel to the left. Canvas rendering is coordinate math and is unaffected. `UI.t()` falls back to **English** (not
 Turkish) for any non-`tr` language, so a partially translated language degrades sensibly — this is a safety net for
-whichever new key someone forgets to translate next, not the normal state: as of this writing all 400 `DICT` keys
+whichever new key someone forgets to translate next, not the normal state: as of this writing all 395 `DICT` keys
 are filled in for all 11 languages (verified by a permanent `run-integration-test.mjs` assertion that compares each
 non-`tr`/`en` language's translation of a representative key set against the English fallback value, catching a
 silently-dropped translation the moment it regresses).
