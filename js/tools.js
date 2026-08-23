@@ -1768,7 +1768,17 @@
               var ea = elev[i+3] / 255;
               var height = ea > 0.02 ? (elev[i]*ea + 128*(1-ea)) : 128;
               var e = Math.max(0, (height - 128) / 127);
-              var lat = Math.abs((gy+0.5)/sh - 0.5) * 2;
+              /* Enlem satır numarasından (gy) türetildiği için hiçbir
+                 bozulma olmadan tam yatay, cetvelle çizilmiş gibi düz
+                 şeritler verirdi — gerçek haritalarda iklim kuşakları
+                 asla bu kadar düzenli olmaz. Düşük frekanslı ikinci bir
+                 gürültü alanı, "enlem"i sağa/sola dalgalandırarak kuşak
+                 sınırlarını kıvrımlı, elle çizilmiş hissi veren bir hâle
+                 getiriyor (nem gürültüsünden farklı frekans/tohum, aksi
+                 hâlde ikisi birbiriyle örtüşüp yine düzenli görünürdü). */
+              var rowNorm = (gy+0.5)/sh - 0.5;
+              var latWarp = rnd.fbm(gx/sw*0.9 + 50, gy/sh*0.9 + 50, 3, 0.5) * 0.38;
+              var lat = Math.max(0, Math.min(1, Math.abs(rowNorm + latWarp) * 2));
               /* Nem artık her hücrede bağımsız bir zar atışı (rnd.next())
                  değil, düşük frekanslı bir gürültü alanından örnekleniyor —
                  komşu hücreler benzer nem paylaşır. Önceki hâliyle bitişik
