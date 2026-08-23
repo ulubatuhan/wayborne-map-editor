@@ -151,6 +151,20 @@ async function run() {
         check('göl bayrağı App.landgen\\'e yazıldı', App.landgen.lakes === true);
         check('arazi bayrağı App.landgen\\'e yazıldı', App.landgen.terrain === true);
 
+        /* Üret düğmesi işlem sürerken kilitlenip tekrar kendi haline
+           dönene kadar bekler — sabit bir gecikme tahmin etmek yerine
+           (artık Tools.autoBiome parçalara bölünmüş asenkron çalışıyor,
+           süresi canvas boyutuna göre değişir) düğmenin gerçekten
+           bitirdiğini bekliyoruz. */
+        function waitLandgenDone() {
+          return new Promise(function (resolve) {
+            (function poll() {
+              var b = document.getElementById('btn-landgen');
+              if (b && !b.disabled) resolve(); else setTimeout(poll, 20);
+            })();
+          });
+        }
+
         /* ilk tıklama uyarı modalını göstermeli (bayrak henüz yok) */
         localStorage.removeItem(UI.LANDGEN_WARNED_KEY);
         document.getElementById('btn-landgen').click();
@@ -159,7 +173,8 @@ async function run() {
         check('ilk tıklamada uyarı modalı açıldı', modalOpenAfterFirst);
 
         document.getElementById('modal-ok').click();
-        await new Promise(r => setTimeout(r, 150));
+        await new Promise(r => setTimeout(r, 20));
+        await waitLandgenDone();
 
         check('nehir üretildi', Rv.objects.some(o => o.kind !== 'lake'));
         check('göl üretildi', Rv.objects.some(o => o.kind === 'lake'));
@@ -174,10 +189,22 @@ async function run() {
         /* ---- 4) ikinci tıklama artık modal göstermemeli ---- */
         Rv.objects.length = 0;
         document.getElementById('btn-landgen').click();
-        await new Promise(r => setTimeout(r, 150));
+        await new Promise(r => setTimeout(r, 20));
+        await waitLandgenDone();
         const modalOpenAfterSecond = !document.getElementById('modal')?.classList.contains('hidden');
         check('ikinci tıklamada modal ATLANDI', !modalOpenAfterSecond);
         check('ikinci tıklama yine de üretim yaptı', Rv.objects.length > 0);
+
+        /* ---- 4b) Tools.autoBiome artık parçalara bölünmüş asenkron çalışıyor
+           (mobilde sekmeyi donduran en ağır adımdı) — gerçek bir Promise
+           döndürdüğünü ve art arda iki çağrının da düzgün tamamlandığını
+           doğrula. */
+        const bp = Tools.autoBiome(1234);
+        check('autoBiome bir Promise döndürüyor', bp instanceof Promise);
+        const ok1 = await bp;
+        check('autoBiome tamamlandı (ilk çağrı)', ok1 === true);
+        const ok2 = await Tools.autoBiome(5678);
+        check('autoBiome tamamlandı (ikinci ardışık çağrı)', ok2 === true);
 
         /* ---- 5) ayarlanabilir deniz rengi ---- */
         const beforeSea = Cv.seaColor;
