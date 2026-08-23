@@ -1481,6 +1481,20 @@
       var heightGrid, small, sctx, img;
       var bestCoverage = -1, bestHeightGrid = null, bestImg = null;
       var boost = 1;
+
+      /* Bu "temel" fBm dokusu tohuma/frekansa bağlıdır ama boost'a (yani
+         hangi deneme olduğuna) bağlı DEĞİLDİR — retry döngüsü öncesinde
+         BİR KEZ hesaplayıp önbelleğe alıyoruz. Öncesinde her deneme aynı
+         220×220 gridi (5 oktavlı Perlin toplamı ~48 bin hücre) yeniden
+         hesaplıyordu; kapsama hedefine ulaşmak 4-6 deneme sürdüğünde bu,
+         mobilde saniyeler süren gereksiz bir tekrar maliyetiydi. */
+      var baseNoise = new Float32Array(N * N);
+      for (var bgy = 0; bgy < N; bgy++) {
+        for (var bgx = 0; bgx < N; bgx++) {
+          baseNoise[bgy*N+bgx] = noise.fbm(bgx/N*freq, bgy/N*freq, octaves, 0.5);
+        }
+      }
+
       for (var attempt = 0; attempt < 6; attempt++) {
         var seeds = buildSeeds(boost);
         heightGrid = blobFill(N, seeds, roughness, noise);
@@ -1491,7 +1505,7 @@
         var landCells = 0;
         for (var gy = 0; gy < N; gy++) {
           for (var gx = 0; gx < N; gx++) {
-            var base = noise.fbm(gx/N*freq, gy/N*freq, octaves, 0.5);
+            var base = baseNoise[gy*N+gx];
             var falloff = heightGrid[gy*N+gx];
             var value = (falloff - 0.5) + base*(0.22 + roughness*0.5);
             var a = Math.max(0, Math.min(1, value/0.12 + 0.5));
@@ -1521,8 +1535,16 @@
          Bulanıklaştırma+eşikleme adımını sabit bir üst sınırda (GEN_MAX) çalıştırıp
          sonucu gerçek tuval boyutuna bilinear ölçekle büyütüyoruz — kıyı çizgisinin
          asıl yumuşatması zaten render anında shore efektiyle (Cv.buildShoreCanvas)
-         geliyor, burada tek amaç ham blob şeklinin pürüzsüz bir sınırı olması. */
-      var GEN_MAX = 2048;
+         geliyor, burada tek amaç ham blob şeklinin pürüzsüz bir sınırı olması.
+         Kaynak veri zaten 220×220'lik düşük çözünürlüklü bir gürültü
+         gridinden geliyor (bkz. N), yani 2048'e kadar büyütmek bile ~9× bir
+         yukarı-ölçekleme; GEN_MAX'ı 1024'e indirmek final görünümü
+         gözle fark edilir şekilde değiştirmeden (kıyının "çözünürlüğü" zaten
+         220-hücrelik gridle sınırlı) bu adımın piksel sayısını (ve mobilde
+         asıl darboğaz olan CSS blur/getImageData maliyetini) 4× azaltır —
+         profilde 4x CPU kısıtlamasında bu adım tek başına 1.2-4.5 sn
+         sürüyordu. */
+      var GEN_MAX = 1024;
       var gk = Math.min(1, GEN_MAX / Math.max(w, h));
       var gw = Math.max(1, Math.round(w*gk)), gh = Math.max(1, Math.round(h*gk));
 
@@ -1684,8 +1706,8 @@
        tek seferde landmass'a clip'leniyor. */
     autoBiome: function (seed) {
       var Lm = Layers.get('landmass'), Ev = Layers.get('elevation'), T = Layers.get('terrain');
-      if (!Lm || !Ev || !T) return;
-      if (T.locked) { UI.msg(UI.t('locked')); return; }
+      if (!Lm || !Ev || !T) return Promise.resolve(false);
+      if (T.locked) { UI.msg(UI.t('locked')); return Promise.resolve(false); }
       var w = T.canvas.width, h = T.canvas.height;
       var before = snap(T.canvas);
       var rnd = this._noiseGrid((seed >>> 0) || Math.floor(Math.random()*4294967296));
@@ -1722,31 +1744,66 @@
       var r = Math.max(cellW, cellH) * 0.95;
       var placed = 0;
 
-      for (var gy = 0; gy < sh; gy++) {
-        for (var gx = 0; gx < sw; gx++) {
-          var i = (gy*sw + gx) * 4;
-          var a = land[i+3] / 255;
-          if (a < 0.4) continue;
-          var ea = elev[i+3] / 255;
-          var height = ea > 0.02 ? (elev[i]*ea + 128*(1-ea)) : 128;
-          var e = Math.max(0, (height - 128) / 127);
-          var lat = Math.abs((gy+0.5)/sh - 0.5) * 2;
-          var biome = pickBiome(e, lat, rnd.next());
-          var cx = (gx+0.5)*cellW, cy = (gy+0.5)*cellH;
-          Terrain.scatter(T.ctx, biome, cx, cy, r, 1, 1);
-          placed++;
+      var self = this;
+      return new Promise(function (resolve) {
+        var gy = 0;
+        /* Satır satır ilerleyip aradan setTimeout(0) ile ana iş parçacığına
+           "nefes alma" fırsatı veriyoruz — bu döngü, tek parça hâlinde
+           çalıştırıldığında (özellikle mobilde) sekmeyi saniyelerce donmuş
+           gösteren en ağır adımdı. Sabit bir satır sayısı yerine bir ZAMAN
+           bütçesi (~60ms) kullanıyoruz: hızlı bir cihazda tek parçada çok
+           satır işlenip yield sayısı (dolayısıyla setTimeout ek yükü) düşük
+           kalır, yavaş bir cihazda az satır işlenip daha sık ama kısa
+           duraklamalar olur — her ikisinde de tek bir dondurma asla ~60ms'yi
+           aşmaz. Toplam süreyi değiştirmez, yalnızca tarayıcının arada
+           tekrar boyama/girdi işlemesine izin vererek "kasma" hissini
+           ortadan kaldırır. */
+        function chunk() {
+          var chunkStart = performance.now();
+          while (gy < sh && performance.now() - chunkStart < 60) {
+            for (var gx = 0; gx < sw; gx++) {
+              var i = (gy*sw + gx) * 4;
+              var a = land[i+3] / 255;
+              if (a < 0.4) continue;
+              var ea = elev[i+3] / 255;
+              var height = ea > 0.02 ? (elev[i]*ea + 128*(1-ea)) : 128;
+              var e = Math.max(0, (height - 128) / 127);
+              var lat = Math.abs((gy+0.5)/sh - 0.5) * 2;
+              /* Nem artık her hücrede bağımsız bir zar atışı (rnd.next())
+                 değil, düşük frekanslı bir gürültü alanından örnekleniyor —
+                 komşu hücreler benzer nem paylaşır. Önceki hâliyle bitişik
+                 hücreler elevation/enlem aynı kalsa bile nem her seferinde
+                 rastgele zıplayıp biyomu değiştirebiliyordu; bu da harita
+                 yerine "tuz-biber"/dama tahtası gibi görünen, birbirinden
+                 kopuk kare bir mozaiğe yol açıyordu. */
+              var moist = rnd.fbm(gx/sw*2.4, gy/sh*2.4, 3, 0.55) * 0.5 + 0.5;
+              var biome = pickBiome(e, lat, moist);
+              /* Hücre merkezine küçük bir rastgele kayma: damgaların
+                 kusursuz bir ızgaraya hizalanmasını bozar, sonuçta sert
+                 kare kenarlar yerine elle çizilmiş gibi düzensiz bir
+                 sınır oluşur. */
+              var cx = (gx+0.5+(rnd.next()-0.5)*0.5)*cellW;
+              var cy = (gy+0.5+(rnd.next()-0.5)*0.5)*cellH;
+              Terrain.scatter(T.ctx, biome, cx, cy, r, 1, 1);
+              placed++;
+            }
+            gy++;
+          }
+          if (gy < sh) { setTimeout(chunk, 0); return; }
+
+          if (!placed) { UI.msg(UI.t('biomegen_empty')); resolve(false); return; }
+
+          T.ctx.globalCompositeOperation = 'destination-in';
+          T.ctx.drawImage(Lm.canvas, 0, 0);
+          T.ctx.globalCompositeOperation = 'source-over';
+
+          History.pushRaster('terrain', before, T.canvas, {x:0,y:0,w:w,h:h}, 'biomegen');
+          UI.refreshHistory();
+          Cv.requestRender();
+          resolve(true);
         }
-      }
-
-      if (!placed) { UI.msg(UI.t('biomegen_empty')); return; }
-
-      T.ctx.globalCompositeOperation = 'destination-in';
-      T.ctx.drawImage(Lm.canvas, 0, 0);
-      T.ctx.globalCompositeOperation = 'source-over';
-
-      History.pushRaster('terrain', before, T.canvas, {x:0,y:0,w:w,h:h}, 'biomegen');
-      UI.refreshHistory();
-      Cv.requestRender();
+        chunk();
+      });
     },
 
     /* ================= NEHİR OTOMATİK ÜRETİMİ =================

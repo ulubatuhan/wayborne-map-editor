@@ -1658,15 +1658,34 @@
       /* Kara + (istenirse) yükselti/nehir/göl/arazi'yi tek tıkla, tek bir
          tohumdan üretir. Uyarı modalı yalnızca İLK seferde gösterilir —
          localStorage bayrağı kalıcı, her "Üret" tıklamasında tekrar
-         sormaya gerek yok. */
+         sormaya gerek yok.
+
+         Adımlar arasına birer "nefes alma" karesi (yieldFrame) konur ve
+         en ağır adım (Tools.autoBiome) kendi içinde parçalara bölünmüş
+         durumda — bu sayede tüm dizi tek bir donmuş JS turu yerine bir
+         seri kısa parçaya yayılır, tarayıcı aradaki karelerde tekrar
+         boyayıp girdi işleyebilir. "Üret" düğmesi işlem sürerken kilitlenip
+         bir kum saati gösterir, böylece kullanıcı sekmenin çökmediğini
+         anlar ve ikinci bir tıklamayla üst üste bir üretim başlatamaz. */
+      function yieldFrame() { return new Promise(function (r) { setTimeout(r, 0); }); }
+
       function runLandgen() {
         var seed = Math.floor(Math.random()*4294967296);
-        var withRivers = App.landgen.rivers, withTerrain = App.landgen.terrain;
+        var withRivers = App.landgen.rivers, withTerrain = App.landgen.terrain, withLakes = App.landgen.lakes;
+        var btn = $('btn-landgen');
+        var origLabel = btn ? btn.textContent : '';
+        if (btn) { btn.disabled = true; btn.textContent = '⏳ …'; }
+
         Tools.generateLandmass(App.landgen.template, App.landgen.roughness, seed,
           { withElevation: withRivers || withTerrain });
-        if (withTerrain) Tools.autoBiome(seed);
-        if (withRivers) Tools.generateRivers(null, seed);
-        if (App.landgen.lakes) Tools.autoLakes(seed);
+
+        var chain = yieldFrame();
+        if (withTerrain) chain = chain.then(function () { return Tools.autoBiome(seed); });
+        if (withRivers) chain = chain.then(yieldFrame).then(function () { Tools.generateRivers(null, seed); });
+        if (withLakes) chain = chain.then(yieldFrame).then(function () { Tools.autoLakes(seed); });
+        chain.then(function () {
+          if (btn) { btn.disabled = false; btn.textContent = origLabel; }
+        });
       }
       on('btn-landgen', 'click', function () {
         var warned = false;
@@ -1686,7 +1705,11 @@
       on('btn-clear-terrain', 'click', function () { Tools.clearRasterLayer('terrain'); });
       on('btn-biomegen', 'click', function () {
         self.modal(self.t('o_biomegen'), '<p>' + self.t('h_biomegen') + '</p>', function () {
-          Tools.autoBiome(Math.floor(Math.random()*4294967296));
+          var btn = $('btn-biomegen'), origLabel = btn ? btn.textContent : '';
+          if (btn) { btn.disabled = true; btn.textContent = '⏳ …'; }
+          Tools.autoBiome(Math.floor(Math.random()*4294967296)).then(function () {
+            if (btn) { btn.disabled = false; btn.textContent = origLabel; }
+          });
         });
       });
 

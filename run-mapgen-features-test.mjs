@@ -107,8 +107,7 @@ async function run() {
         /* 2) Biyom otomatik atama */
         Tools.generateLandmass('continent', 0.5, 55);
         await new Promise(r => setTimeout(r, 50));
-        Tools.autoBiome(777);
-        await new Promise(r => setTimeout(r, 50));
+        await Tools.autoBiome(777);
         const T = Layers.get('terrain');
         const td = T.ctx.getImageData(0,0,T.canvas.width,T.canvas.height).data;
         let tPixels = 0; for (let i=3;i<td.length;i+=4) if (td[i]>10) tPixels++;
@@ -124,8 +123,7 @@ async function run() {
         Ev.ctx.beginPath(); Ev.ctx.arc(512,512,300,0,Math.PI*2); Ev.ctx.fill();
         Ev.ctx.restore();
         Cv.elevationDirty = true;
-        Tools.autoBiome(777);
-        await new Promise(r => setTimeout(r, 50));
+        await Tools.autoBiome(777);
         const td2 = T.ctx.getImageData(0,0,T.canvas.width,T.canvas.height).data;
         let tPixels2 = 0; for (let i=3;i<td2.length;i+=4) if (td2[i]>10) tPixels2++;
         check('yükseklik eklenince biyom yeniden üretildi', tPixels2 > 100);
