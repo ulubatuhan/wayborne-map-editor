@@ -27,7 +27,7 @@ protocol directly via Node's built-in `WebSocket`, and each boots its own static
 the repo root with plain `node`; each exits non-zero on failure.
 
 ```bash
-node run-integration-test.mjs        # 76 assertions: every module, catalog integrity, round-trips
+node run-integration-test.mjs        # 77 assertions: every module, catalog integrity, round-trips
 node run-layer-undo-test.mjs         # layer add/delete undo, pixel-level fidelity
 node run-fps.mjs                     # frame budget at 1024/2048/4096/8192, idle+pan+zoom
 node run-mapgen-test.mjs             # renders 3 landmass templates to /tmp/mapgen-shots for eyeballing
@@ -44,6 +44,13 @@ node run-landgen-test.mjs            # land-generation coverage guarantees, arch
                                       # islands, tectonic template removal, river/lake/terrain
                                       # generate-time options, one-time warning, adjustable sea colour,
                                       # Tools.autoBiome async/chunked contract
+node run-alltools-test.mjs           # all 19 toolbar tools (landmass/erase/fill/terrain/elevation/
+                                      # eyedrop/river/lake/road/territory/symbol/resource/label/sketch/
+                                      # regionlink/measure/select/lasso/pan) driven via real dispatched
+                                      # pointer events on Cv.view, run once with mouse at desktop size
+                                      # and once with touch pointerType under Emulation.setDeviceMetricsOverride
+                                      # (mobile), asserting the expected layer/object mutation per tool
+                                      # and zero console errors/uncaught exceptions across the whole run
 ```
 
 Two gotchas when writing more of these: **`requestAnimationFrame` is throttled in headless Chrome**, so
