@@ -1020,6 +1020,33 @@
     return s;
   });
 
+  /* ---- meydan mobilyası: heykel/anıt, sokak feneri, oturma bankı — bir
+     şehir bloğunu yalnızca bina + iç mekan eşyasıyla değil, sokak/meydan
+     seviyesinde de tamamlamak için (bkz. CLAUDE.md § Şehir sembolleri) */
+  reg('misc', 'id_statue', 'Meydan heykeli', 'Plaza statue', function () {
+    var s = S(); s.pad(11, 10, 18, 'stoneW');
+    s.box(3, 2, 0, 12, 10, 5, 'stoneW', { plain:true });
+    s.cyl(9, 7, 5, 3.6, 3, 'stoneW');
+    s.cyl(9, 7, 8, 2.4, 9, 'gold');
+    s.box(6, 5.5, 13, 1.4, 5, 5.5, 'gold', { plain:true });
+    return s;
+  });
+  reg('misc', 'id_lamppost', 'Sokak feneri', 'Street lamp', function () {
+    var s = S(); s.pad(6, 6, 10, 'dirt');
+    s.cyl(5, 5, 0, 1.2, 22, 'dark');
+    s.box(3.2, 3.2, 22, 3.6, 3.6, 4, 'dark', { plain:true });
+    s.dome(5, 5, 26, 2, 3, 'gold');
+    return s;
+  });
+  reg('misc', 'id_bench', 'Oturma bankı', 'Bench', function () {
+    var s = S(); s.pad(16, 8, 8, 'dirt');
+    s.box(1, 1, 4, 14, 6, 1.4, 'wood', { plain:true });
+    s.box(1, 1, 6, 14, 1.4, 4, 'wood', { plain:true });
+    s.box(1.5, 1.5, 0, 1.6, 5, 4, 'woodD', { plain:true });
+    s.box(12.9, 1.5, 0, 1.6, 5, 4, 'woodD', { plain:true });
+    return s;
+  });
+
   /* ============================================================
      7) SUR KAVŞAKLARI (T-kavşak + kule birleşimi)
      "sur parçaları" isteğinde eksik kalan iki bağlantı parçası —

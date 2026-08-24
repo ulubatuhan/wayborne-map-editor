@@ -32,6 +32,26 @@
 #map-breadcrumb button:hover{background:var(--ink-700)}
 #map-breadcrumb-path{opacity:0.85}
 
+/* Dokunmatik/klavyesiz cihazlarda yol çizimini (nehir/yol/bölge/göl/ölçüm)
+   ve kement kaldırma sonrası (Tools.floating) bitirme/iptal/geri-alma
+   işlemlerine erişim — bunlar aksi hâlde yalnız Enter/Esc/Backspace ile
+   yapılabiliyordu. Görünürlüğü UI.refreshTouchActions() yönetir. */
+#touch-path-actions{
+  position:absolute;left:50%;bottom:16px;transform:translateX(-50%);
+  z-index:7;display:flex;gap:8px;
+  background:var(--ink-800);border:1px solid var(--line);border-radius:999px;
+  padding:6px;box-shadow:0 6px 22px #000a;
+}
+#touch-path-actions.hidden{display:none}
+#touch-path-actions button{
+  width:44px;height:44px;border-radius:50%;
+  border:1px solid var(--line);background:var(--ink-700);color:var(--text);
+  font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+#touch-path-actions button:hover{background:var(--ink-600,var(--ink-700))}
+#touch-path-actions #tpa-finish{background:#2e6b3e;border-color:#3f8a54;color:#eafff0}
+#touch-path-actions #tpa-cancel{background:#6b2e2e;border-color:#8a3f3f;color:#ffeaea}
+
 #minimap-wrap{
   position:absolute;inset-inline-end:12px;bottom:12px;
   border:1px solid var(--line);border-radius:var(--radius);

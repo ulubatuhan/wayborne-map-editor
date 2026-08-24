@@ -219,6 +219,11 @@
 
     /* ================= POINTER DOWN ================= */
     onDown: function (e) {
+      /* dokunma/kalem/fare ayrımı: bezier ve yeniden boyutlandırma tutamaç
+         isabet yarıçapları bu bayrağa göre büyütülür (bkz. hitTestHandle /
+         hitTestResizeHandle) — parmak ucu bir fare imlecinden çok daha kalın. */
+      this._lastPointerType = e.pointerType;
+
       /* iki parmakla dokunma → çizim/kaydırma yerine yakınlaştırma jesti.
          İkinci parmak indiğinde önce birinci parmağın başlattığı tekli
          işlem varsa (fırça darbesi, kaydırma...) onUp() ile düzgünce
@@ -228,6 +233,18 @@
         this._touches[e.pointerId] = { x:e.clientX, y:e.clientY };
         var tids = Object.keys(this._touches);
         if (tids.length >= 2) {
+          /* İkinci parmak pinch niyetiyle indiğinde, birinci parmağın
+             AZ ÖNCE tek başına indiği an (river/road/vb. bir yol aracında)
+             zaten bir addPathPoint() tetiklemiş olabilir — ikinci parmağın
+             geleceği henüz bilinmediği için bu kaçınılmaz. Burada, o nokta
+             gerçekten bu pinch'in başlangıcıysa (aynı araç, <250ms önce)
+             geri alınır, böylece istemsiz bir yol noktası kalmaz. */
+          if (this._lastTouchPoint && this._lastTouchPoint.tool === App.tool &&
+              Date.now() - this._lastTouchPoint.ts < 250 && this.pathPts.length) {
+            this.pathPts.pop();
+            this._lastTouchPoint = null;
+            UI.refreshTouchActions();
+          }
           if (!this._pinch) this.onUp();
           var ta = this._touches[tids[0]], tb = this._touches[tids[1]];
           this._pinch = { dist: Math.hypot(ta.x-tb.x, ta.y-tb.y) };
@@ -1065,6 +1082,7 @@
         center: { x: bx+bw/2, y: by+bh/2 }
       };
       Cv.shoreDirty = true; Cv.elevationDirty = true;
+      UI.refreshTouchActions();
       Cv.requestRender();
     },
 
@@ -1122,7 +1140,7 @@
       else History.pushRasterMulti(patches, box, 'lasso:move');
       this.floating = null; this.floatDrag = null; this.floatRotateDrag = null;
       Cv.shoreDirty = true; Cv.elevationDirty = true;
-      UI.refreshHistory();
+      UI.refreshHistory(); UI.refreshTouchActions();
       Cv.requestRender();
     },
 
@@ -1140,6 +1158,7 @@
       });
       this.floating = null; this.floatDrag = null; this.floatRotateDrag = null;
       Cv.shoreDirty = true; Cv.elevationDirty = true;
+      UI.refreshTouchActions();
       Cv.requestRender();
     },
 
@@ -1161,7 +1180,7 @@
       else History.pushRasterMulti(patches, f.bbox, 'lasso:delete');
       this.floating = null; this.floatDrag = null; this.floatRotateDrag = null;
       Cv.shoreDirty = true; Cv.elevationDirty = true;
-      UI.refreshHistory();
+      UI.refreshHistory(); UI.refreshTouchActions();
       Cv.requestRender();
     },
 
@@ -1731,7 +1750,17 @@
           if (moist < 0.12) return 'volcanic';
           return 'mountain';
         }
-        if (e > 0.36) return lat > 0.6 ? 'taiga' : 'highland';
+        if (e > 0.36) {
+          if (lat > 0.6) return 'taiga';
+          /* Önceden bu kuşak hep tek düze 'highland' idi — nem etkisi yoktu,
+             görsel taramada geniş, dokusuz bir gri leke olarak göze
+             çarpıyordu. steppe/badlands zaten katalogda var ama otomatik
+             biyomda hiç kullanılmıyordu; buraya eklemek hem çeşitlilik
+             katıyor hem de o iki dokuyu gerçek bir amaca kavuşturuyor. */
+          if (moist < 0.22) return 'badlands';
+          if (moist < 0.55) return 'highland';
+          return 'steppe';
+        }
         if (lat > 0.84) return moist < 0.5 ? 'tundra' : 'snow';
         if (lat > 0.62) return moist < 0.55 ? 'taiga' : 'darkforest';
         if (lat > 0.40) return moist < 0.30 ? 'shrubland' : (moist < 0.65 ? 'forest' : 'meadow');
@@ -2454,6 +2483,8 @@
       if (L.locked || !L.visible) { UI.msg(UI.t('locked')); return; }
       this.pathPts.push([snp.x, snp.y]);
       this.pathHover = snp;
+      this._lastTouchPoint = (this._lastPointerType === 'touch') ? { tool:App.tool, ts:Date.now() } : null;
+      UI.refreshTouchActions();
     },
 
     finishPath: function () {
@@ -2462,7 +2493,7 @@
       var isRiver     = App.tool === 'river';
       var isMeasure   = App.tool === 'measure';
       var minPts = (isLake || isTerritory) ? 3 : 2;
-      if (this.pathPts.length < minPts) { this.pathPts = []; Cv.requestRender(); return; }
+      if (this.pathPts.length < minPts) { this.pathPts = []; UI.refreshTouchActions(); Cv.requestRender(); return; }
       var lid = this.pathLayerId(App.tool);
       var L = Layers.get(lid);
       var before = JSON.parse(JSON.stringify(L.objects));
@@ -2487,13 +2518,13 @@
       this.pathPts = []; this.pathHover = null;
       App.selection = { layerId:lid, id:o.id };
       History.pushVector(lid, before, JSON.parse(JSON.stringify(L.objects)), lid);
-      UI.refreshHistory(); UI.refreshSelection(); Cv.requestRender();
+      UI.refreshHistory(); UI.refreshSelection(); UI.refreshTouchActions(); Cv.requestRender();
     },
 
-    cancelPath: function () { this.pathPts = []; this.pathHover = null; Cv.requestRender(); },
+    cancelPath: function () { this.pathPts = []; this.pathHover = null; UI.refreshTouchActions(); Cv.requestRender(); },
 
     undoPathPoint: function () {
-      if (this.pathPts.length) { this.pathPts.pop(); Cv.requestRender(); return true; }
+      if (this.pathPts.length) { this.pathPts.pop(); UI.refreshTouchActions(); Cv.requestRender(); return true; }
       return false;
     },
 
@@ -2949,7 +2980,7 @@
       var o = this.selected();
       if (!o || o.kind === 'group') return null;
       var pts = this.resizeHandlePositions(o);
-      var r = 8/Cv.zoom;
+      var r = (this._lastPointerType === 'touch' ? 18 : 8)/Cv.zoom;
       for (var i = 0; i < pts.length; i++) {
         if (Math.hypot(p.x-pts[i].x, p.y-pts[i].y) <= r) return { obj:o, corner:i };
       }
@@ -3002,7 +3033,7 @@
       var o = this.selected();
       if (!o || !o.pts) return null;
       var closed = s.layerId === 'territories' || o.kind === 'lake';
-      var thresh = 9 / Cv.zoom;
+      var thresh = (this._lastPointerType === 'touch' ? 20 : 9) / Cv.zoom;
       for (var i = 0; i < o.pts.length; i++) {
         var h = (o.handles && o.handles[i]) || Geo.autoHandle(o.pts, i, closed);
         var px = o.pts[i][0], py = o.pts[i][1];

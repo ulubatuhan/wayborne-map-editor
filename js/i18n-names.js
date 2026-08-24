@@ -6,7 +6,7 @@
    bu tablo id/anahtar basina ek dil karsiliklarini saglar.
    Eksik anahtar veya dil -> Ingilizce'ye duser (bkz. i18nName).
    Arapca (ar) artik hem yapisal adlarda (arazi/kategori/etiket
-   preseti/katman) hem de 891 katalog sembol adinda dolu — 8 dilin
+   preseti/katman) hem de 894 katalog sembol adinda dolu — 8 dilin
    zaten kullandigi ayni yontemle: sistematik izgaralar (Han/Taverna/
    Kutuphane, Ev, Kule, Sur, Pagoda vb.) ortak kelime dagarcigindan
    (kultur/kademe/malzeme adlari) programatik olarak uretildi, tek
@@ -146,6 +146,9 @@
     'id_stonepile': { de:'Steinhaufen', fr:'Cairn', es:'Montón de piedras', it:'Cumulo di pietre', pt:'Monte de pedras', nl:'Steenhoop', pl:'Kopiec kamieni', ru:'Груда камней', ar:'ركام حجري' },
     'id_watchfire': { de:'Wachfeuer', fr:'Feu de guet', es:'Fuego de guardia', it:'Fuoco di guardia', pt:'Fogo de vigia', nl:'Wachtvuur', pl:'Ogień strażniczy', ru:'Сторожевой огонь', ar:'نار حراسة' },
     'id_woodpile': { de:'Holzstapel', fr:'Tas de bois', es:'Pila de leña', it:'Catasta di legna', pt:'Pilha de lenha', nl:'Houtstapel', pl:'Stos drewna', ru:'Поленница', ar:'كومة حطب' },
+    'id_statue': { de:'Platzstatue', fr:'Statue de place', es:'Estatua de la plaza', it:'Statua della piazza', pt:'Estátua da praça', nl:'Pleinstandbeeld', pl:'Posąg na placu', ru:'Статуя на площади', ar:'تمثال الساحة' },
+    'id_lamppost': { de:'Straßenlaterne', fr:'Réverbère', es:'Farola', it:'Lampione', pt:'Poste de luz', nl:'Straatlantaarn', pl:'Latarnia uliczna', ru:'Уличный фонарь', ar:'عمود إنارة' },
+    'id_bench': { de:'Sitzbank', fr:'Banc public', es:'Banco público', it:'Panchina', pt:'Banco público', nl:'Zitbank', pl:'Ławka', ru:'Скамья', ar:'مقعد عام' },
     'ie_apiary': { de:'Bienenhaus', fr:'Rucher', es:'Colmenar', it:'Apiario', pt:'Apiário', nl:'Bijenstal', pl:'Pasieka', ru:'Пасека', ar:'منحل' },
     'ie_brewery': { de:'Brauerei', fr:'Brasserie', es:'Cervecería', it:'Birreria', pt:'Cervejaria', nl:'Brouwerij', pl:'Browar', ru:'Пивоварня', ar:'مصنع جعة' },
     'ie_deepmine': { de:'Tiefbergwerk', fr:'Mine profonde', es:'Mina profunda', it:'Miniera profonda', pt:'Mina profunda', nl:'Diepe mijn', pl:'Głęboka kopalnia', ru:'Глубокая шахта', ar:'منجم عميق' },
