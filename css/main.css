@@ -336,6 +336,27 @@ textarea{font-family:var(--f-display);font-size:13px}
 #modal-body input,#modal-body select{margin-top:8px}
 #modal-body.shortcuts-body{max-height:min(66vh,560px);overflow-y:auto;padding-right:4px}
 
+/* ---------- referans taraması ilerleme çubuğu ---------- */
+.modal-box.scan-box{width:380px;max-width:92vw}
+.scan-track{
+  height:8px;border-radius:999px;overflow:hidden;
+  background:var(--ink-900);border:1px solid var(--line);
+  margin:16px 0 10px;
+}
+.scan-fill{
+  height:100%;width:0;border-radius:999px;
+  background:linear-gradient(90deg,var(--brass-dim),var(--brass));
+  transition:width .18s ease-out;
+}
+.scan-stage{
+  font-size:12px;color:var(--text-dim);line-height:1.5;
+  display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+}
+/* Yüzde rakamı sürekli değiştiği için tabular-nums: aksi hâlde her
+   güncellemede rakam genişliği oynayıp metin titrer. */
+.scan-pct{font-variant-numeric:tabular-nums;color:var(--brass);opacity:.9}
+@media (prefers-reduced-motion:reduce){ .scan-fill{transition:none} }
+
 /* ---------- klavye kısayolları ---------- */
 .shortcuts-cols{column-count:2;column-gap:28px}
 @media (max-width:640px){.shortcuts-cols{column-count:1}}

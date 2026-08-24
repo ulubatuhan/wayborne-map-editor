@@ -709,6 +709,8 @@
         <input type="file" id="ref-file" accept="image/*">
         <label class="chk"><input type="checkbox" id="ref-export"><span data-i18n="ref_export">Export'a dahil et</span></label>
         <label class="chk"><input type="checkbox" id="ref-trace"><span data-i18n="ref_trace">İz sürme modu (üstte göster + kıyı kenetleme)</span></label>
+        <button class="btn wide primary" id="btn-ref-scan" data-i18n="ref_scan">⌖ Coğrafyayı tara</button>
+        <p class="hint" data-i18n="h_ref_scan">Referans görseldeki kıyı, göl ve nehirleri otomatik çıkarır. Şehir/dağ gibi harita işaretleri coğrafyaya karıştırılmaz — altlarındaki arazi kesintisiz devam eder. Mevcut karayı değiştirir.</p>
         <button class="btn wide" id="btn-ref-clear" data-i18n="ref_clear">Referansı kaldır</button>
       </div>
     </div>
@@ -775,6 +777,21 @@
     <div class="modal-actions">
       <button class="btn" id="modal-cancel" data-i18n="cancel">Vazgeç</button>
       <button class="btn primary" id="modal-ok" data-i18n="ok">Tamam</button>
+    </div>
+  </div>
+</div>
+
+<!-- Referans taraması ilerleme bindirmesi. #modal'dan ayrı bir eleman:
+     modal statik gövde + tek OK/Cancel akışı için, bu ise canlı güncellenen
+     ve iptal edilebilen uzun bir işlem için. -->
+<div id="scan-progress" class="modal hidden" role="dialog" aria-modal="true"
+     aria-labelledby="scan-progress-title">
+  <div class="modal-box scan-box">
+    <h3 id="scan-progress-title" data-i18n="scan_title">Harita taranıyor</h3>
+    <div class="scan-track"><div class="scan-fill" id="scan-progress-fill"></div></div>
+    <div class="scan-stage" id="scan-progress-stage" aria-live="polite">—</div>
+    <div class="modal-actions">
+      <button class="btn" id="scan-progress-cancel" data-i18n="scan_cancel">İptal</button>
     </div>
   </div>
 </div>

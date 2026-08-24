@@ -980,6 +980,510 @@
       return best || { x:x, y:y };
     },
 
+    /* ================= REFERANS GÖRSELDEN COĞRAFYA TARAMASI =================
+       Yüklenen referans görselini okuyup kıyı/kara maskesini, iç gölleri ve
+       nehirleri çıkarır. ML/AI/ağ isteği YOK — tamamen klasik görüntü işleme:
+
+       1) HAZIRLIK  Görsel sabit bir çalışma ızgarasına (SCAN_GRID) indirgenir
+                    ve TEK getImageData ile okunur; sonraki hiçbir aşama piksel
+                    okumaz, hepsi tipli diziler üzerinde çalışır (autoBiome ve
+                    generateRivers'ın aynı deseni). Renk sınıflandırması için
+                    sabit bir "mavi = deniz" eşiği yerine k=2 k-ortalama
+                    kullanılıyor: görselin kendi baskın iki rengi bulunur, bu
+                    yüzden mavi denizli de parşömen tonlu da haritalar aynı
+                    kodla çalışır. Hangi kümenin deniz olduğuna, kenar
+                    çerçevesinde hangisinin baskın olduğuna bakarak karar
+                    verilir (haritalarda deniz kenarlara değer).
+
+       2) İŞARETLER Bağlı bileşenlerden küçük + kompakt olan VE atandığı renk
+                    kümesine uzak duran / kendi içinde alacalı olanlar "harita
+                    işareti" (şehir, dağ, kale ikonu...) sayılır. Kritik ayrım
+                    şu: gerçek bir gölet kendi renk kümesine yapışıktır ve
+                    düzdür; bir ikon ise iki kümeden birine MECBUREN atanmıştır,
+                    dolayısıyla merkezine uzaktır.
+
+       3) TEMİZLİK  Her işaret bölgesi, çevresindeki halkanın çoğunluk oyuyla
+                    doldurulur. Yani bir kale ikonunun altındaki arazi kesintisiz
+                    devam eder; ikon ne yanlış bir adaya ne de göle dönüşür.
+                    (Bu, kullanıcının açık talebi: "orada mevcut araziyi devam
+                    ettirmeli".) 2→3 aşamaları 4/5'ten ÖNCE çalışır, böylece
+                    coğrafya sınıflandırması işaretleri hiç görmez.
+
+       4) KIYI      Kenara bağlı deniz "okyanus"tur; kara maskesi basitçe
+                    okyanus OLMAYAN her hücredir. İç sular (göl/nehir) landmass
+                    açısından kara sayılır — çünkü bu editörde su, kara üstüne
+                    ayrı vektör nesnesi olarak çizilir ve karaya kırpılır.
+
+       5) SU        İç su bileşenleri çift-BFS ile ölçülür: bir uçtan en uzak
+                    hücre, oradan tekrar en uzak hücre — aradaki jeodezik yol
+                    ince bir yapının orta hattıdır (kıvrımlı nehirleri de doğru
+                    takip eder, ayrıca inceltme/thinning algoritmasına gerek
+                    kalmaz). Uzunluk²/alan oranı yüksekse nehir, düşükse göl.
+
+       6) YAZMA     landmass rasterine + rivers vektör katmanına TEK atomik
+                    History.pushCombo adımıyla yazılır.
+
+       Her piksel-yoğun aşama zaman bütçeli (~55ms) chunk döngüsü kullanır ve
+       aralarda setTimeout(0) ile ana iş parçacığına nefes aldırır — ilerleme
+       çubuğu gerçekten ilerler, sekme donmaz. opts.onProgress(stageIndex,
+       stageCount, stageKey, fraction) her chunk sınırında çağrılır.
+       opts.token.cancelled true olursa tarama hiçbir katmana DOKUNMADAN
+       iptal edilir (1-5. aşamalar yalnız bellekte çalışır; gerçek katman
+       mutasyonu sadece 6. aşamadadır — iptali ucuz ve güvenli kılan da bu). */
+    SCAN_GRID: 512,
+    SCAN_CHUNK_MS: 55,
+    SCAN_STAGES: ['scan_prepare', 'scan_markers', 'scan_clean',
+                  'scan_coast', 'scan_water', 'scan_commit'],
+
+    scanReferenceImage: function (opts) {
+      opts = opts || {};
+      var self = this;
+      var token = opts.token || {};
+      var onProgress = opts.onProgress || function () {};
+      var STAGES = this.SCAN_STAGES, NS = STAGES.length;
+
+      var refL = Layers.get('reference');
+      if (!refL || !refL.image) { UI.msg(UI.t('scan_noimage')); return Promise.resolve(false); }
+      var Lm = Layers.get('landmass'), Rv = Layers.get('rivers');
+      if (!Lm || !Rv) return Promise.resolve(false);
+      if (Lm.locked || Rv.locked) { UI.msg(UI.t('locked')); return Promise.resolve(false); }
+
+      var Wc = Lm.canvas.width, Hc = Lm.canvas.height;
+      var S = {};   /* aşamalar arası paylaşılan çalışma durumu */
+
+      /* Zaman bütçeli döngü. body(i) TEK bir birim işler ve birim daima
+         satır ya da bileşen granülaritesindedir — piksel başına
+         performance.now() çağırmak ölçümün kendisini darboğaz yapardı. */
+      function chunked(stage, total, body) {
+        return new Promise(function (resolve, reject) {
+          if (!total) { onProgress(stage, NS, STAGES[stage], 1); resolve(); return; }
+          var i = 0;
+          (function step() {
+            if (token.cancelled) { reject(new Error('scan:cancelled')); return; }
+            var t0 = performance.now();
+            while (i < total) {
+              body(i); i++;
+              if (performance.now() - t0 >= self.SCAN_CHUNK_MS) break;
+            }
+            onProgress(stage, NS, STAGES[stage], i / total);
+            if (i < total) { setTimeout(step, 0); return; }
+            resolve();
+          })();
+        });
+      }
+
+      /* ---------- 1) HAZIRLIK: indirge, oku, k=2 renk kümelemesi ---------- */
+      function stagePrepare() {
+        var img = refL.image;
+        var iw = img.naturalWidth || img.width || 0;
+        var ih = img.naturalHeight || img.height || 0;
+        if (!iw || !ih) return Promise.reject(new Error('scan:badimage'));
+
+        var k = Math.min(1, self.SCAN_GRID / Math.max(iw, ih));
+        var sw = Math.max(8, Math.round(iw * k));
+        var sh = Math.max(8, Math.round(ih * k));
+        var c = document.createElement('canvas'); c.width = sw; c.height = sh;
+        var cx = c.getContext('2d', { willReadFrequently:true });
+        cx.drawImage(img, 0, 0, sw, sh);
+        var d = cx.getImageData(0, 0, sw, sh).data;
+        var n = sw * sh;
+        S.sw = sw; S.sh = sh; S.n = n; S.d = d;
+        onProgress(0, NS, STAGES[0], 0.25);
+
+        /* Merkez tohumlaması deterministik: ortalamadan en uzak piksel A,
+           A'dan en uzak piksel B. Rastgele tohum kullansaydık aynı görsel
+           iki taramada farklı sonuç verebilirdi. */
+        var stride = Math.max(1, Math.floor(n / 3000)), i, q;
+        var mr = 0, mg = 0, mb = 0, cnt = 0;
+        for (i = 0; i < n; i += stride) { q = i*4; mr += d[q]; mg += d[q+1]; mb += d[q+2]; cnt++; }
+        mr /= cnt; mg /= cnt; mb /= cnt;
+        function farthestFrom(fr, fg, fb) {
+          var bi = 0, bd = -1;
+          for (var j = 0; j < n; j += stride) {
+            var p = j*4, dr = d[p]-fr, dg = d[p+1]-fg, db = d[p+2]-fb;
+            var dd = dr*dr + dg*dg + db*db;
+            if (dd > bd) { bd = dd; bi = j; }
+          }
+          return bi*4;
+        }
+        var ia = farthestFrom(mr, mg, mb);
+        var ar = d[ia], ag = d[ia+1], ab = d[ia+2];
+        var ib = farthestFrom(ar, ag, ab);
+        var br = d[ib], bg = d[ib+1], bb = d[ib+2];
+        for (var it = 0; it < 6; it++) {
+          var s0r=0,s0g=0,s0b=0,c0=0, s1r=0,s1g=0,s1b=0,c1=0;
+          for (i = 0; i < n; i += stride) {
+            q = i*4;
+            var r = d[q], g = d[q+1], b = d[q+2];
+            var e0 = (r-ar)*(r-ar) + (g-ag)*(g-ag) + (b-ab)*(b-ab);
+            var e1 = (r-br)*(r-br) + (g-bg)*(g-bg) + (b-bb)*(b-bb);
+            if (e0 <= e1) { s0r+=r; s0g+=g; s0b+=b; c0++; }
+            else          { s1r+=r; s1g+=g; s1b+=b; c1++; }
+          }
+          if (c0) { ar = s0r/c0; ag = s0g/c0; ab = s0b/c0; }
+          if (c1) { br = s1r/c1; bg = s1g/c1; bb = s1b/c1; }
+        }
+        S.centroidGap = Math.sqrt((ar-br)*(ar-br) + (ag-bg)*(ag-bg) + (ab-bb)*(ab-bb));
+        /* Tek renkli / ayrışmayan görsel: tarayacak coğrafya yok. */
+        if (S.centroidGap < 12) return Promise.reject(new Error('scan:flat'));
+
+        var cls = S.cls = new Uint8Array(n);
+        var resid = S.resid = new Float32Array(n);
+        return chunked(0, sh, function (y) {
+          var row = y*sw;
+          for (var x = 0; x < sw; x++) {
+            var idx = row + x, p = idx*4;
+            var r = d[p], g = d[p+1], b = d[p+2];
+            var e0 = (r-ar)*(r-ar) + (g-ag)*(g-ag) + (b-ab)*(b-ab);
+            var e1 = (r-br)*(r-br) + (g-bg)*(g-bg) + (b-bb)*(b-bb);
+            if (e0 <= e1) { cls[idx] = 0; resid[idx] = Math.sqrt(e0); }
+            else          { cls[idx] = 1; resid[idx] = Math.sqrt(e1); }
+          }
+        }).then(function () {
+          /* Deniz hangisi? Kenar çerçevesinde baskın olan küme. */
+          var b0 = 0, b1 = 0, x, y;
+          for (x = 0; x < sw; x++) {
+            if (cls[x]) b1++; else b0++;
+            if (cls[(sh-1)*sw + x]) b1++; else b0++;
+          }
+          for (y = 0; y < sh; y++) {
+            if (cls[y*sw]) b1++; else b0++;
+            if (cls[y*sw + sw-1]) b1++; else b0++;
+          }
+          S.sea = (b1 > b0) ? 1 : 0;
+        });
+      }
+
+      /* ---------- 2) İŞARET TESPİTİ: bağlı bileşen + ikon ölçütleri ---------- */
+      function stageMarkers() {
+        var sw = S.sw, sh = S.sh, n = S.n, cls = S.cls, d = S.d, resid = S.resid;
+        var label = S.label = new Int32Array(n);
+        for (var z = 0; z < n; z++) label[z] = -1;
+        var comps = S.comps = [];
+        /* Özyineleme yerine açık yığın — büyük düz alanlarda çağrı yığını
+           taşardı (floodFill'de öğrenilen ders). */
+        var stkX = S.stkX = new Int32Array(n), stkY = S.stkY = new Int32Array(n);
+
+        return chunked(1, sh, function (y) {
+          for (var x = 0; x < sw; x++) {
+            var start = y*sw + x;
+            if (label[start] !== -1) continue;
+            var cv = cls[start];
+            var id = comps.length;
+            var comp = { area:0, x0:x, y0:y, x1:x, y1:y, border:false,
+                         sumResid:0, sr:0, sg:0, sb:0, srr:0, sgg:0, sbb:0 };
+            comps.push(comp);
+            var sp = 0;
+            stkX[0] = x; stkY[0] = y; sp = 1; label[start] = id;
+            while (sp > 0) {
+              sp--;
+              var px = stkX[sp], py = stkY[sp], pi = py*sw + px;
+              comp.area++;
+              if (px < comp.x0) comp.x0 = px; else if (px > comp.x1) comp.x1 = px;
+              if (py < comp.y0) comp.y0 = py; else if (py > comp.y1) comp.y1 = py;
+              if (px === 0 || py === 0 || px === sw-1 || py === sh-1) comp.border = true;
+              comp.sumResid += resid[pi];
+              var q = pi*4, rr = d[q], gg = d[q+1], bb = d[q+2];
+              comp.sr += rr; comp.sg += gg; comp.sb += bb;
+              comp.srr += rr*rr; comp.sgg += gg*gg; comp.sbb += bb*bb;
+              var t;
+              if (px > 0)    { t = pi-1;  if (label[t] === -1 && cls[t] === cv) { label[t] = id; stkX[sp] = px-1; stkY[sp] = py; sp++; } }
+              if (px < sw-1) { t = pi+1;  if (label[t] === -1 && cls[t] === cv) { label[t] = id; stkX[sp] = px+1; stkY[sp] = py; sp++; } }
+              if (py > 0)    { t = pi-sw; if (label[t] === -1 && cls[t] === cv) { label[t] = id; stkX[sp] = px; stkY[sp] = py-1; sp++; } }
+              if (py < sh-1) { t = pi+sw; if (label[t] === -1 && cls[t] === cv) { label[t] = id; stkX[sp] = px; stkY[sp] = py+1; sp++; } }
+            }
+          }
+        }).then(function () {
+          var maxArea = Math.max(16, n * 0.006);
+          var maxDim  = Math.max(6, Math.round(Math.max(sw, sh) * 0.13));
+          var residCut = Math.max(18, S.centroidGap * 0.42);
+          var marker = S.marker = new Uint8Array(comps.length);
+          var found = 0;
+          for (var i = 0; i < comps.length; i++) {
+            var c = comps[i];
+            if (c.border || c.area < 3 || c.area > maxArea) continue;
+            var bw = c.x1 - c.x0 + 1, bh = c.y1 - c.y0 + 1;
+            if (bw > maxDim || bh > maxDim) continue;
+            if (c.area / (bw*bh) < 0.28) continue;   /* ince/dağınık → coğrafya olabilir */
+            var a = c.area;
+            var vr = c.srr/a - (c.sr/a)*(c.sr/a);
+            var vg = c.sgg/a - (c.sg/a)*(c.sg/a);
+            var vb = c.sbb/a - (c.sb/a)*(c.sb/a);
+            var sd = Math.sqrt(Math.max(0, (vr+vg+vb)/3));
+            if (c.sumResid/a > residCut || sd > 26) { marker[i] = 1; found++; }
+          }
+          S.markerCount = found;
+        });
+      }
+
+      /* ---------- 3) TEMİZLİK: işaretleri çevre araziyle doldur ---------- */
+      function stageClean() {
+        var sw = S.sw, sh = S.sh, cls = S.cls, label = S.label,
+            comps = S.comps, marker = S.marker;
+        var ids = [];
+        for (var i = 0; i < comps.length; i++) if (marker[i]) ids.push(i);
+
+        return chunked(2, ids.length, function (k) {
+          var id = ids[k], c = comps[id], pad = 2;
+          var x0 = Math.max(0, c.x0-pad), x1 = Math.min(sw-1, c.x1+pad);
+          var y0 = Math.max(0, c.y0-pad), y1 = Math.min(sh-1, c.y1+pad);
+          var v0 = 0, v1 = 0, x, y, i2;
+          for (y = y0; y <= y1; y++) {
+            for (x = x0; x <= x1; x++) {
+              i2 = y*sw + x;
+              var lb = label[i2];
+              if (lb >= 0 && marker[lb]) continue;   /* işaretin kendisi oy veremez */
+              if (cls[i2]) v1++; else v0++;
+            }
+          }
+          var win = (v1 > v0) ? 1 : 0;
+          for (y = c.y0; y <= c.y1; y++) {
+            for (x = c.x0; x <= c.x1; x++) {
+              i2 = y*sw + x;
+              if (label[i2] === id) cls[i2] = win;
+            }
+          }
+        });
+      }
+
+      /* ---------- 4) KIYI: okyanusu bul, kara maskesini boya ---------- */
+      function stageCoast() {
+        var sw = S.sw, sh = S.sh, n = S.n, cls = S.cls, sea = S.sea;
+        var ocean = S.ocean = new Uint8Array(n);
+        var qx = S.stkX, qy = S.stkY, sp = 0;
+        function seed(x, y) {
+          var i = y*sw + x;
+          if (ocean[i] || cls[i] !== sea) return;
+          ocean[i] = 1; qx[sp] = x; qy[sp] = y; sp++;
+        }
+        var x, y;
+        for (x = 0; x < sw; x++) { seed(x, 0); seed(x, sh-1); }
+        for (y = 0; y < sh; y++) { seed(0, y); seed(sw-1, y); }
+        while (sp > 0) {
+          sp--;
+          var px = qx[sp], py = qy[sp];
+          if (px > 0)    seed(px-1, py);
+          if (px < sw-1) seed(px+1, py);
+          if (py > 0)    seed(px, py-1);
+          if (py < sh-1) seed(px, py+1);
+        }
+
+        /* Kara = okyanus OLMAYAN her hücre. İç göl/nehir de kara sayılır:
+           bu editörde su, kara üstüne ayrı vektör nesnesi olarak çizilip
+           landmass'a kırpılıyor (bkz. renderMap'in 'rivers' dalı). */
+        var mc = document.createElement('canvas'); mc.width = sw; mc.height = sh;
+        var mctx = mc.getContext('2d');
+        var mid = mctx.createImageData(sw, sh), md = mid.data;
+        var col = hexToRgb(App.brush.color);
+        var landCells = 0;
+        return chunked(3, sh, function (yy) {
+          var row = yy*sw;
+          for (var xx = 0; xx < sw; xx++) {
+            var i = row + xx;
+            if (!ocean[i]) landCells++;
+            /* Alfa, 3×3 komşulukta karanın oranı — sert 0/255 yerine.
+               Tarama ızgarası tuvalden küçük olduğu için maske büyütülerek
+               çizilir; kenarları burada yumuşatmak, o büyütmede ortaya çıkan
+               merdiven basamaklarını (özellikle çapraz kıyılarda) tek bir
+               O(n) geçişle siliyor. Kıyı efekti ve isOnLand alfa eşiğiyle
+               çalıştığından, kıyı hücreleri hâlâ rahatlıkla "kara" tarafta
+               kalır. */
+            var lit = 0, tot = 0;
+            for (var dy = -1; dy <= 1; dy++) {
+              var ny = yy + dy;
+              if (ny < 0 || ny >= sh) continue;
+              for (var dx = -1; dx <= 1; dx++) {
+                var nx = xx + dx;
+                if (nx < 0 || nx >= sw) continue;
+                tot++;
+                if (!ocean[ny*sw + nx]) lit++;
+              }
+            }
+            if (!lit) continue;
+            var q = i*4;
+            md[q] = col.r; md[q+1] = col.g; md[q+2] = col.b;
+            md[q+3] = Math.round(255 * lit / tot);
+          }
+        }).then(function () {
+          if (!landCells) return Promise.reject(new Error('scan:noland'));
+          mctx.putImageData(mid, 0, 0);
+          S.maskCanvas = mc;
+        });
+      }
+
+      /* ---------- 5) SU: iç su bileşenleri → nehir / göl ---------- */
+      function stageWater() {
+        var sw = S.sw, sh = S.sh, n = S.n, cls = S.cls, sea = S.sea, ocean = S.ocean;
+        var wl = new Int32Array(n);
+        for (var z = 0; z < n; z++) wl[z] = -1;
+        var wcomps = [];
+        var stkX = S.stkX, stkY = S.stkY;
+
+        return chunked(4, sh, function (y) {
+          for (var x = 0; x < sw; x++) {
+            var start = y*sw + x;
+            if (wl[start] !== -1 || cls[start] !== sea || ocean[start]) continue;
+            var id = wcomps.length;
+            var comp = { cells:[], x0:x, y0:y, x1:x, y1:y };
+            wcomps.push(comp);
+            var sp = 0;
+            stkX[0] = x; stkY[0] = y; sp = 1; wl[start] = id;
+            while (sp > 0) {
+              sp--;
+              var px = stkX[sp], py = stkY[sp], pi = py*sw + px;
+              comp.cells.push(pi);
+              if (px < comp.x0) comp.x0 = px; else if (px > comp.x1) comp.x1 = px;
+              if (py < comp.y0) comp.y0 = py; else if (py > comp.y1) comp.y1 = py;
+              var t;
+              if (px > 0)    { t = pi-1;  if (wl[t] === -1 && cls[t] === sea && !ocean[t]) { wl[t] = id; stkX[sp] = px-1; stkY[sp] = py; sp++; } }
+              if (px < sw-1) { t = pi+1;  if (wl[t] === -1 && cls[t] === sea && !ocean[t]) { wl[t] = id; stkX[sp] = px+1; stkY[sp] = py; sp++; } }
+              if (py > 0)    { t = pi-sw; if (wl[t] === -1 && cls[t] === sea && !ocean[t]) { wl[t] = id; stkX[sp] = px; stkY[sp] = py-1; sp++; } }
+              if (py < sh-1) { t = pi+sw; if (wl[t] === -1 && cls[t] === sea && !ocean[t]) { wl[t] = id; stkX[sp] = px; stkY[sp] = py+1; sp++; } }
+            }
+          }
+        }).then(function () {
+          /* Çift-BFS jeodezik: A = herhangi bir uçtan en uzak hücre,
+             B = A'dan en uzak hücre. A→B yolu, ince bir yapının orta
+             hattını kıvrımlarıyla birlikte verir — inceltme gerekmez. */
+          var dist = new Int32Array(n), par = new Int32Array(n),
+              seen = new Int32Array(n), gen = 0, bq = new Int32Array(n);
+          function bfs(from, id) {
+            gen++;
+            var qh = 0, qt = 0, far = from;
+            bq[qt++] = from; seen[from] = gen; dist[from] = 0; par[from] = -1;
+            while (qh < qt) {
+              var cur = bq[qh++];
+              if (dist[cur] > dist[far]) far = cur;
+              var cxx = cur % sw, cyy = (cur - cxx) / sw;
+              for (var dy = -1; dy <= 1; dy++) {
+                var ny = cyy + dy;
+                if (ny < 0 || ny >= sh) continue;
+                for (var dx = -1; dx <= 1; dx++) {
+                  if (!dx && !dy) continue;
+                  var nx = cxx + dx;
+                  if (nx < 0 || nx >= sw) continue;
+                  var ni = ny*sw + nx;
+                  if (seen[ni] === gen || wl[ni] !== id) continue;
+                  seen[ni] = gen; dist[ni] = dist[cur] + 1; par[ni] = cur;
+                  bq[qt++] = ni;
+                }
+              }
+            }
+            return far;
+          }
+
+          var kx = Wc / sw, ky = Hc / sh;
+          var minArea = Math.max(6, Math.round(n * 0.00012));
+          var rivers = S.rivers = [], lakes = S.lakes = [];
+
+          for (var i = 0; i < wcomps.length; i++) {
+            var comp = wcomps[i];
+            var area = comp.cells.length;
+            if (area < minArea) continue;
+            var a1 = bfs(comp.cells[0], i);
+            var b1 = bfs(a1, i);
+            var L = dist[b1];
+            var elong = L*L / area;
+
+            if (L >= 8 && elong >= 4) {
+              /* --- NEHİR: jeodezik yolu geri yürü, seyrekleştir --- */
+              var path = [], cur = b1;
+              while (cur !== -1) { path.push(cur); cur = par[cur]; }
+              var want = Math.max(2, Math.min(28, Math.round(L / 6)));
+              var stepN = Math.max(1, Math.floor(path.length / want));
+              var pts = [];
+              for (var pI = 0; pI < path.length; pI += stepN) {
+                var ci = path[pI], cxp = ci % sw, cyp = (ci - cxp) / sw;
+                pts.push([(cxp + 0.5) * kx, (cyp + 0.5) * ky]);
+              }
+              var lastI = path[path.length-1], lx = lastI % sw, ly = (lastI - lx) / sw;
+              pts.push([(lx + 0.5) * kx, (ly + 0.5) * ky]);
+              if (pts.length >= 2) {
+                var cellW = area / Math.max(1, L);
+                rivers.push({
+                  id: uid(), pts: pts,
+                  width: Math.max(3, Math.min(60, cellW * kx * 0.9)),
+                  meander: 0, taper: false,
+                  color: App.river.color, opacity: 1
+                });
+              }
+            } else {
+              /* --- GÖL: merkezden ışınsal sınır poligonu (autoLakes ile
+                     aynı gösterim; Cv.lakeSmoothPts zaten yumuşatıyor) --- */
+              var sx = 0, sy = 0, m;
+              for (m = 0; m < area; m++) {
+                var ii = comp.cells[m], ix = ii % sw;
+                sx += ix; sy += (ii - ix) / sw;
+              }
+              var ccx = sx/area, ccy = sy/area;
+              var BINS = 16, rad = new Float64Array(BINS);
+              for (m = 0; m < area; m++) {
+                var jj = comp.cells[m], jx = jj % sw, jy = (jj - jx) / sw;
+                var ddx = jx - ccx, ddy = jy - ccy;
+                var ang = Math.atan2(ddy, ddx);
+                var bi = Math.floor((ang + Math.PI) / (Math.PI*2) * BINS) % BINS;
+                var rr2 = Math.sqrt(ddx*ddx + ddy*ddy);
+                if (rr2 > rad[bi]) rad[bi] = rr2;
+              }
+              var lpts = [];
+              for (m = 0; m < BINS; m++) {
+                if (!rad[m]) {   /* boş bin: komşuların ortalamasıyla doldur */
+                  var pv = rad[(m-1+BINS)%BINS], nv = rad[(m+1)%BINS];
+                  rad[m] = (pv + nv) / 2 || 1;
+                }
+                var aa = (m / BINS) * Math.PI*2 - Math.PI;
+                lpts.push([(ccx + Math.cos(aa)*rad[m] + 0.5) * kx,
+                           (ccy + Math.sin(aa)*rad[m] + 0.5) * ky]);
+              }
+              lakes.push({ id: uid(), kind: 'lake', pts: lpts,
+                           color: App.lake.color, opacity: App.lake.opacity });
+            }
+          }
+        });
+      }
+
+      /* ---------- 6) YAZMA: tek atomik History adımı ---------- */
+      function stageCommit() {
+        onProgress(5, NS, STAGES[5], 0.2);
+        var beforeLand = snap(Lm.canvas);
+        var beforeRivers = JSON.parse(JSON.stringify(Rv.objects));
+
+        Lm.ctx.clearRect(0, 0, Wc, Hc);
+        Lm.ctx.save();
+        Lm.ctx.imageSmoothingEnabled = true;
+        if ('imageSmoothingQuality' in Lm.ctx) Lm.ctx.imageSmoothingQuality = 'high';
+        Lm.ctx.drawImage(S.maskCanvas, 0, 0, Wc, Hc);
+        Lm.ctx.restore();
+
+        var i;
+        for (i = 0; i < S.rivers.length; i++) Rv.objects.push(S.rivers[i]);
+        for (i = 0; i < S.lakes.length; i++)  Rv.objects.push(S.lakes[i]);
+
+        History.pushCombo(
+          [{ layerId:'landmass', beforeCanvas:beforeLand, afterCanvas:snap(Lm.canvas) }],
+          { x:0, y:0, w:Wc, h:Hc },
+          [{ layerId:'rivers', before:beforeRivers,
+             after: JSON.parse(JSON.stringify(Rv.objects)) }],
+          'refscan');
+
+        Cv.shoreDirty = true; Cv.elevationDirty = true;
+        UI.refreshHistory();
+        Cv.requestRender();
+        onProgress(5, NS, STAGES[5], 1);
+        return {
+          rivers: S.rivers.length, lakes: S.lakes.length,
+          markers: S.markerCount || 0
+        };
+      }
+
+      return stagePrepare()
+        .then(stageMarkers)
+        .then(stageClean)
+        .then(stageCoast)
+        .then(stageWater)
+        .then(stageCommit);
+    },
+
     /* ================= RASTER LASSO SEÇİMİ (kaldır / taşı / döndür) =================
        Kara + Arazi + Yükselti katmanlarını aynı coğrafi bölge için birlikte ele alır:
        serbest-el lasso ile kapalı bir alan çizilir → o alandaki pikseller üç katmandan

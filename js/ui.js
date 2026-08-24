@@ -78,7 +78,7 @@
       regions_maptree:'Harita ağacı',
       todo_placeholder:'Yeni görev...', todo_add:'Ekle', todo_empty:'Henüz görev yok.',
       panel_toggle_left:'Sol paneli aç/kapat', panel_toggle_right:'Sağ paneli aç/kapat',
-      ref_title:'Referans görsel', ref_export:"Export'a dahil et", ref_clear:'Referansı kaldır', ref_trace:'İz sürme modu (üstte göster + kıyı kenetleme)', layer_drag_hint:'Katmanı sürükleyip yeniden sıralamak için buradan tutun', blend_sourceover:'Normal', blend_multiply:'Çarpma', blend_overlay:'Bindirme', blend_softlight:'Yumuşak ışık', blend_screen:'Ekranlama', nav_home:'Ana Sayfa', nav_canvas:'Tuval', nav_tutorial:'Rehber', nav_community:'Topluluk', home_tagline:'Fantastik dünyalar için tarayıcı tabanlı harita editörü', home_desc:'Kara ve deniz sınırlarını çiz, ormanları ve dağları boya, kaleler ve köyler yerleştir, nehirler ve yollar döşe — hepsi tek bir tuvalde, kurulum gerektirmeden tarayıcında.', home_cta:'Haritana başla', home_video_caption:'Tanıtım videosu yakında', canvas_new_title:'Yeni tuval oluştur', canvas_custom:'Özel ölçü…', canvas_name_ph:'Harita adı', canvas_create:'Oluştur', canvas_import:'.json dosyasından içe aktar', canvas_saved_title:'Kayıtlı tuvaller', canvas_empty:'Bu tarayıcıda henüz kayıtlı bir tuval yok. Editördeyken "Kaydet" ile otomatik burada listelenir.', canvas_open:'Aç', canvas_delete:'Sil', canvas_delete_confirm:'Bu tuvali silmek istediğine emin misin? Bu işlem geri alınamaz.', canvas_unnamed:'Adsız harita', tutorial_title:'Rehber', tutorial_intro:'Sol araç çubuğundaki her araç, sağ panelde kendi ayarlarını açar. Aşağıda her aracın ne işe yaradığının kısa özeti var.', community_title:'Topluluk', community_desc:'Wayborne Map Editor açık kaynaklı, sürekli gelişen bir projedir.', community_github_desc:'Kaynak kod, hata bildirimi ve katkı', community_soon:'Yakında', lib_full:'Tarayıcı depolama alanı dolu — eski bir tuvali sil ya da .json olarak dışa aktar.', tut_h_select:'Nesneleri seç, taşı, döndür; Shift ile çoklu seçim yap.', tut_h_erase:'Boyanmış karayı ve üzerindeki arazi dokusunu tek adımda siler.', tut_h_fill:'Kapalı bir kıyı çevriminin içini tek tıkla doldurur.', tut_h_river:'Tıklayarak nokta ekle, akarsu çiz; Enter ile bitir.', tut_h_road:'Tıklayarak nokta ekle, yol çiz; Enter ile bitir.',
+      ref_title:'Referans görsel', ref_export:"Export'a dahil et", ref_clear:'Referansı kaldır', ref_trace:'İz sürme modu (üstte göster + kıyı kenetleme)', ref_scan:'⌖ Coğrafyayı tara', h_ref_scan:'Referans görseldeki kıyı, göl ve nehirleri otomatik çıkarır. Şehir/dağ gibi harita işaretleri coğrafyaya karıştırılmaz — altlarındaki arazi kesintisiz devam eder. Mevcut karayı değiştirir.', scan_title:'Harita taranıyor', scan_cancel:'İptal', scan_prepare:'Görsel hazırlanıyor', scan_markers:'Harita işaretleri ayıklanıyor', scan_clean:'İşaretlerin altındaki arazi tamamlanıyor', scan_coast:'Kıyı çizgisi çıkarılıyor', scan_water:'Nehir ve göller ayrıştırılıyor', scan_commit:'Katmanlara yazılıyor', scan_noimage:'Önce bir referans görsel yükleyin.', scan_flat:'Görselde birbirinden ayrışan iki renk bölgesi bulunamadı — kara/deniz ayrımı çıkarılamıyor.', scan_noland:'Görselde kara bulunamadı.', scan_failed:'Tarama tamamlanamadı.', scan_done:'Tarama tamam — {r} nehir, {l} göl; {m} harita işareti coğrafyaya karıştırılmadı.', layer_drag_hint:'Katmanı sürükleyip yeniden sıralamak için buradan tutun', blend_sourceover:'Normal', blend_multiply:'Çarpma', blend_overlay:'Bindirme', blend_softlight:'Yumuşak ışık', blend_screen:'Ekranlama', nav_home:'Ana Sayfa', nav_canvas:'Tuval', nav_tutorial:'Rehber', nav_community:'Topluluk', home_tagline:'Fantastik dünyalar için tarayıcı tabanlı harita editörü', home_desc:'Kara ve deniz sınırlarını çiz, ormanları ve dağları boya, kaleler ve köyler yerleştir, nehirler ve yollar döşe — hepsi tek bir tuvalde, kurulum gerektirmeden tarayıcında.', home_cta:'Haritana başla', home_video_caption:'Tanıtım videosu yakında', canvas_new_title:'Yeni tuval oluştur', canvas_custom:'Özel ölçü…', canvas_name_ph:'Harita adı', canvas_create:'Oluştur', canvas_import:'.json dosyasından içe aktar', canvas_saved_title:'Kayıtlı tuvaller', canvas_empty:'Bu tarayıcıda henüz kayıtlı bir tuval yok. Editördeyken "Kaydet" ile otomatik burada listelenir.', canvas_open:'Aç', canvas_delete:'Sil', canvas_delete_confirm:'Bu tuvali silmek istediğine emin misin? Bu işlem geri alınamaz.', canvas_unnamed:'Adsız harita', tutorial_title:'Rehber', tutorial_intro:'Sol araç çubuğundaki her araç, sağ panelde kendi ayarlarını açar. Aşağıda her aracın ne işe yaradığının kısa özeti var.', community_title:'Topluluk', community_desc:'Wayborne Map Editor açık kaynaklı, sürekli gelişen bir projedir.', community_github_desc:'Kaynak kod, hata bildirimi ve katkı', community_soon:'Yakında', lib_full:'Tarayıcı depolama alanı dolu — eski bir tuvali sil ya da .json olarak dışa aktar.', tut_h_select:'Nesneleri seç, taşı, döndür; Shift ile çoklu seçim yap.', tut_h_erase:'Boyanmış karayı ve üzerindeki arazi dokusunu tek adımda siler.', tut_h_fill:'Kapalı bir kıyı çevriminin içini tek tıkla doldurur.', tut_h_river:'Tıklayarak nokta ekle, akarsu çiz; Enter ile bitir.', tut_h_road:'Tıklayarak nokta ekle, yol çiz; Enter ile bitir.',
       sym_upload:'+ PNG Sembol yükle', sym_upload_done:'sembol yüklendi', sym_del:'Sil', sym_search:'Sembol ara...', sym_recent:'Son kullanılanlar',
       st_pos:'Konum', st_zoom:'Yakınlık', st_size:'Tuval', st_tool:'Araç',
       cancel:'Vazgeç', ok:'Tamam',
@@ -165,7 +165,7 @@
       regions_maptree:'Map tree',
       todo_placeholder:'New task...', todo_add:'Add', todo_empty:'No tasks yet.',
       panel_toggle_left:'Toggle left panel', panel_toggle_right:'Toggle right panel',
-      ref_title:'Reference image', ref_export:'Include in export', ref_clear:'Remove reference', ref_trace:'Trace mode (show on top + coastline snap)', layer_drag_hint:'Grab here to drag and reorder the layer', blend_sourceover:'Normal', blend_multiply:'Multiply', blend_overlay:'Overlay', blend_softlight:'Soft light', blend_screen:'Screen', nav_home:'Home', nav_canvas:'Canvas', nav_tutorial:'Tutorial', nav_community:'Community', home_tagline:'A browser-based map editor for fantasy worlds', home_desc:'Draw land and sea boundaries, paint forests and mountains, place castles and villages, lay down rivers and roads — all on one canvas, in your browser, no install required.', home_cta:'Start your map', home_video_caption:'Intro video coming soon', canvas_new_title:'Create a new canvas', canvas_custom:'Custom size…', canvas_name_ph:'Map name', canvas_create:'Create', canvas_import:'Import from .json file', canvas_saved_title:'Saved canvases', canvas_empty:'No canvases saved in this browser yet. They\'re listed here automatically when you hit "Save" in the editor.', canvas_open:'Open', canvas_delete:'Delete', canvas_delete_confirm:'Delete this canvas? This cannot be undone.', canvas_unnamed:'Untitled map', tutorial_title:'Tutorial', tutorial_intro:'Each tool in the left toolbar opens its own settings in the right panel. Below is a quick summary of what each tool does.', community_title:'Community', community_desc:'Wayborne Map Editor is an open-source, actively evolving project.', community_github_desc:'Source code, bug reports and contributions', community_soon:'Coming soon', lib_full:'Browser storage is full — delete an old canvas or export it as .json.', tut_h_select:'Select, move and rotate objects; Shift-click for multi-select.', tut_h_erase:'Erases painted land and the terrain texture on top of it in one step.', tut_h_fill:'Fills the inside of a closed coastline outline with one click.', tut_h_river:'Click to add points and draw a river; Enter to finish.', tut_h_road:'Click to add points and draw a road; Enter to finish.',
+      ref_title:'Reference image', ref_export:'Include in export', ref_clear:'Remove reference', ref_trace:'Trace mode (show on top + coastline snap)', ref_scan:'⌖ Scan geography', h_ref_scan:'Extracts the coastline, lakes and rivers from the reference image. Map markers such as cities and mountains are kept out of the geography — the terrain beneath them continues uninterrupted. Replaces the current land.', scan_title:'Scanning map', scan_cancel:'Cancel', scan_prepare:'Preparing image', scan_markers:'Picking out map markers', scan_clean:'Filling terrain under markers', scan_coast:'Extracting coastline', scan_water:'Separating rivers and lakes', scan_commit:'Writing to layers', scan_noimage:'Load a reference image first.', scan_flat:'No two distinct colour regions found in the image — land and sea cannot be told apart.', scan_noland:'No land found in the image.', scan_failed:'The scan could not be completed.', scan_done:'Scan complete — {r} rivers, {l} lakes; {m} map markers kept out of the geography.', layer_drag_hint:'Grab here to drag and reorder the layer', blend_sourceover:'Normal', blend_multiply:'Multiply', blend_overlay:'Overlay', blend_softlight:'Soft light', blend_screen:'Screen', nav_home:'Home', nav_canvas:'Canvas', nav_tutorial:'Tutorial', nav_community:'Community', home_tagline:'A browser-based map editor for fantasy worlds', home_desc:'Draw land and sea boundaries, paint forests and mountains, place castles and villages, lay down rivers and roads — all on one canvas, in your browser, no install required.', home_cta:'Start your map', home_video_caption:'Intro video coming soon', canvas_new_title:'Create a new canvas', canvas_custom:'Custom size…', canvas_name_ph:'Map name', canvas_create:'Create', canvas_import:'Import from .json file', canvas_saved_title:'Saved canvases', canvas_empty:'No canvases saved in this browser yet. They\'re listed here automatically when you hit "Save" in the editor.', canvas_open:'Open', canvas_delete:'Delete', canvas_delete_confirm:'Delete this canvas? This cannot be undone.', canvas_unnamed:'Untitled map', tutorial_title:'Tutorial', tutorial_intro:'Each tool in the left toolbar opens its own settings in the right panel. Below is a quick summary of what each tool does.', community_title:'Community', community_desc:'Wayborne Map Editor is an open-source, actively evolving project.', community_github_desc:'Source code, bug reports and contributions', community_soon:'Coming soon', lib_full:'Browser storage is full — delete an old canvas or export it as .json.', tut_h_select:'Select, move and rotate objects; Shift-click for multi-select.', tut_h_erase:'Erases painted land and the terrain texture on top of it in one step.', tut_h_fill:'Fills the inside of a closed coastline outline with one click.', tut_h_river:'Click to add points and draw a river; Enter to finish.', tut_h_road:'Click to add points and draw a road; Enter to finish.',
       sym_upload:'+ Upload PNG Symbol', sym_upload_done:'symbol(s) loaded', sym_del:'Delete', sym_search:'Search symbols...', sym_recent:'Recently used',
       st_pos:'Pos', st_zoom:'Zoom', st_size:'Canvas', st_tool:'Tool',
       cancel:'Cancel', ok:'OK',
@@ -2059,6 +2059,41 @@
         Cv.requestRender();
       });
 
+      /* --- referans görselden coğrafya taraması --- */
+      on('scan-progress-cancel', 'click', function () {
+        /* Bayrağı kaldırmak yeterli: tarama her chunk sınırında yokluyor
+           ve hiçbir katmana dokunmadan geri sarılıyor. */
+        if (self._scanToken) self._scanToken.cancelled = true;
+      });
+      on('btn-ref-scan', 'click', function () {
+        var L = Layers.get('reference');
+        if (!L || !L.image) { self.msg(self.t('scan_noimage')); return; }
+        /* Mevcut karayı değiştiren yıkıcı bir içe aktarma — her seferinde
+           onay iste (landgen'in tek seferlik uyarısından farklı olarak bu
+           işlem nadir ve daha geniş kapsamlı). */
+        self.modal(self.t('ref_scan'), '<p>' + self.t('h_ref_scan') + '</p>', function () {
+          var token = { cancelled:false };
+          self.showScanProgress(token);
+          Tools.scanReferenceImage({
+            token: token,
+            onProgress: function (si, sc, sk, f) { self.updateScanProgress(si, sc, sk, f); }
+          }).then(function (res) {
+            self.hideScanProgress();
+            if (res && typeof res === 'object') {
+              self.msg(self.t('scan_done')
+                .replace('{r}', res.rivers).replace('{l}', res.lakes).replace('{m}', res.markers));
+            }
+          })['catch'](function (err) {
+            self.hideScanProgress();
+            var m = String((err && err.message) || '');
+            if (m.indexOf('cancelled') >= 0) return;   /* kullanıcı iptali: sessiz */
+            self.msg(self.t(m.indexOf('flat') >= 0   ? 'scan_flat'
+                          : m.indexOf('noland') >= 0 ? 'scan_noland'
+                          : 'scan_failed'));
+          });
+        });
+      });
+
       /* --- custom PNG sembol --- */
       on('btn-sym-upload', 'click', function () { $('sym-file').click(); });
       on('sym-file', 'change', function (e) {
@@ -3008,6 +3043,46 @@
     },
 
     /* ================= modal ================= */
+    /* ================= referans taraması ilerleme bindirmesi =================
+       modal() bu iş için uygun değil: statik gövde + tek OK/Cancel akışı.
+       Burada canlı güncellenen, aşamasını yazan ve iptal edilebilen uzun
+       soluklu bir işlem var — bu yüzden ayrı bir bindirme. */
+    _scanToken: null,
+
+    showScanProgress: function (token) {
+      this._scanToken = token;
+      var el = $('scan-progress');
+      if (!el) return;
+      $('scan-progress-fill').style.width = '0%';
+      $('scan-progress-stage').textContent = '';
+      el.classList.remove('hidden');
+    },
+
+    updateScanProgress: function (stageIndex, stageCount, stageKey, fraction) {
+      var fill = $('scan-progress-fill'), stage = $('scan-progress-stage');
+      if (!fill || !stage) return;
+      var f = Math.max(0, Math.min(1, fraction || 0));
+      var pct = Math.max(0, Math.min(100, Math.round(((stageIndex + f) / stageCount) * 100)));
+      fill.style.width = pct + '%';
+      /* textContent + iki ayrı span: aşama adı sola, yüzde sağa yaslanır
+         (bkz. .scan-stage). innerHTML yerine düğüm kurmak, çeviri
+         metinlerinin içindeki olası < > karakterlerini de güvene alır. */
+      stage.textContent = '';
+      var label = document.createElement('span');
+      label.textContent = this.t(stageKey);
+      var num = document.createElement('span');
+      num.className = 'scan-pct';
+      num.textContent = (this.lang === 'tr') ? ('%' + pct) : (pct + '%');
+      stage.appendChild(label);
+      stage.appendChild(num);
+    },
+
+    hideScanProgress: function () {
+      this._scanToken = null;
+      var el = $('scan-progress');
+      if (el) el.classList.add('hidden');
+    },
+
     modal: function (title, bodyHTML, onOk) {
       $('modal-title').textContent = title;
       var body = $('modal-body');
