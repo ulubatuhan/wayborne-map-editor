@@ -233,6 +233,18 @@
         this._touches[e.pointerId] = { x:e.clientX, y:e.clientY };
         var tids = Object.keys(this._touches);
         if (tids.length >= 2) {
+          /* İkinci parmak pinch niyetiyle indiğinde, birinci parmağın
+             AZ ÖNCE tek başına indiği an (river/road/vb. bir yol aracında)
+             zaten bir addPathPoint() tetiklemiş olabilir — ikinci parmağın
+             geleceği henüz bilinmediği için bu kaçınılmaz. Burada, o nokta
+             gerçekten bu pinch'in başlangıcıysa (aynı araç, <250ms önce)
+             geri alınır, böylece istemsiz bir yol noktası kalmaz. */
+          if (this._lastTouchPoint && this._lastTouchPoint.tool === App.tool &&
+              Date.now() - this._lastTouchPoint.ts < 250 && this.pathPts.length) {
+            this.pathPts.pop();
+            this._lastTouchPoint = null;
+            UI.refreshTouchActions();
+          }
           if (!this._pinch) this.onUp();
           var ta = this._touches[tids[0]], tb = this._touches[tids[1]];
           this._pinch = { dist: Math.hypot(ta.x-tb.x, ta.y-tb.y) };
@@ -2461,6 +2473,7 @@
       if (L.locked || !L.visible) { UI.msg(UI.t('locked')); return; }
       this.pathPts.push([snp.x, snp.y]);
       this.pathHover = snp;
+      this._lastTouchPoint = (this._lastPointerType === 'touch') ? { tool:App.tool, ts:Date.now() } : null;
       UI.refreshTouchActions();
     },
 
