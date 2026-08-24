@@ -160,6 +160,39 @@ async function run() {
         check('paylasim gorunumu acildi', sharedOk === true && !document.getElementById('view-share').classList.contains('hidden'));
         history.replaceState(null, '', location.pathname);
 
+        /* ---- 8) dokunmatik yol bitir/iptal/geri-al eylem çubuğu ---- */
+        var tpaBar = document.getElementById('touch-path-actions');
+        check('touch-path-actions basta gizli', tpaBar.classList.contains('hidden'));
+        App.tool = 'river'; Tools.pathPts = [];
+        Tools.addPathPoint({x:10,y:10});
+        check('nokta eklenince cubuk gorunur', !tpaBar.classList.contains('hidden'));
+        Tools.addPathPoint({x:50,y:10});
+        document.getElementById('tpa-undo').click();
+        check('tpa-undo son noktayi geri aldi', Tools.pathPts.length === 1);
+        document.getElementById('tpa-cancel').click();
+        check('tpa-cancel yolu iptal etti ve cubugu gizledi', Tools.pathPts.length === 0 && tpaBar.classList.contains('hidden'));
+        Tools.addPathPoint({x:10,y:10}); Tools.addPathPoint({x:50,y:10});
+        var riverCountBefore = Layers.get('rivers').objects.length;
+        document.getElementById('tpa-finish').click();
+        check('tpa-finish yolu bitirdi ve cubugu gizledi', Layers.get('rivers').objects.length === riverCountBefore + 1 && tpaBar.classList.contains('hidden'));
+
+        /* dokunma tutamac isabet yaricapi buyutulmus mu (sembol koseleri,
+           deterministik geometri: resizeHandlePositions dondurulmemis
+           sembolde tam olarak x±size/2, y±size/2 verir) */
+        var beforeR = Tools._lastPointerType;
+        var beforeZoom = Cv.zoom; Cv.zoom = 1;
+        var testSym = { id:uid(), sym:'castle', x:500, y:500, size:40, rot:0, hue:0, opacity:1 };
+        Layers.get('symbols').objects.push(testSym);
+        App.selection = { layerId:'symbols', id: testSym.id };
+        var cornerPt = { x:500-20+13, y:500-20 }; /* koseden 13px icerde: mouse (8px) kacirir, touch (18px) yakalar */
+        Tools._lastPointerType = 'touch';
+        var touchHit = Tools.hitTestResizeHandle(cornerPt);
+        Tools._lastPointerType = 'mouse';
+        var mouseHit = Tools.hitTestResizeHandle(cornerPt);
+        Tools._lastPointerType = beforeR; Cv.zoom = beforeZoom;
+        Layers.get('symbols').objects.pop();
+        check('touch modunda tutamac isabet yaricapi mouse\\'tan genis', !!touchHit && !mouseHit);
+
         window.__testResults = results;
         window.__testPass = results.every(function (r) { return r.endsWith('PASS'); });
         window.__testDone = true;

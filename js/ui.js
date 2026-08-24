@@ -33,7 +33,8 @@
       t_river:'Nehir', t_road:'Yol', t_label:'Etiket', t_pan:'Kaydır', t_eyedrop:'Örnekle', t_measure:'Ölç', h_measure:'Tıklayarak nokta ekle, çok parçalı bir mesafe ölçün. Enter / çift tık ile bitir, Esc ile iptal. Ölçüm çizgileri seçilip taşınabilir/silinebilir; PNG/SVG çıktısına dahil edilmez.',
       sc_title:'Klavye kısayolları', sc_general:'Genel', sc_undo:'Geri al', sc_redo:'Yinele', sc_save:'Kaydet',
       sc_pan:'Kaydır', sc_panfast:'Hızlı kaydır', sc_zoom:'Yakınlaştır / uzaklaştır', sc_fit:'Tümünü sığdır',
-      sc_finish:'Yolu bitir', sc_cancel:'İptal / seçimi kaldır', sc_delete:'Seçileni sil', sc_rotsym:'Sembolü döndür', sc_help:'Bu ekranı aç', t_lasso:'Kement', h_lasso:'Sürükleyerek kapalı bir alan çiz: Kara + Arazi + Yükselti o alanda birlikte kaldırılıp taşınabilir hâle gelir. Sürükleyerek taşı, üstteki tutamaçla döndür. Enter ile onayla, Escape ile iptal et, Delete ile alanı tamamen sil.',
+      sc_finish:'Yolu bitir', sc_cancel:'İptal / seçimi kaldır', sc_delete:'Seçileni sil', sc_rotsym:'Sembolü döndür', sc_help:'Bu ekranı aç',
+      tpa_undo:'Son noktayı geri al', tpa_finish:'Bitir', tpa_cancel:'İptal', t_lasso:'Kement', h_lasso:'Sürükleyerek kapalı bir alan çiz: Kara + Arazi + Yükselti o alanda birlikte kaldırılıp taşınabilir hâle gelir. Sürükleyerek taşı, üstteki tutamaçla döndür. Enter ile onayla, Escape ile iptal et, Delete ile alanı tamamen sil.',
       o_landmass:'Kara / Kıyı', o_brushsize:'Fırça boyutu', o_rough:'Kıyı sertliği',
       o_landcolor:'Kara rengi', o_seacolor:'Deniz rengi', o_shorew:'Kıyı genişliği', o_shorestyle:'Kıyı stili', o_shore_sandy:'Kumsal', o_shore_rocky:'Kayalık', o_shore_reef:'Resif',
       o_smooth:'Kıyıyı yumuşat', o_clearland:'Karayı temizle',
@@ -119,7 +120,8 @@
       t_river:'River', t_road:'Road', t_label:'Label', t_pan:'Pan', t_eyedrop:'Sample', t_measure:'Measure', h_measure:'Click to add points and measure a multi-segment distance. Enter / double-click to finish, Esc to cancel. Measurement lines can be selected, moved, or deleted; they are excluded from PNG/SVG export.',
       sc_title:'Keyboard shortcuts', sc_general:'General', sc_undo:'Undo', sc_redo:'Redo', sc_save:'Save',
       sc_pan:'Pan', sc_panfast:'Pan faster', sc_zoom:'Zoom in / out', sc_fit:'Fit to view',
-      sc_finish:'Finish path', sc_cancel:'Cancel / deselect', sc_delete:'Delete selection', sc_rotsym:'Rotate symbol', sc_help:'Open this screen', t_lasso:'Lasso', h_lasso:'Drag to draw a closed area: Land + Terrain + Elevation are lifted together within it and become movable. Drag to move, use the top handle to rotate. Enter to commit, Escape to cancel, Delete to remove the area entirely.',
+      sc_finish:'Finish path', sc_cancel:'Cancel / deselect', sc_delete:'Delete selection', sc_rotsym:'Rotate symbol', sc_help:'Open this screen',
+      tpa_undo:'Undo last point', tpa_finish:'Finish', tpa_cancel:'Cancel', t_lasso:'Lasso', h_lasso:'Drag to draw a closed area: Land + Terrain + Elevation are lifted together within it and become movable. Drag to move, use the top handle to rotate. Enter to commit, Escape to cancel, Delete to remove the area entirely.',
       o_landmass:'Landmass / Coast', o_brushsize:'Brush size', o_rough:'Coast roughness',
       o_landcolor:'Land colour', o_seacolor:'Sea colour', o_shorew:'Shore width', o_shorestyle:'Shore style', o_shore_sandy:'Sandy', o_shore_rocky:'Rocky', o_shore_reef:'Reef',
       o_smooth:'Smooth coastline', o_clearland:'Clear landmass',
@@ -1894,6 +1896,11 @@
 
       /* --- seçim --- */
       on('btn-del', 'click', function () { Tools.deleteSelection(); });
+
+      /* --- yol/kement dokunma eylemleri --- */
+      on('tpa-finish', 'click', function () { self.finishOrCommit(); });
+      on('tpa-cancel', 'click', function () { self.cancelOrDeselect(); });
+      on('tpa-undo',   'click', function () { self.undoPointOrDelete(); });
       on('btn-dup', 'click', function () { Tools.duplicateSelection(); });
       on('btn-group',   'click', function () { Tools.groupSelection(); });
       on('btn-ungroup', 'click', function () { Tools.ungroupSelection(); });
@@ -2711,6 +2718,34 @@
       if ($('btn-redo')) $('btn-redo').disabled = !History.canRedo();
     },
 
+    /* ================= yol/kement bitirme-iptal-geri al (klavye + dokunma) =================
+       Enter/Escape/Delete tuşları ve #touch-path-actions'taki dokunma
+       düğmeleri aynı bu üç fonksiyonu çağırır — davranış hiçbir zaman
+       birbirinden sapmaz. */
+    finishOrCommit: function () {
+      if (Tools.floating) Tools.commitFloating(); else Tools.finishPath();
+    },
+    cancelOrDeselect: function () {
+      if (Tools.floating) { Tools.cancelFloating(); return; }
+      Tools.cancelPath(); App.selection = null; this.refreshSelection();
+    },
+    undoPointOrDelete: function () {
+      if (Tools.floating) { Tools.deleteFloating(); return; }
+      if (!Tools.undoPathPoint()) Tools.deleteSelection();
+    },
+
+    /* Yol çizimi (nehir/yol/bölge/göl/ölçüm) sürerken ya da bir kement
+       kaldırması (Tools.floating) aktifken dokunmatik/klavyesiz kullanıcılar
+       için yüzen bitir/iptal/geri-al düğmelerini göster. Tools.js'teki her
+       ilgili durum değişikliğinden (nokta ekleme, yolu bitirme/iptal, kement
+       kaldırma/onaylama/iptal/silme) çağrılır. */
+    refreshTouchActions: function () {
+      var bar = $('touch-path-actions');
+      if (!bar) return;
+      var show = !!Tools.floating || (Tools.pathPts && Tools.pathPts.length > 0);
+      bar.classList.toggle('hidden', !show);
+    },
+
     /* ================= seçim paneli ================= */
     refreshSelection: function () {
       var box = $('sel-info');
@@ -3055,16 +3090,9 @@
         if (ev.key === 'ArrowUp')    { ev.preventDefault(); Cv.panBy(0,  step); return; }
         if (ev.key === 'ArrowDown')  { ev.preventDefault(); Cv.panBy(0, -step); return; }
 
-        if (ev.key === 'Enter') { if (Tools.floating) Tools.commitFloating(); else Tools.finishPath(); return; }
-        if (ev.key === 'Escape') {
-          if (Tools.floating) { Tools.cancelFloating(); return; }
-          Tools.cancelPath(); App.selection = null; self.refreshSelection(); return;
-        }
-        if (ev.key === 'Delete' || ev.key === 'Backspace') {
-          if (Tools.floating) { Tools.deleteFloating(); return; }
-          if (!Tools.undoPathPoint()) Tools.deleteSelection();
-          return;
-        }
+        if (ev.key === 'Enter') { self.finishOrCommit(); return; }
+        if (ev.key === 'Escape') { self.cancelOrDeselect(); return; }
+        if (ev.key === 'Delete' || ev.key === 'Backspace') { self.undoPointOrDelete(); return; }
         if (ev.key === '+' || ev.key === '=') { Cv.setZoom(Cv.zoom*1.15); return; }
         if (ev.key === '-') { Cv.setZoom(Cv.zoom/1.15); return; }
         if (ev.key === '0') { Cv.fit(); return; }

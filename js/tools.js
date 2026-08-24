@@ -219,6 +219,11 @@
 
     /* ================= POINTER DOWN ================= */
     onDown: function (e) {
+      /* dokunma/kalem/fare ayrımı: bezier ve yeniden boyutlandırma tutamaç
+         isabet yarıçapları bu bayrağa göre büyütülür (bkz. hitTestHandle /
+         hitTestResizeHandle) — parmak ucu bir fare imlecinden çok daha kalın. */
+      this._lastPointerType = e.pointerType;
+
       /* iki parmakla dokunma → çizim/kaydırma yerine yakınlaştırma jesti.
          İkinci parmak indiğinde önce birinci parmağın başlattığı tekli
          işlem varsa (fırça darbesi, kaydırma...) onUp() ile düzgünce
@@ -1065,6 +1070,7 @@
         center: { x: bx+bw/2, y: by+bh/2 }
       };
       Cv.shoreDirty = true; Cv.elevationDirty = true;
+      UI.refreshTouchActions();
       Cv.requestRender();
     },
 
@@ -1122,7 +1128,7 @@
       else History.pushRasterMulti(patches, box, 'lasso:move');
       this.floating = null; this.floatDrag = null; this.floatRotateDrag = null;
       Cv.shoreDirty = true; Cv.elevationDirty = true;
-      UI.refreshHistory();
+      UI.refreshHistory(); UI.refreshTouchActions();
       Cv.requestRender();
     },
 
@@ -1140,6 +1146,7 @@
       });
       this.floating = null; this.floatDrag = null; this.floatRotateDrag = null;
       Cv.shoreDirty = true; Cv.elevationDirty = true;
+      UI.refreshTouchActions();
       Cv.requestRender();
     },
 
@@ -1161,7 +1168,7 @@
       else History.pushRasterMulti(patches, f.bbox, 'lasso:delete');
       this.floating = null; this.floatDrag = null; this.floatRotateDrag = null;
       Cv.shoreDirty = true; Cv.elevationDirty = true;
-      UI.refreshHistory();
+      UI.refreshHistory(); UI.refreshTouchActions();
       Cv.requestRender();
     },
 
@@ -2454,6 +2461,7 @@
       if (L.locked || !L.visible) { UI.msg(UI.t('locked')); return; }
       this.pathPts.push([snp.x, snp.y]);
       this.pathHover = snp;
+      UI.refreshTouchActions();
     },
 
     finishPath: function () {
@@ -2462,7 +2470,7 @@
       var isRiver     = App.tool === 'river';
       var isMeasure   = App.tool === 'measure';
       var minPts = (isLake || isTerritory) ? 3 : 2;
-      if (this.pathPts.length < minPts) { this.pathPts = []; Cv.requestRender(); return; }
+      if (this.pathPts.length < minPts) { this.pathPts = []; UI.refreshTouchActions(); Cv.requestRender(); return; }
       var lid = this.pathLayerId(App.tool);
       var L = Layers.get(lid);
       var before = JSON.parse(JSON.stringify(L.objects));
@@ -2487,13 +2495,13 @@
       this.pathPts = []; this.pathHover = null;
       App.selection = { layerId:lid, id:o.id };
       History.pushVector(lid, before, JSON.parse(JSON.stringify(L.objects)), lid);
-      UI.refreshHistory(); UI.refreshSelection(); Cv.requestRender();
+      UI.refreshHistory(); UI.refreshSelection(); UI.refreshTouchActions(); Cv.requestRender();
     },
 
-    cancelPath: function () { this.pathPts = []; this.pathHover = null; Cv.requestRender(); },
+    cancelPath: function () { this.pathPts = []; this.pathHover = null; UI.refreshTouchActions(); Cv.requestRender(); },
 
     undoPathPoint: function () {
-      if (this.pathPts.length) { this.pathPts.pop(); Cv.requestRender(); return true; }
+      if (this.pathPts.length) { this.pathPts.pop(); UI.refreshTouchActions(); Cv.requestRender(); return true; }
       return false;
     },
 
@@ -2949,7 +2957,7 @@
       var o = this.selected();
       if (!o || o.kind === 'group') return null;
       var pts = this.resizeHandlePositions(o);
-      var r = 8/Cv.zoom;
+      var r = (this._lastPointerType === 'touch' ? 18 : 8)/Cv.zoom;
       for (var i = 0; i < pts.length; i++) {
         if (Math.hypot(p.x-pts[i].x, p.y-pts[i].y) <= r) return { obj:o, corner:i };
       }
@@ -3002,7 +3010,7 @@
       var o = this.selected();
       if (!o || !o.pts) return null;
       var closed = s.layerId === 'territories' || o.kind === 'lake';
-      var thresh = 9 / Cv.zoom;
+      var thresh = (this._lastPointerType === 'touch' ? 20 : 9) / Cv.zoom;
       for (var i = 0; i < o.pts.length; i++) {
         var h = (o.handles && o.handles[i]) || Geo.autoHandle(o.pts, i, closed);
         var px = o.pts[i][0], py = o.pts[i][1];
