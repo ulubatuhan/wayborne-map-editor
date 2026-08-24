@@ -114,9 +114,9 @@ async function run() {
       Tools.autoLakes(1, 321);
       App.elevation.showHillshade = true;
 
-      App.symbol.sym = Sym.SYMBOLS.castles.items[0].id;
+      App.symbol.id = Sym.SYMBOLS.castles.items[0].id;
       Tools.placeSymbol({x: Cv.W*0.5, y: Cv.H*0.4});
-      App.symbol.sym = Sym.SYMBOLS.forests.items[0].id;
+      App.symbol.id = Sym.SYMBOLS.forests.items[0].id;
       Tools.placeSymbol({x: Cv.W*0.3, y: Cv.H*0.6});
 
       App.tool = 'territory';

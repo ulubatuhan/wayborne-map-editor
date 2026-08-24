@@ -115,7 +115,7 @@ function widthTestCode(width) {
       /* ---- uctan uca dokunma-only is akisi: sembol sec + sil (btn-del) ---- */
       UI.setTool('symbol');
       var symId = (Sym.SYMBOLS.castles && Sym.SYMBOLS.castles.items[0].id);
-      App.symbol.sym = symId;
+      App.symbol.id = symId;
       var Sy = Layers.get('symbols');
       var sc0 = Sy.objects.length;
       var symScreenX = 260, symScreenY = 260;
