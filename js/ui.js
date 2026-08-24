@@ -16,8 +16,6 @@
   var DICT = {
     tr: {
       new:'Yeni', open:'Aç', save:'Kaydet', parchment:'Parşömen', grid:'Izgara', shore:'Kıyı',
-      narrow_title:'Editör için daha geniş bir ekran gerekli', narrow_desc:'Harita editörü; araç rayı, tuval ve katman paneliyle yan yana çalışan bir masaüstü yerleşimi kullanır. Bu düzenin sığması için en az 1024 × 600 piksel gerekir.',
-      narrow_hint:'Tablet kullanıyorsan cihazı yatay çevirmeyi dene.', narrow_current:'Bu ekran', narrow_back:'Ana sayfaya dön',
       o_gridsec:'Izgara', o_gridtype:'Tür', o_grid_square:'Kare', o_grid_hex:'Altıgen', o_grid_dot:'Nokta', o_gridcell:'Hücre boyutu', o_gridcolor:'Renk', o_gridop:'Belirginlik', h_grid:'Izgarayı üst çubuktaki \'Izgara\' kutusundan aç/kapat. Altıgen ızgara masaüstü rol yapma oyunlarının standardıdır.',
       o_polsec:'Siyasi Harita', o_polmode:'Siyasi görünüm', o_polmute:'Arazi dokusunu sustur', o_pollegend:'Lejant göster', o_polfill:'Dolgu yoğunluğu', o_polcolors:'Devlet renklerini otomatik ata', o_polname:'Seçili bölgenin adı', o_polname_ph:'Devlet adı', h_political:'Siyasi görünüm ayrı bir katman değil; çizdiğin bölgeleri devlet alanı olarak sunar.', m_polon:'Siyasi görünüm açık', m_poloff:'Fizikî görünüm', m_polcolored:'bölge renklendirildi', m_polempty:'Önce bölge çiz',
       o_nameculture:'Kültür', o_namefeature:'Tür', o_namegen:'🎲 Ad öner', o_nf_settlement:'Yerleşim', o_nf_city:'Şehir', o_nf_river:'Nehir', o_nf_mountain:'Dağ', o_nf_forest:'Orman', o_nf_region:'Bölge', o_nf_lake:'Göl', o_nf_sea:'Deniz',
@@ -104,8 +102,6 @@
     },
     en: {
       new:'New', open:'Open', save:'Save', parchment:'Parchment', grid:'Grid', shore:'Shore',
-      narrow_title:'The editor needs a wider screen', narrow_desc:'The map editor uses a desktop layout with the tool rail, canvas and layer panel side by side. It needs at least 1024 × 600 pixels to fit.',
-      narrow_hint:'On a tablet, try rotating your device to landscape.', narrow_current:'This screen', narrow_back:'Back to home',
       o_gridsec:'Grid', o_gridtype:'Type', o_grid_square:'Square', o_grid_hex:'Hex', o_grid_dot:'Dot', o_gridcell:'Cell size', o_gridcolor:'Colour', o_gridop:'Strength', h_grid:'Toggle the grid from the \'Grid\' box in the top bar. Hex is the tabletop RPG standard.',
       o_polsec:'Political Map', o_polmode:'Political view', o_polmute:'Mute terrain texture', o_pollegend:'Show legend', o_polfill:'Fill strength', o_polcolors:'Auto-assign state colours', o_polname:'Name of selected region', o_polname_ph:'State name', h_political:'Political view is not a separate layer; it presents the regions you drew as states.', m_polon:'Political view on', m_poloff:'Physical view', m_polcolored:'regions coloured', m_polempty:'Draw a region first',
       o_nameculture:'Culture', o_namefeature:'Type', o_namegen:'🎲 Suggest name', o_nf_settlement:'Settlement', o_nf_city:'City', o_nf_river:'River', o_nf_mountain:'Mountain', o_nf_forest:'Forest', o_nf_region:'Region', o_nf_lake:'Lake', o_nf_sea:'Sea',
@@ -192,8 +188,6 @@
     },
     de: {
       new:'Neu', open:'Öffnen', save:'Speichern', parchment:'Pergament', grid:'Raster', shore:'Küste',
-      narrow_title:'Der Editor benötigt einen breiteren Bildschirm', narrow_desc:'Der Karteneditor nutzt ein Desktop-Layout mit Werkzeugleiste, Leinwand und Ebenenpanel nebeneinander. Dafür sind mindestens 1024 × 600 Pixel nötig.',
-      narrow_hint:'Auf einem Tablet: Gerät ins Querformat drehen.', narrow_current:'Dieser Bildschirm', narrow_back:'Zur Startseite',
       o_gridsec:'Raster', o_gridtype:'Typ', o_grid_square:'Quadrat', o_grid_hex:'Hexagon', o_grid_dot:'Punkt', o_gridcell:'Zellengröße', o_gridcolor:'Farbe', o_gridop:'Stärke', h_grid:'Raster über das Kästchen \'Raster\' oben ein-/ausschalten. Hexfelder sind Standard im Pen-and-Paper.',
       o_polsec:'Politische Karte', o_polmode:'Politische Ansicht', o_polmute:'Geländetextur dämpfen', o_pollegend:'Legende zeigen', o_polfill:'Füllstärke', o_polcolors:'Staatsfarben automatisch vergeben', o_polname:'Name der gewählten Region', o_polname_ph:'Staatsname', h_political:'Die politische Ansicht ist keine eigene Ebene; sie zeigt die gezeichneten Regionen als Staaten.', m_polon:'Politische Ansicht an', m_poloff:'Physische Ansicht', m_polcolored:'Regionen eingefärbt', m_polempty:'Zuerst eine Region zeichnen',
       o_nameculture:'Kultur', o_namefeature:'Typ', o_namegen:'🎲 Namen vorschlagen', o_nf_settlement:'Siedlung', o_nf_city:'Stadt', o_nf_river:'Fluss', o_nf_mountain:'Berg', o_nf_forest:'Wald', o_nf_region:'Region', o_nf_lake:'See', o_nf_sea:'Meer',
@@ -263,8 +257,6 @@
     },
     fr: {
       new:'Nouveau', open:'Ouvrir', save:'Enregistrer', parchment:'Parchemin', grid:'Grille', shore:'Rivage',
-      narrow_title:'L\'éditeur nécessite un écran plus large', narrow_desc:'L\'éditeur de carte utilise une mise en page bureau avec la barre d\'outils, le canevas et le panneau de calques côte à côte. Il faut au moins 1024 × 600 pixels.',
-      narrow_hint:'Sur tablette, essayez de passer en mode paysage.', narrow_current:'Cet écran', narrow_back:'Retour à l\'accueil',
       o_gridsec:'Grille', o_gridtype:'Type', o_grid_square:'Carré', o_grid_hex:'Hexagone', o_grid_dot:'Point', o_gridcell:'Taille de cellule', o_gridcolor:'Couleur', o_gridop:'Intensité', h_grid:'Activez la grille via la case \'Grille\' en haut. L\'hexagone est le standard du jeu de rôle sur table.',
       o_polsec:'Carte politique', o_polmode:'Vue politique', o_polmute:'Atténuer la texture du terrain', o_pollegend:'Afficher la légende', o_polfill:'Intensité du remplissage', o_polcolors:'Attribuer les couleurs d\'État', o_polname:'Nom de la région sélectionnée', o_polname_ph:'Nom de l\'État', h_political:'La vue politique n\'est pas un calque distinct ; elle présente vos régions comme des États.', m_polon:'Vue politique activée', m_poloff:'Vue physique', m_polcolored:'régions colorées', m_polempty:'Dessinez d\'abord une région',
       o_nameculture:'Culture', o_namefeature:'Type', o_namegen:'🎲 Proposer un nom', o_nf_settlement:'Village', o_nf_city:'Ville', o_nf_river:'Rivière', o_nf_mountain:'Montagne', o_nf_forest:'Forêt', o_nf_region:'Région', o_nf_lake:'Lac', o_nf_sea:'Mer',
@@ -334,8 +326,6 @@
     },
     es: {
       new:'Nuevo', open:'Abrir', save:'Guardar', parchment:'Pergamino', grid:'Cuadrícula', shore:'Costa',
-      narrow_title:'El editor necesita una pantalla más ancha', narrow_desc:'El editor de mapas usa un diseño de escritorio con la barra de herramientas, el lienzo y el panel de capas en paralelo. Necesita al menos 1024 × 600 píxeles.',
-      narrow_hint:'En tablet, prueba a girar el dispositivo en horizontal.', narrow_current:'Esta pantalla', narrow_back:'Volver al inicio',
       o_gridsec:'Cuadrícula', o_gridtype:'Tipo', o_grid_square:'Cuadrado', o_grid_hex:'Hexágono', o_grid_dot:'Punto', o_gridcell:'Tamaño de celda', o_gridcolor:'Color', o_gridop:'Intensidad', h_grid:'Activa la cuadrícula desde la casilla \'Cuadrícula\' de arriba. El hexágono es el estándar del rol de mesa.',
       o_polsec:'Mapa político', o_polmode:'Vista política', o_polmute:'Atenuar textura del terreno', o_pollegend:'Mostrar leyenda', o_polfill:'Intensidad de relleno', o_polcolors:'Asignar colores de estado', o_polname:'Nombre de la región seleccionada', o_polname_ph:'Nombre del estado', h_political:'La vista política no es una capa aparte; presenta las regiones dibujadas como estados.', m_polon:'Vista política activada', m_poloff:'Vista física', m_polcolored:'regiones coloreadas', m_polempty:'Dibuja primero una región',
       o_nameculture:'Cultura', o_namefeature:'Tipo', o_namegen:'🎲 Sugerir nombre', o_nf_settlement:'Asentamiento', o_nf_city:'Ciudad', o_nf_river:'Río', o_nf_mountain:'Montaña', o_nf_forest:'Bosque', o_nf_region:'Región', o_nf_lake:'Lago', o_nf_sea:'Mar',
@@ -405,8 +395,6 @@
     },
     it: {
       new:'Nuovo', open:'Apri', save:'Salva', parchment:'Pergamena', grid:'Griglia', shore:'Costa',
-      narrow_title:'L\'editor richiede uno schermo più ampio', narrow_desc:'L\'editor di mappe usa un layout desktop con barra strumenti, tela e pannello livelli affiancati. Servono almeno 1024 × 600 pixel.',
-      narrow_hint:'Su tablet, prova a ruotare il dispositivo in orizzontale.', narrow_current:'Questo schermo', narrow_back:'Torna alla home',
       o_gridsec:'Griglia', o_gridtype:'Tipo', o_grid_square:'Quadrato', o_grid_hex:'Esagono', o_grid_dot:'Punto', o_gridcell:'Dimensione cella', o_gridcolor:'Colore', o_gridop:'Intensità', h_grid:'Attiva la griglia dalla casella \'Griglia\' in alto. L\'esagono è lo standard dei giochi di ruolo da tavolo.',
       o_polsec:'Mappa politica', o_polmode:'Vista politica', o_polmute:'Attenua la texture del terreno', o_pollegend:'Mostra legenda', o_polfill:'Intensità riempimento', o_polcolors:'Assegna colori agli stati', o_polname:'Nome della regione selezionata', o_polname_ph:'Nome dello stato', h_political:'La vista politica non è un livello separato; presenta le regioni disegnate come stati.', m_polon:'Vista politica attiva', m_poloff:'Vista fisica', m_polcolored:'regioni colorate', m_polempty:'Disegna prima una regione',
       o_nameculture:'Cultura', o_namefeature:'Tipo', o_namegen:'🎲 Suggerisci nome', o_nf_settlement:'Insediamento', o_nf_city:'Città', o_nf_river:'Fiume', o_nf_mountain:'Montagna', o_nf_forest:'Foresta', o_nf_region:'Regione', o_nf_lake:'Lago', o_nf_sea:'Mare',
@@ -476,8 +464,6 @@
     },
     pt: {
       new:'Novo', open:'Abrir', save:'Guardar', parchment:'Pergaminho', grid:'Grelha', shore:'Costa',
-      narrow_title:'O editor precisa de um ecrã mais largo', narrow_desc:'O editor de mapas usa um layout de computador com a barra de ferramentas, a tela e o painel de camadas lado a lado. São necessários pelo menos 1024 × 600 pixéis.',
-      narrow_hint:'Num tablet, tente rodar o dispositivo na horizontal.', narrow_current:'Este ecrã', narrow_back:'Voltar ao início',
       o_gridsec:'Grelha', o_gridtype:'Tipo', o_grid_square:'Quadrado', o_grid_hex:'Hexágono', o_grid_dot:'Ponto', o_gridcell:'Tamanho da célula', o_gridcolor:'Cor', o_gridop:'Intensidade', h_grid:'Ative a grelha na caixa \'Grelha\' no topo. O hexágono é o padrão do RPG de mesa.',
       o_polsec:'Mapa político', o_polmode:'Vista política', o_polmute:'Atenuar textura do terreno', o_pollegend:'Mostrar legenda', o_polfill:'Intensidade do preenchimento', o_polcolors:'Atribuir cores dos estados', o_polname:'Nome da região selecionada', o_polname_ph:'Nome do estado', h_political:'A vista política não é uma camada separada; apresenta as regiões desenhadas como estados.', m_polon:'Vista política ativa', m_poloff:'Vista física', m_polcolored:'regiões coloridas', m_polempty:'Desenhe primeiro uma região',
       o_nameculture:'Cultura', o_namefeature:'Tipo', o_namegen:'🎲 Sugerir nome', o_nf_settlement:'Povoação', o_nf_city:'Cidade', o_nf_river:'Rio', o_nf_mountain:'Montanha', o_nf_forest:'Floresta', o_nf_region:'Região', o_nf_lake:'Lago', o_nf_sea:'Mar',
@@ -547,8 +533,6 @@
     },
     nl: {
       new:'Nieuw', open:'Openen', save:'Opslaan', parchment:'Perkament', grid:'Raster', shore:'Kust',
-      narrow_title:'De editor heeft een breder scherm nodig', narrow_desc:'De kaarteditor gebruikt een desktopindeling met gereedschapsbalk, canvas en lagenpaneel naast elkaar. Daarvoor is minimaal 1024 × 600 pixels nodig.',
-      narrow_hint:'Op een tablet: draai het apparaat naar liggend.', narrow_current:'Dit scherm', narrow_back:'Terug naar start',
       o_gridsec:'Raster', o_gridtype:'Type', o_grid_square:'Vierkant', o_grid_hex:'Zeshoek', o_grid_dot:'Punt', o_gridcell:'Celgrootte', o_gridcolor:'Kleur', o_gridop:'Sterkte', h_grid:'Schakel het raster in via het vakje \'Raster\' bovenaan. Zeshoeken zijn de standaard bij tafelrollenspellen.',
       o_polsec:'Politieke kaart', o_polmode:'Politieke weergave', o_polmute:'Terreintextuur dempen', o_pollegend:'Legenda tonen', o_polfill:'Vulsterkte', o_polcolors:'Staatskleuren automatisch toewijzen', o_polname:'Naam van geselecteerde regio', o_polname_ph:'Staatsnaam', h_political:'De politieke weergave is geen aparte laag; ze toont je regio\'s als staten.', m_polon:'Politieke weergave aan', m_poloff:'Fysieke weergave', m_polcolored:'regio\'s gekleurd', m_polempty:'Teken eerst een regio',
       o_nameculture:'Cultuur', o_namefeature:'Type', o_namegen:'🎲 Naam voorstellen', o_nf_settlement:'Nederzetting', o_nf_city:'Stad', o_nf_river:'Rivier', o_nf_mountain:'Berg', o_nf_forest:'Bos', o_nf_region:'Regio', o_nf_lake:'Meer', o_nf_sea:'Zee',
@@ -618,8 +602,6 @@
     },
     pl: {
       new:'Nowy', open:'Otwórz', save:'Zapisz', parchment:'Pergamin', grid:'Siatka', shore:'Wybrzeże',
-      narrow_title:'Edytor wymaga szerszego ekranu', narrow_desc:'Edytor map korzysta z układu desktopowego: pasek narzędzi, płótno i panel warstw obok siebie. Potrzeba co najmniej 1024 × 600 pikseli.',
-      narrow_hint:'Na tablecie spróbuj obrócić urządzenie poziomo.', narrow_current:'Ten ekran', narrow_back:'Powrót do strony głównej',
       o_gridsec:'Siatka', o_gridtype:'Typ', o_grid_square:'Kwadrat', o_grid_hex:'Heksagon', o_grid_dot:'Kropka', o_gridcell:'Rozmiar komórki', o_gridcolor:'Kolor', o_gridop:'Intensywność', h_grid:'Włącz siatkę polem \'Siatka\' na górze. Heksy to standard w RPG-ach stołowych.',
       o_polsec:'Mapa polityczna', o_polmode:'Widok polityczny', o_polmute:'Wycisz teksturę terenu', o_pollegend:'Pokaż legendę', o_polfill:'Siła wypełnienia', o_polcolors:'Przypisz kolory państw', o_polname:'Nazwa zaznaczonego regionu', o_polname_ph:'Nazwa państwa', h_political:'Widok polityczny nie jest osobną warstwą; przedstawia narysowane regiony jako państwa.', m_polon:'Widok polityczny włączony', m_poloff:'Widok fizyczny', m_polcolored:'regionów pokolorowano', m_polempty:'Najpierw narysuj region',
       o_nameculture:'Kultura', o_namefeature:'Typ', o_namegen:'🎲 Zaproponuj nazwę', o_nf_settlement:'Osada', o_nf_city:'Miasto', o_nf_river:'Rzeka', o_nf_mountain:'Góra', o_nf_forest:'Las', o_nf_region:'Region', o_nf_lake:'Jezioro', o_nf_sea:'Morze',
@@ -688,10 +670,8 @@
       biomegen_empty:'Najpierw narysuj ląd.', copied:'Skopiowano', copy:'Kopiuj', exp_share_embedcode:'Kod osadzania (iframe)', exp_share_gen:'🔗 Generuj link', exp_share_help:'Brak serwera — obraz mapy jest osadzany bezpośrednio w linku (w części # adresu URL). Link nigdzie nie jest wysyłany, chyba że sam go udostępnisz; duże mapy dają dłuższe linki.', exp_share_link:'Link', exp_share_sizehint:'Długość linku ≈ {kb} KB', exp_share_t:'Link do udostępniania', h_biomegen:'Automatycznie wypełnia warstwę terenu na podstawie wysokości i szerokości geograficznej; zastępuje bieżącą warstwę terenu.', h_rivergen:'Dodaje rzeki płynące do morza na podstawie siatki wysokości. Wymaga gór/wzgórz namalowanych pędzlem "Wysokość".', h_roadgen:'Rysuje drogi między symbolami osad (miasto/miasteczko/wieś/zamek/port), omijając strome zbocza. Łączy kilka losowych punktów lądu, jeśli nie ma osad.', h_settlegen:'Rozmieszcza symbole miasta/miasteczka/wsi na płaskim terenie blisko wybrzeża — najlepsze miejsce dostaje zamek/port, reszta miasteczka/wsie. "Generuj drogi" znajduje te symbole i je łączy.', lakegen_none:'Nie znaleziono odpowiedniego miejsca na jezioro.', o_biomegen:'Automatycznie przypisz biomy', o_biomegen_go:'🌍 Przypisz biomy', o_landgen_lakes:'Dodaj jeziora', o_landgen_rivers:'Dodaj rzeki', o_landgen_terrain:'Dodaj teren', o_rivergen:'Automatycznie generuj rzeki', o_rivergen_go:'💧 Generuj rzeki', o_roadgen:'Automatycznie generuj drogi', o_roadgen_go:'🛤️ Generuj drogi', o_seacolor:'Kolor morza', o_settlegen:'Automatycznie rozmieść osady', o_settlegen_go:'🏰 Rozmieść osady', o_symlegend:'Legenda', panel_toggle_left:'Przełącz lewy panel', panel_toggle_right:'Przełącz prawy panel', regions_maptree:'Drzewo map', regions_political:'Regiony polityczne', regions_political_empty:'Brak jeszcze nazwanych regionów. Narysuj narzędziem "Terytorium", a potem nadaj nazwę.', rivergen_noelev:'Najpierw namaluj góry/wzgórza pędzlem "Wysokość".', rivergen_none:'Nie znaleziono odpowiedniego źródła rzeki.', roadgen_noland:'Nie znaleziono wystarczającej ilości lądu/punktów na drogi.', roadgen_none:'Nie udało się wygenerować dróg — masy lądowe mogą być rozłączone.', sc_cancel:'Anuluj / odznacz', sc_delete:'Usuń zaznaczenie', sc_finish:'Zakończ ścieżkę', sc_fit:'Dopasuj do ekranu', sc_general:'Ogólne', sc_help:'Otwórz ten ekran', sc_pan:'Przesuń', sc_panfast:'Szybsze przesuwanie', sc_redo:'Ponów', sc_rotsym:'Obróć symbol', sc_save:'Zapisz', sc_title:'Skróty klawiszowe', sc_undo:'Cofnij', sc_zoom:'Powiększ / pomniejsz', settlegen_noland:'Nie znaleziono odpowiedniego lądu na osady.', settlegen_none:'Nie udało się rozmieścić żadnych osad.', share_editbtn:'Otwórz w Wayborne', tab_regions:'Regiony', tab_todo:'Zadania', todo_add:'Dodaj', todo_empty:'Brak jeszcze zadań.', todo_placeholder:'Nowe zadanie...'
     },
     ar: {
-      new:'جديد', open:'فتح', save:'حفظ', parchment:'رَق', grid:'شبكة', shore:'ساحل', narrow_title:'يحتاج المحرِّر إلى شاشة أعرض',
-      narrow_desc:'يستخدم محرِّر الخرائط تخطيطًا مكتبيًا يضع شريط الأدوات واللوحة ولوحة الطبقات جنبًا إلى جنب. ويحتاج إلى 1024 × 600 بكسل على الأقل.',
-      narrow_hint:'إن كنت على جهاز لوحي، جرِّب تدويره أفقيًا.', narrow_current:'هذه الشاشة',
-      narrow_back:'العودة إلى الصفحة الرئيسية', o_gridsec:'الشبكة', o_gridtype:'النوع', o_grid_square:'مربّعة',
+      new:'جديد', open:'فتح', save:'حفظ', parchment:'رَق', grid:'شبكة', shore:'ساحل', 
+       o_gridsec:'الشبكة', o_gridtype:'النوع', o_grid_square:'مربّعة',
       o_grid_hex:'سداسية', o_grid_dot:'نقطية', o_gridcell:'حجم الخلية', o_gridcolor:'اللون', o_gridop:'الوضوح',
       h_grid:'فعِّل الشبكة من مربّع «شبكة» في الشريط العلوي. الشبكة السداسية هي المعيار في ألعاب الأدوار الورقية.',
       o_polsec:'الخريطة السياسية', o_polmode:'العرض السياسي', o_polmute:'إخفات نسيج التضاريس', o_pollegend:'إظهار المفتاح',
@@ -804,8 +784,6 @@
     },
     ru: {
       new:'Новый', open:'Открыть', save:'Сохранить', parchment:'Пергамент', grid:'Сетка', shore:'Берег',
-      narrow_title:'Редактору нужен экран пошире', narrow_desc:'Редактор карт использует настольную раскладку: панель инструментов, холст и панель слоёв рядом. Требуется минимум 1024 × 600 пикселей.',
-      narrow_hint:'На планшете попробуйте повернуть устройство горизонтально.', narrow_current:'Этот экран', narrow_back:'На главную',
       o_gridsec:'Сетка', o_gridtype:'Тип', o_grid_square:'Квадрат', o_grid_hex:'Гексагон', o_grid_dot:'Точка', o_gridcell:'Размер ячейки', o_gridcolor:'Цвет', o_gridop:'Насыщенность', h_grid:'Включите сетку флажком «Сетка» вверху. Гексы — стандарт настольных ролевых игр.',
       o_polsec:'Политическая карта', o_polmode:'Политический вид', o_polmute:'Приглушить текстуру рельефа', o_pollegend:'Показать легенду', o_polfill:'Плотность заливки', o_polcolors:'Назначить цвета государств', o_polname:'Название выбранного региона', o_polname_ph:'Название государства', h_political:'Политический вид — не отдельный слой; он показывает нарисованные регионы как государства.', m_polon:'Политический вид включён', m_poloff:'Физический вид', m_polcolored:'регионов раскрашено', m_polempty:'Сначала нарисуйте регион',
       o_nameculture:'Культура', o_namefeature:'Тип', o_namegen:'🎲 Предложить имя', o_nf_settlement:'Поселение', o_nf_city:'Город', o_nf_river:'Река', o_nf_mountain:'Гора', o_nf_forest:'Лес', o_nf_region:'Регион', o_nf_lake:'Озеро', o_nf_sea:'Море',

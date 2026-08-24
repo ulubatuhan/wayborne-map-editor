@@ -962,21 +962,6 @@
     if(onDone)onDone();
   }
 
-  /* önizleme tile (kütüphane grid'i için senkron) */
-  function preview(ctx, id, size) {
-    if(isCustom(id)){
-      var ce=customMap[id];
-      loadImg(ce.dataURL,function(im){
-        if(!im)return;
-        var h=size/2;
-        ctx.clearRect(0,0,size,size);
-        ctx.drawImage(im,0,0,size,size);
-      });
-      return;
-    }
-    draw(ctx, id, {x:size/2,y:size/2,size:size*0.88,rot:0,hue:0,opacity:1});
-  }
-
   /* SVG export */
   function toSVG(id,o){
     if(isCustom(id)){
@@ -1046,7 +1031,7 @@
 
   global.Sym={
     PAL:PAL,SYMBOLS:SYMBOLS,get:get,catOf:catOf,isCustom:isCustom,
-    draw:draw,preview:preview,toSVG:toSVG,bounds:bounds,count:count,
+    draw:draw,toSVG:toSVG,bounds:bounds,count:count,
     shift:shift,resolve:resolve,
     addCustom:addCustom,removeCustom:removeCustom,getCustomAll:getCustomAll,
     serializeCustom:serializeCustom,deserializeCustom:deserializeCustom,
