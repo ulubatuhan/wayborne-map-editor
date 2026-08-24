@@ -357,6 +357,45 @@ textarea{font-family:var(--f-display);font-size:13px}
 .scan-pct{font-variant-numeric:tabular-nums;color:var(--brass);opacity:.9}
 @media (prefers-reduced-motion:reduce){ .scan-fill{transition:none} }
 
+/* ---------- rastgele harita üretimi: zar ----------
+   Altı yüz ayrı <g> olarak duruyor; yalnız biri görünür. Yuvarlanırken
+   hepsine AYNI keyframe veriliyor, sadece animation-delay kaydırılıyor —
+   böylece yüzler sırayla belirir ve altı ayrı keyframe yazmaya gerek
+   kalmaz. Saf CSS: JS'in tek işi .rolling-dice sınıfını takıp çıkarmak. */
+.btn-dice{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.dice-ico{flex:none}
+.dice-ico .die-f{opacity:0}
+.dice-ico .die-f5{opacity:1}          /* duruştaki yüz */
+
+@keyframes wb-die-face{
+  0%,16.66%   {opacity:1}
+  16.67%,100% {opacity:0}
+}
+@keyframes wb-die-tumble{
+  0%   {transform:rotate(0deg)   scale(1)}
+  25%  {transform:rotate(-20deg) scale(1.10)}
+  50%  {transform:rotate(14deg)  scale(.93)}
+  75%  {transform:rotate(-9deg)  scale(1.06)}
+  100% {transform:rotate(0deg)   scale(1)}
+}
+.rolling-dice .dice-ico{animation:wb-die-tumble .62s ease-in-out infinite;transform-origin:50% 50%}
+.rolling-dice .dice-ico .die-f{animation:wb-die-face 1.2s steps(1,end) infinite}
+.rolling-dice .dice-ico .die-f1{animation-delay:0s}
+.rolling-dice .dice-ico .die-f2{animation-delay:-.2s}
+.rolling-dice .dice-ico .die-f3{animation-delay:-.4s}
+.rolling-dice .dice-ico .die-f4{animation-delay:-.6s}
+.rolling-dice .dice-ico .die-f5{animation-delay:-.8s}
+.rolling-dice .dice-ico .die-f6{animation-delay:-1s}
+/* Buton üretim boyunca disabled olduğu için soluklaşıyor; zarın dönmesi
+   "çalışıyor" sinyalinin kendisi, o yüzden zar tam opaklıkta kalsın. */
+.rolling-dice .dice-ico{opacity:1}
+
+@media (prefers-reduced-motion:reduce){
+  .rolling-dice .dice-ico,
+  .rolling-dice .dice-ico .die-f{animation:none}
+  .rolling-dice .dice-ico{opacity:.55}
+}
+
 /* ---------- klavye kısayolları ---------- */
 .shortcuts-cols{column-count:2;column-gap:28px}
 @media (max-width:640px){.shortcuts-cols{column-count:1}}

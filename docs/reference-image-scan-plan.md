@@ -1,8 +1,21 @@
 # Referans görselden otomatik coğrafya taraması: adım adım iş planı
 
-> **Durum:** Planlama dokümanı, henüz uygulanmadı. `docs/city-generation-plan.md`
-> ile birlikte **Opus 5** oturumunda ele alınacak. Bu dosya kendi başına
-> yeterli olacak şekilde yazıldı (önceki sohbetin özeti dahil).
+> **Durum: UYGULANDI.** Bu plan Opus 5 oturumunda hayata geçirildi —
+> `Tools.scanReferenceImage` (`js/tools.js`), `#scan-progress` bindirmesi,
+> zar animasyonu ve `run-refimg-scan-test.mjs` hepsi mevcut. Güncel ve
+> özet anlatım artık `CLAUDE.md` § *Reference-image geography scan*
+> bölümünde; bu dosya, kararların NEDEN öyle alındığını (rakip/teknik
+> araştırması, elenen seçenekler) saklayan tarihsel kayıt olarak duruyor.
+>
+> Plandan sapmalar: (a) nehir orta hattı için "thinning mi, principal-axis
+> mi" açık sorusu üçüncü bir yolla çözüldü — **çift-BFS jeodeziği**, ikisinden
+> de basit ve kıvrımları doğru takip ediyor; (b) sabit renk eşiği yerine
+> **k=2 k-ortalama** kullanıldı, böylece parşömen tonlu haritalar da
+> çalışıyor; (c) kara maskesine 3×3 komşuluk alfası eklendi (planda yoktu,
+> büyütmedeki merdivenlenmeyi silmek için gerekti); (d) i18n anahtarları
+> §3.3'te "tr/en yeterli" denmesine rağmen **11 dilin tamamına** yazıldı,
+> çünkü CLAUDE.md tüm DICT anahtarlarının 11 dilde dolu olduğunu garanti
+> ediyor.
 
 ---
 

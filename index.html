@@ -317,7 +317,25 @@
           <label class="chk"><input type="checkbox" id="lg-lakes"><span data-i18n="o_landgen_lakes">Göl ekle</span></label>
           <label class="chk"><input type="checkbox" id="lg-terrain"><span data-i18n="o_landgen_terrain">Arazi ekle</span></label>
         </div>
-        <button class="btn wide" id="btn-landgen" data-i18n="o_landgen_go">🎲 Üret</button>
+        <!-- Zar, emoji değil inline SVG (bkz. CLAUDE.md: emoji glifleri macOS/
+             Windows'ta renkli çizilip pirinç paletini bozuyor). Etiket ayrı bir
+             span'de: applyLang data-i18n taşıyan elemanın textContent'ini
+             değiştirdiği için, aynı elemanda duran SVG dil değişiminde silinirdi. -->
+        <button class="btn wide btn-dice" id="btn-landgen">
+          <svg class="ico-svg dice-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+               stroke-width="1.5" aria-hidden="true">
+            <rect x="3" y="3" width="14" height="14" rx="3"/>
+            <g stroke="none" fill="currentColor">
+              <g class="die-f die-f1"><circle cx="10" cy="10" r="1.25"/></g>
+              <g class="die-f die-f2"><circle cx="7" cy="7" r="1.25"/><circle cx="13" cy="13" r="1.25"/></g>
+              <g class="die-f die-f3"><circle cx="7" cy="7" r="1.25"/><circle cx="10" cy="10" r="1.25"/><circle cx="13" cy="13" r="1.25"/></g>
+              <g class="die-f die-f4"><circle cx="7" cy="7" r="1.25"/><circle cx="13" cy="7" r="1.25"/><circle cx="7" cy="13" r="1.25"/><circle cx="13" cy="13" r="1.25"/></g>
+              <g class="die-f die-f5"><circle cx="7" cy="7" r="1.25"/><circle cx="13" cy="7" r="1.25"/><circle cx="10" cy="10" r="1.25"/><circle cx="7" cy="13" r="1.25"/><circle cx="13" cy="13" r="1.25"/></g>
+              <g class="die-f die-f6"><circle cx="7" cy="7" r="1.25"/><circle cx="13" cy="7" r="1.25"/><circle cx="7" cy="10" r="1.25"/><circle cx="13" cy="10" r="1.25"/><circle cx="7" cy="13" r="1.25"/><circle cx="13" cy="13" r="1.25"/></g>
+            </g>
+          </svg>
+          <span data-i18n="o_landgen_go">Üret</span>
+        </button>
         <p class="hint" data-i18n="h_landgen">Mevcut kara katmanının yerine geçer. Aynı ayarlarla tekrar tıklayınca yeni bir rastgele sonuç üretir.</p>
       </section>
 
