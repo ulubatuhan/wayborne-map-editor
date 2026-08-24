@@ -1750,7 +1750,17 @@
           if (moist < 0.12) return 'volcanic';
           return 'mountain';
         }
-        if (e > 0.36) return lat > 0.6 ? 'taiga' : 'highland';
+        if (e > 0.36) {
+          if (lat > 0.6) return 'taiga';
+          /* Önceden bu kuşak hep tek düze 'highland' idi — nem etkisi yoktu,
+             görsel taramada geniş, dokusuz bir gri leke olarak göze
+             çarpıyordu. steppe/badlands zaten katalogda var ama otomatik
+             biyomda hiç kullanılmıyordu; buraya eklemek hem çeşitlilik
+             katıyor hem de o iki dokuyu gerçek bir amaca kavuşturuyor. */
+          if (moist < 0.22) return 'badlands';
+          if (moist < 0.55) return 'highland';
+          return 'steppe';
+        }
         if (lat > 0.84) return moist < 0.5 ? 'tundra' : 'snow';
         if (lat > 0.62) return moist < 0.55 ? 'taiga' : 'darkforest';
         if (lat > 0.40) return moist < 0.30 ? 'shrubland' : (moist < 0.65 ? 'forest' : 'meadow');

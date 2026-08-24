@@ -206,6 +206,40 @@ async function run() {
         const ok2 = await Tools.autoBiome(5678);
         check('autoBiome tamamlandı (ikinci ardışık çağrı)', ok2 === true);
 
+        /* ---- 4c) aynı seed → aynı biyom ATAMASI (Faz 2 #43) ----
+           Terrain.scatter'ın kendisi kasıtlı olarak seed'siz Math.random()
+           kullanır (her fırça darbesi/damga birbirinden farklı görünsün
+           diye — bkz. CLAUDE.md), o yüzden nihai piksel verisi asla bit-
+           bit eşleşmez. Asıl garanti gereken şey hangi hücreye hangi
+           biyomun atandığı — Terrain.scatter'ı geçici olarak sarmalayıp
+           çağrı sırasını (biyom+konum) karşılaştırarak bunu doğruluyoruz. */
+        const origScatter = Terrain.scatter;
+        let scatterLog = [];
+        Terrain.scatter = function (ctx, biome, cx, cy, r, a, b) {
+          scatterLog.push(biome + '|' + cx.toFixed(3) + '|' + cy.toFixed(3));
+          return origScatter.apply(Terrain, arguments);
+        };
+        Tools.generateLandmass('continent', 0.5, 777, { withElevation:true });
+        scatterLog = [];
+        await Tools.autoBiome(777);
+        const detLog1 = scatterLog.slice();
+        Tools.generateLandmass('continent', 0.5, 777, { withElevation:true });
+        scatterLog = [];
+        await Tools.autoBiome(777);
+        const detLog2 = scatterLog.slice();
+        Terrain.scatter = origScatter;
+        const biomeDeterministic = detLog1.length > 0 && detLog1.length === detLog2.length &&
+          detLog1.every((v, i) => v === detLog2[i]);
+        check('aynı seed ile biyom atama sırası bit-bit tekrarlanabilir', biomeDeterministic);
+
+        /* ---- 4d) daha önce otomatik biyomda hiç kullanılmayan steppe/
+           badlands artık 'highland' kuşağının nem varyasyonuyla ortaya
+           çıkabiliyor mu (geniş görsel taramada 'highland'ın dokusuz, tek
+           düze bir leke olduğu bulundu — bkz. CLAUDE.md) */
+        const usedBiomes = new Set(detLog2.map(s => s.split('|')[0]));
+        check('otomatik biyom artık steppe veya badlands uretebiliyor',
+          usedBiomes.has('steppe') || usedBiomes.has('badlands'));
+
         /* ---- 5) ayarlanabilir deniz rengi ---- */
         const beforeSea = Cv.seaColor;
         Cv.setSeaColor('#22aa66');
