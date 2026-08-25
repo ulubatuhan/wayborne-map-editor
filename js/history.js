@@ -21,11 +21,19 @@
   }
 
   function cropDataURL(srcCanvas, x, y, w, h) {
+    var cw = Math.max(1, Math.round(w)), ch = Math.max(1, Math.round(h));
+    /* Kutu zaten kaynağın tamamını kapsıyorsa (ör. kara/biyom üretimi
+       tüm katmanı yeniden boyar) ayrı bir kırpma tuvaline kopyalamak
+       gereksiz — 8192² gibi büyük tuvallerde bu tek kopyalama başlı
+       başına ~1.3sn'ye mal oluyordu, üstelik her raster yaması için
+       (before+after) iki kez çalışıyordu. Kaynağı doğrudan kodla. */
+    if (Math.round(x) === 0 && Math.round(y) === 0 && cw === srcCanvas.width && ch === srcCanvas.height) {
+      return srcCanvas.toDataURL('image/png');
+    }
     var c = document.createElement('canvas');
-    c.width = Math.max(1, Math.round(w));
-    c.height = Math.max(1, Math.round(h));
+    c.width = cw; c.height = ch;
     var cx = c.getContext('2d');
-    cx.drawImage(srcCanvas, Math.round(x), Math.round(y), c.width, c.height, 0, 0, c.width, c.height);
+    cx.drawImage(srcCanvas, Math.round(x), Math.round(y), cw, ch, 0, 0, cw, ch);
     return c.toDataURL('image/png');
   }
 
