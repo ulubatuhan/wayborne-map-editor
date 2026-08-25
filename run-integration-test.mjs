@@ -310,6 +310,22 @@ const TEST_CODE = `(async function () {
     const rtl = Object.keys(UI.RTL_LANGS || {});
     ok('i18n', 'RTL dilleri tanımlı', rtl.length > 0, rtl.join(','));
     ok('i18n', 'isRTL doğru çalışıyor', UI.isRTL('ar') === true && UI.isRTL('en') === false);
+
+    /* Her data-i18n referansının DICT'te gerçek bir karşılığı var mı?
+       UI.t() bilinmeyen anahtarda ANAHTARIN KENDİSİNİ döndürdüğü için,
+       eksik bir anahtar hata vermez — sessizce ekranda ham anahtar adı
+       olarak görünür ("o_measurearea" gibi). Bu, tam olarak öyle bir
+       hatanın canlıya çıkmasından sonra eklendi. */
+    const danglingI18n = [];
+    ['data-i18n', 'data-i18n-title', 'data-i18n-placeholder'].forEach(attr => {
+      document.querySelectorAll('[' + attr + ']').forEach(el => {
+        const k = el.getAttribute(attr);
+        if (UI.t(k) === k) danglingI18n.push(attr + '=' + k);
+      });
+    });
+    ok('i18n', 'her data-i18n referansının karşılığı var', danglingI18n.length === 0,
+       danglingI18n.length ? [...new Set(danglingI18n)].join(', ')
+                           : document.querySelectorAll('[data-i18n]').length + ' referans çözümlendi');
     ok('i18n', 'i18nName katalog adı çeviriyor', (() => {
       const s = Sym.SYMBOLS[cats[0]].items[0];
       return !!window.i18nName(s.id, s.tr, s.en, 'de');
@@ -387,6 +403,62 @@ async function run() {
     const errR = await evaluate(cdp, 'window.__ERR||""');
     const resR = await evaluate(cdp, 'JSON.stringify(window.__R||[])');
     const results = JSON.parse(resR.result?.value || '[]');
+
+    /* ---------- DICT tamlığı (Node tarafı: kaynağı doğrudan ayrıştırır) ----------
+       Tarayıcı tarafından yapılamıyor çünkü DICT bir closure değişkeni, UI'da
+       dışa açık değil. Buradaki tarayıcı DİZE-FARKINDA: bir çevirinin İÇİNDE
+       geçen "... canvas size:'" gibi diziler anahtar sanılmasın diye (naif bir
+       regex tam olarak orada yanılıyor). */
+    (() => {
+      const src = readFileSync(join(BASE_DIR, 'js/ui.js'), 'utf8');
+      const keysOf = (lang) => {
+        const open = new RegExp('\\n    ' + lang + ':\\s*\\{');
+        const mm = open.exec(src);
+        if (!mm) return null;
+        let i = mm.index + mm[0].length, depth = 1, buf = '';
+        const keys = new Set();
+        while (i < src.length && depth > 0) {
+          const c = src[i];
+          if (c === "'" || c === '"') {                 /* dizeyi bütün olarak atla */
+            const q = c; i++;
+            while (i < src.length) {
+              if (src[i] === '\\') i += 2;
+              else if (src[i] === q) { i++; break; }
+              else i++;
+            }
+            buf = ''; continue;
+          }
+          if (c === '{') { depth++; buf = ''; i++; continue; }
+          if (c === '}') { depth--; buf = ''; i++; continue; }
+          if (depth === 1) {
+            if (/[A-Za-z0-9_]/.test(c)) buf += c;
+            else if (c === ':') { if (buf) keys.add(buf); buf = ''; }
+            else buf = '';
+          }
+          i++;
+        }
+        return keys;
+      };
+      const LANGS = ['tr','en','de','fr','es','it','pt','nl','pl','ar','ru'];
+      const table = {};
+      for (const l of LANGS) {
+        const k = keysOf(l);
+        if (!k) { results.push({ grp:'i18n', name:'DICT dil bloğu bulundu: '+l, pass:false, detail:'blok yok' }); return; }
+        table[l] = k;
+      }
+      const gaps = [];
+      for (const l of LANGS) {
+        if (l === 'tr') continue;
+        for (const k of table.tr) if (!table[l].has(k)) gaps.push(l + '.' + k);
+      }
+      results.push({
+        grp: 'i18n',
+        name: 'her DICT anahtarı 11 dilde de tanımlı',
+        pass: gaps.length === 0,
+        detail: gaps.length ? gaps.slice(0, 10).join(', ') + (gaps.length > 10 ? ' …' : '')
+                            : LANGS.length + ' dil × ' + table.tr.size + ' anahtar'
+      });
+    })();
 
     const groups = [];
     results.forEach(r => {

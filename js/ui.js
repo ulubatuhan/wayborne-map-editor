@@ -14,7 +14,7 @@
   }
 
   var DICT = {
-    tr: {
+    tr: { tut_extras:'Araçların ötesinde — otomatik üreticiler', tut_extras_d:'Bunlar araç rayında değil; ilgili aracı seçtiğinde sağ panelde çıkarlar.', o_measurearea:'Alan olarak kapat',
       new:'Yeni', open:'Aç', save:'Kaydet', parchment:'Parşömen', grid:'Izgara', shore:'Kıyı',
       o_gridsec:'Izgara', o_gridtype:'Tür', o_grid_square:'Kare', o_grid_hex:'Altıgen', o_grid_dot:'Nokta', o_gridcell:'Hücre boyutu', o_gridcolor:'Renk', o_gridop:'Belirginlik', h_grid:'Izgarayı üst çubuktaki \'Izgara\' kutusundan aç/kapat. Altıgen ızgara masaüstü rol yapma oyunlarının standardıdır.',
       o_polsec:'Siyasi Harita', o_polmode:'Siyasi görünüm', o_polmute:'Arazi dokusunu sustur', o_pollegend:'Lejant göster', o_polfill:'Dolgu yoğunluğu', o_polcolors:'Devlet renklerini otomatik ata', o_polname:'Seçili bölgenin adı', o_polname_ph:'Devlet adı', h_political:'Siyasi görünüm ayrı bir katman değil; çizdiğin bölgeleri devlet alanı olarak sunar.', m_polon:'Siyasi görünüm açık', m_poloff:'Fizikî görünüm', m_polcolored:'bölge renklendirildi', m_polempty:'Önce bölge çiz',
@@ -88,8 +88,7 @@
       confirmNew:'Mevcut harita silinecek. Yeni tuval boyutunu seç:',
       confirmSize:'Tuval boyutunu değiştirmek mevcut katmanları ölçekler. Devam edilsin mi?',
       histStart:'Başlangıç', selNone:'Seçili nesne yok', symbols:'sembol',
-      selScale:'Ölçek çubuğu seçili',
-      o_zorder:'Sıralama', o_front:'En öne', o_back:'En arkaya',
+      selScale:'Ölçek çubuğu seçili', o_front:'En öne', o_back:'En arkaya',
       o_fwd:'Öne getir', o_bwd:'Arkaya gönder',
       o_group:'Grupla', o_ungroup:'Grubu çöz',
       selMulti:'nesne seçili',
@@ -98,10 +97,9 @@
       o_symbbrush:'Fırça modu', o_symbdensity:'Yoğunluk', o_clipland:'Karaya kenetle (fırça)',
       o_windrose:'Pusula Gülü', o_wrvis:'Haritada göster', o_wrsize:'Boyut',
       o_wrstyle_classic:'Klasik', o_wrstyle_minimal:'Sade', o_wrstyle:'Stil', o_wrcolor:'Renk', h_windrose:'Haritada sürükleyerek taşı.',
-      o_snap:'Izgaraya yapış', o_snapsize:'Izgara boyutu', o_frame:'Harita çerçevesi', o_frame_none:'Yok', o_frame_simple:'Sade çizgi', o_frame_rope:'Halat', o_frame_ornate:'Süslü', o_frame_color:'Renk',
-      o_png2x:'PNG 2×', o_png4x:'PNG 4×'
+      o_snap:'Izgaraya yapış', o_snapsize:'Izgara boyutu', o_frame:'Harita çerçevesi', o_frame_none:'Yok', o_frame_simple:'Sade çizgi', o_frame_rope:'Halat', o_frame_ornate:'Süslü', o_frame_color:'Renk'
     },
-    en: {
+    en: { tut_extras:'Beyond the tools — automatic generators', tut_extras_d:'These are not on the tool rail; they appear in the right panel when you pick the related tool.', o_measurearea:'Close as area',
       new:'New', open:'Open', save:'Save', parchment:'Parchment', grid:'Grid', shore:'Shore',
       o_gridsec:'Grid', o_gridtype:'Type', o_grid_square:'Square', o_grid_hex:'Hex', o_grid_dot:'Dot', o_gridcell:'Cell size', o_gridcolor:'Colour', o_gridop:'Strength', h_grid:'Toggle the grid from the \'Grid\' box in the top bar. Hex is the tabletop RPG standard.',
       o_polsec:'Political Map', o_polmode:'Political view', o_polmute:'Mute terrain texture', o_pollegend:'Show legend', o_polfill:'Fill strength', o_polcolors:'Auto-assign state colours', o_polname:'Name of selected region', o_polname_ph:'State name', h_political:'Political view is not a separate layer; it presents the regions you drew as states.', m_polon:'Political view on', m_poloff:'Physical view', m_polcolored:'regions coloured', m_polempty:'Draw a region first',
@@ -175,8 +173,7 @@
       confirmNew:'The current map will be discarded. Choose a canvas size:',
       confirmSize:'Changing canvas size rescales existing layers. Continue?',
       histStart:'Start', selNone:'Nothing selected', symbols:'symbols',
-      selScale:'Scale bar selected',
-      o_zorder:'Z-Order', o_front:'Bring to front', o_back:'Send to back',
+      selScale:'Scale bar selected', o_front:'Bring to front', o_back:'Send to back',
       o_fwd:'Bring forward', o_bwd:'Send backward',
       o_group:'Group', o_ungroup:'Ungroup',
       selMulti:'objects selected',
@@ -185,10 +182,9 @@
       o_symbbrush:'Brush mode', o_symbdensity:'Density', o_clipland:'Clip to land (brush)',
       o_windrose:'Windrose', o_wrvis:'Show on map', o_wrsize:'Size',
       o_wrstyle_classic:'Classic', o_wrstyle_minimal:'Minimal', o_wrstyle:'Style', o_wrcolor:'Colour', h_windrose:'Drag on the map to reposition.',
-      o_snap:'Snap to grid', o_snapsize:'Grid size', o_frame:'Map frame', o_frame_none:'None', o_frame_simple:'Simple line', o_frame_rope:'Rope', o_frame_ornate:'Ornate', o_frame_color:'Colour',
-      o_png2x:'PNG 2×', o_png4x:'PNG 4×'
+      o_snap:'Snap to grid', o_snapsize:'Grid size', o_frame:'Map frame', o_frame_none:'None', o_frame_simple:'Simple line', o_frame_rope:'Rope', o_frame_ornate:'Ornate', o_frame_color:'Colour'
     },
-    de: {
+    de: { tut_extras:'Über die Werkzeuge hinaus — automatische Generatoren', tut_extras_d:'Diese sind nicht in der Werkzeugleiste; sie erscheinen im rechten Panel, wenn du das zugehörige Werkzeug wählst.', o_measurearea:'Als Fläche schließen', tpa_undo:'Letzten Punkt zurücknehmen', tpa_finish:'Fertig', tpa_cancel:'Abbrechen',
       new:'Neu', open:'Öffnen', save:'Speichern', parchment:'Pergament', grid:'Raster', shore:'Küste',
       o_gridsec:'Raster', o_gridtype:'Typ', o_grid_square:'Quadrat', o_grid_hex:'Hexagon', o_grid_dot:'Punkt', o_gridcell:'Zellengröße', o_gridcolor:'Farbe', o_gridop:'Stärke', h_grid:'Raster über das Kästchen \'Raster\' oben ein-/ausschalten. Hexfelder sind Standard im Pen-and-Paper.',
       o_polsec:'Politische Karte', o_polmode:'Politische Ansicht', o_polmute:'Geländetextur dämpfen', o_pollegend:'Legende zeigen', o_polfill:'Füllstärke', o_polcolors:'Staatsfarben automatisch vergeben', o_polname:'Name der gewählten Region', o_polname_ph:'Staatsname', h_political:'Die politische Ansicht ist keine eigene Ebene; sie zeigt die gezeichneten Regionen als Staaten.', m_polon:'Politische Ansicht an', m_poloff:'Physische Ansicht', m_polcolored:'Regionen eingefärbt', m_polempty:'Zuerst eine Region zeichnen',
@@ -243,8 +239,7 @@
       confirmNew:'Die aktuelle Karte wird verworfen. Leinwandgröße wählen:',
       confirmSize:'Das Ändern der Leinwandgröße skaliert vorhandene Ebenen. Fortfahren?',
       histStart:'Anfang', selNone:'Nichts ausgewählt', symbols:'Symbole',
-      selScale:'Maßstabsleiste ausgewählt',
-      o_zorder:'Ebenenreihenfolge', o_front:'In den Vordergrund', o_back:'In den Hintergrund',
+      selScale:'Maßstabsleiste ausgewählt', o_front:'In den Vordergrund', o_back:'In den Hintergrund',
       o_fwd:'Eine Ebene vor', o_bwd:'Eine Ebene zurück',
       o_group:'Gruppieren', o_ungroup:'Gruppierung aufheben',
       selMulti:'Objekte ausgewählt',
@@ -254,10 +249,9 @@
       o_windrose:'Windrose', o_wrvis:'Auf der Karte anzeigen', o_wrsize:'Größe',
       o_wrstyle_classic:'Klassisch', o_wrstyle_minimal:'Schlicht', o_wrstyle:'Stil', o_wrcolor:'Farbe', h_windrose:'Auf der Karte ziehen, um sie zu verschieben.',
       o_snap:'Am Raster ausrichten', o_snapsize:'Rastergröße', o_frame:'Kartenrahmen', o_frame_none:'Kein', o_frame_simple:'Einfache Linie', o_frame_rope:'Seil', o_frame_ornate:'Verziert', o_frame_color:'Farbe',
-      o_png2x:'PNG 2×', o_png4x:'PNG 4×',
       biomegen_empty:'Zuerst Land zeichnen.', copied:'Kopiert', copy:'Kopieren', exp_share_embedcode:'Einbettungscode (iframe)', exp_share_gen:'🔗 Link erzeugen', exp_share_help:'Kein Server — das Kartenbild wird direkt im Link eingebettet (im #-Teil der URL). Der Link wird nirgendwo hochgeladen, außer Sie senden ihn selbst; bei großen Karten wird der Link länger.', exp_share_link:'Link', exp_share_sizehint:'Linklänge ≈ {kb} KB', exp_share_t:'Freigabelink', h_biomegen:'Füllt die Geländeebene automatisch anhand von Höhe und Breitengrad; ersetzt die aktuelle Geländeebene.', h_rivergen:'Fügt Flüsse hinzu, die anhand des Höhenrasters ins Meer fließen. Erfordert mit dem Werkzeug „Höhe“ gemalte Berge/Hügel.', h_roadgen:'Zeichnet Straßen zwischen Siedlungssymbolen (Stadt/Ort/Dorf/Burg/Hafen) und meidet steile Hänge. Verbindet ein paar zufällige Landpunkte, falls keine Siedlungen vorhanden sind.', h_settlegen:'Verteilt Stadt-/Ort-/Dorfsymbole auf flachem Land nahe der Küste — der beste Platz erhält eine Burg/einen Hafen, der Rest Städte/Dörfer. „Straßen erzeugen“ findet diese Symbole und verbindet sie.', lakegen_none:'Kein geeigneter Seeplatz gefunden.', o_biomegen:'Biome automatisch zuweisen', o_biomegen_go:'🌍 Biome zuweisen', o_landgen_lakes:'Seen hinzufügen', o_landgen_rivers:'Flüsse hinzufügen', o_landgen_terrain:'Gelände hinzufügen', o_rivergen:'Flüsse automatisch erzeugen', o_rivergen_go:'💧 Flüsse erzeugen', o_roadgen:'Straßen automatisch erzeugen', o_roadgen_go:'🛤️ Straßen erzeugen', o_seacolor:'Meeresfarbe', o_settlegen:'Siedlungen automatisch platzieren', o_settlegen_go:'🏰 Siedlungen platzieren', o_symlegend:'Legende', panel_toggle_left:'Linkes Panel ein-/ausblenden', panel_toggle_right:'Rechtes Panel ein-/ausblenden', regions_maptree:'Kartenbaum', regions_political:'Politische Regionen', regions_political_empty:'Noch keine benannten Regionen. Mit dem Werkzeug „Gebiet“ zeichnen und dann benennen.', rivergen_noelev:'Zuerst mit dem Werkzeug „Höhe“ Berge/Hügel malen.', rivergen_none:'Keine geeignete Flussquelle gefunden.', roadgen_noland:'Nicht genug Land/Punkte für Straßen gefunden.', roadgen_none:'Es konnten keine Straßen erzeugt werden — Landmassen sind möglicherweise nicht verbunden.', sc_cancel:'Abbrechen / Auswahl aufheben', sc_delete:'Auswahl löschen', sc_finish:'Pfad abschließen', sc_fit:'An Fenster anpassen', sc_general:'Allgemein', sc_help:'Diesen Bildschirm öffnen', sc_pan:'Verschieben', sc_panfast:'Schneller verschieben', sc_redo:'Wiederholen', sc_rotsym:'Symbol drehen', sc_save:'Speichern', sc_title:'Tastenkürzel', sc_undo:'Rückgängig', sc_zoom:'Vergrößern / verkleinern', settlegen_noland:'Kein geeignetes Land für Siedlungen gefunden.', settlegen_none:'Es konnten keine Siedlungen platziert werden.', share_editbtn:'In Wayborne öffnen', tab_regions:'Regionen', tab_todo:'Aufgaben', todo_add:'Hinzufügen', todo_empty:'Noch keine Aufgaben.', todo_placeholder:'Neue Aufgabe...'
     },
-    fr: {
+    fr: { tut_extras:'Au-delà des outils — générateurs automatiques', tut_extras_d:'Ceux-ci ne sont pas dans la barre d\'outils ; ils apparaissent dans le panneau de droite lorsque vous choisissez l\'outil correspondant.', o_measurearea:'Fermer en surface', tpa_undo:'Annuler le dernier point', tpa_finish:'Terminer', tpa_cancel:'Annuler',
       new:'Nouveau', open:'Ouvrir', save:'Enregistrer', parchment:'Parchemin', grid:'Grille', shore:'Rivage',
       o_gridsec:'Grille', o_gridtype:'Type', o_grid_square:'Carré', o_grid_hex:'Hexagone', o_grid_dot:'Point', o_gridcell:'Taille de cellule', o_gridcolor:'Couleur', o_gridop:'Intensité', h_grid:'Activez la grille via la case \'Grille\' en haut. L\'hexagone est le standard du jeu de rôle sur table.',
       o_polsec:'Carte politique', o_polmode:'Vue politique', o_polmute:'Atténuer la texture du terrain', o_pollegend:'Afficher la légende', o_polfill:'Intensité du remplissage', o_polcolors:'Attribuer les couleurs d\'État', o_polname:'Nom de la région sélectionnée', o_polname_ph:'Nom de l\'État', h_political:'La vue politique n\'est pas un calque distinct ; elle présente vos régions comme des États.', m_polon:'Vue politique activée', m_poloff:'Vue physique', m_polcolored:'régions colorées', m_polempty:'Dessinez d\'abord une région',
@@ -313,7 +307,7 @@
       confirmSize:'Changer la taille de la toile redimensionne les calques existants. Continuer ?',
       histStart:'Début', selNone:'Rien de sélectionné', symbols:'symboles',
       selScale:'Échelle sélectionnée',
-      o_zorder:"Ordre d'empilement", o_front:'Mettre au premier plan', o_back:"Mettre à l'arrière-plan",
+ o_front:'Mettre au premier plan', o_back:"Mettre à l'arrière-plan",
       o_fwd:'Avancer', o_bwd:'Reculer',
       o_group:'Grouper', o_ungroup:'Dissocier',
       selMulti:'objets sélectionnés',
@@ -323,10 +317,9 @@
       o_windrose:'Rose des vents', o_wrvis:'Afficher sur la carte', o_wrsize:'Taille',
       o_wrstyle_classic:'Classique', o_wrstyle_minimal:'Minimaliste', o_wrstyle:'Style', o_wrcolor:'Couleur', h_windrose:'Faites glisser sur la carte pour repositionner.',
       o_snap:'Aligner sur la grille', o_snapsize:'Taille de la grille', o_frame:'Cadre de la carte', o_frame_none:'Aucun', o_frame_simple:'Ligne simple', o_frame_rope:'Corde', o_frame_ornate:'Orné', o_frame_color:'Couleur',
-      o_png2x:'PNG 2×', o_png4x:'PNG 4×',
       biomegen_empty:'Dessinez d\'abord la terre.', copied:'Copié', copy:'Copier', exp_share_embedcode:'Code d\'intégration (iframe)', exp_share_gen:'🔗 Générer le lien', exp_share_help:'Aucun serveur — l\'image de la carte est intégrée directement dans le lien (la partie # de l\'URL). Le lien n\'est jamais envoyé nulle part sauf si vous le partagez vous-même ; les grandes cartes donnent des liens plus longs.', exp_share_link:'Lien', exp_share_sizehint:'Longueur du lien ≈ {kb} Ko', exp_share_t:'Lien de partage', h_biomegen:'Remplit automatiquement le calque de terrain selon l\'altitude et la latitude ; remplace le calque de terrain actuel.', h_rivergen:'Ajoute des rivières qui s\'écoulent vers la mer à partir de la grille d\'altitude. Nécessite des montagnes/collines peintes avec l\'outil « Relief ».', h_roadgen:'Trace des routes entre les symboles de peuplement (ville/bourg/village/château/port) en évitant les pentes raides. Relie quelques points de terre aléatoires s\'il n\'y a pas de peuplements.', h_settlegen:'Répartit des symboles de ville/bourg/village sur un terrain plat près de la côte — le meilleur emplacement reçoit un château/port, le reste des villes/villages. « Générer les routes » trouve ces symboles et les relie.', lakegen_none:'Aucun emplacement adapté trouvé pour un lac.', o_biomegen:'Attribuer les biomes automatiquement', o_biomegen_go:'🌍 Attribuer les biomes', o_landgen_lakes:'Ajouter des lacs', o_landgen_rivers:'Ajouter des rivières', o_landgen_terrain:'Ajouter le terrain', o_rivergen:'Générer les rivières automatiquement', o_rivergen_go:'💧 Générer les rivières', o_roadgen:'Générer les routes automatiquement', o_roadgen_go:'🛤️ Générer les routes', o_seacolor:'Couleur de la mer', o_settlegen:'Placer les peuplements automatiquement', o_settlegen_go:'🏰 Placer les peuplements', o_symlegend:'Légende', panel_toggle_left:'Afficher/masquer le panneau gauche', panel_toggle_right:'Afficher/masquer le panneau droit', regions_maptree:'Arborescence des cartes', regions_political:'Régions politiques', regions_political_empty:'Aucune région nommée pour l\'instant. Dessinez avec l\'outil « Territoire », puis donnez-lui un nom.', rivergen_noelev:'Peignez d\'abord des montagnes/collines avec l\'outil « Relief ».', rivergen_none:'Aucune source de rivière adaptée trouvée.', roadgen_noland:'Pas assez de terre/points trouvés pour les routes.', roadgen_none:'Aucune route n\'a pu être générée — les masses terrestres sont peut-être déconnectées.', sc_cancel:'Annuler / désélectionner', sc_delete:'Supprimer la sélection', sc_finish:'Terminer le tracé', sc_fit:'Ajuster à l\'écran', sc_general:'Général', sc_help:'Ouvrir cet écran', sc_pan:'Déplacer', sc_panfast:'Déplacement rapide', sc_redo:'Rétablir', sc_rotsym:'Faire pivoter le symbole', sc_save:'Enregistrer', sc_title:'Raccourcis clavier', sc_undo:'Annuler', sc_zoom:'Zoomer / dézoomer', settlegen_noland:'Aucun terrain adapté trouvé pour les peuplements.', settlegen_none:'Aucun peuplement n\'a pu être placé.', share_editbtn:'Ouvrir dans Wayborne', tab_regions:'Régions', tab_todo:'À faire', todo_add:'Ajouter', todo_empty:'Aucune tâche pour l\'instant.', todo_placeholder:'Nouvelle tâche...'
     },
-    es: {
+    es: { tut_extras:'Más allá de las herramientas: generadores automáticos', tut_extras_d:'No están en la barra de herramientas; aparecen en el panel derecho al elegir la herramienta relacionada.', o_measurearea:'Cerrar como área', tpa_undo:'Deshacer el último punto', tpa_finish:'Finalizar', tpa_cancel:'Cancelar',
       new:'Nuevo', open:'Abrir', save:'Guardar', parchment:'Pergamino', grid:'Cuadrícula', shore:'Costa',
       o_gridsec:'Cuadrícula', o_gridtype:'Tipo', o_grid_square:'Cuadrado', o_grid_hex:'Hexágono', o_grid_dot:'Punto', o_gridcell:'Tamaño de celda', o_gridcolor:'Color', o_gridop:'Intensidad', h_grid:'Activa la cuadrícula desde la casilla \'Cuadrícula\' de arriba. El hexágono es el estándar del rol de mesa.',
       o_polsec:'Mapa político', o_polmode:'Vista política', o_polmute:'Atenuar textura del terreno', o_pollegend:'Mostrar leyenda', o_polfill:'Intensidad de relleno', o_polcolors:'Asignar colores de estado', o_polname:'Nombre de la región seleccionada', o_polname_ph:'Nombre del estado', h_political:'La vista política no es una capa aparte; presenta las regiones dibujadas como estados.', m_polon:'Vista política activada', m_poloff:'Vista física', m_polcolored:'regiones coloreadas', m_polempty:'Dibuja primero una región',
@@ -381,8 +374,7 @@
       confirmNew:'Se descartará el mapa actual. Elige un tamaño de lienzo:',
       confirmSize:'Cambiar el tamaño del lienzo reescala las capas existentes. ¿Continuar?',
       histStart:'Inicio', selNone:'Nada seleccionado', symbols:'símbolos',
-      selScale:'Barra de escala seleccionada',
-      o_zorder:'Orden de apilado', o_front:'Traer al frente', o_back:'Enviar al fondo',
+      selScale:'Barra de escala seleccionada', o_front:'Traer al frente', o_back:'Enviar al fondo',
       o_fwd:'Avanzar', o_bwd:'Retroceder',
       o_group:'Agrupar', o_ungroup:'Desagrupar',
       selMulti:'objetos seleccionados',
@@ -392,10 +384,9 @@
       o_windrose:'Rosa de los vientos', o_wrvis:'Mostrar en el mapa', o_wrsize:'Tamaño',
       o_wrstyle_classic:'Clásico', o_wrstyle_minimal:'Minimalista', o_wrstyle:'Estilo', o_wrcolor:'Color', h_windrose:'Arrastra en el mapa para reposicionarla.',
       o_snap:'Ajustar a la cuadrícula', o_snapsize:'Tamaño de la cuadrícula', o_frame:'Marco del mapa', o_frame_none:'Ninguno', o_frame_simple:'Línea simple', o_frame_rope:'Cuerda', o_frame_ornate:'Ornamentado', o_frame_color:'Color',
-      o_png2x:'PNG 2×', o_png4x:'PNG 4×',
       biomegen_empty:'Dibuja primero la tierra.', copied:'Copiado', copy:'Copiar', exp_share_embedcode:'Código para incrustar (iframe)', exp_share_gen:'🔗 Generar enlace', exp_share_help:'Sin servidor — la imagen del mapa se incrusta directamente en el enlace (la parte # de la URL). El enlace nunca se sube a ningún sitio salvo que tú lo envíes; los mapas grandes generan enlaces más largos.', exp_share_link:'Enlace', exp_share_sizehint:'Longitud del enlace ≈ {kb} KB', exp_share_t:'Enlace para compartir', h_biomegen:'Rellena automáticamente la capa de terreno según la altitud y la latitud; sustituye la capa de terreno actual.', h_rivergen:'Añade ríos que fluyen hacia el mar a partir de la cuadrícula de altitud. Requiere montañas/colinas pintadas con el pincel «Relieve».', h_roadgen:'Traza caminos entre los símbolos de asentamiento (ciudad/pueblo/aldea/castillo/puerto) evitando pendientes pronunciadas. Conecta algunos puntos de tierra aleatorios si no hay asentamientos.', h_settlegen:'Distribuye símbolos de ciudad/pueblo/aldea sobre terreno llano cerca de la costa — el mejor lugar recibe un castillo/puerto, el resto pueblos/aldeas. «Generar caminos» encuentra estos símbolos y los conecta.', lakegen_none:'No se encontró un lugar adecuado para un lago.', o_biomegen:'Asignar biomas automáticamente', o_biomegen_go:'🌍 Asignar biomas', o_landgen_lakes:'Añadir lagos', o_landgen_rivers:'Añadir ríos', o_landgen_terrain:'Añadir terreno', o_rivergen:'Generar ríos automáticamente', o_rivergen_go:'💧 Generar ríos', o_roadgen:'Generar caminos automáticamente', o_roadgen_go:'🛤️ Generar caminos', o_seacolor:'Color del mar', o_settlegen:'Colocar asentamientos automáticamente', o_settlegen_go:'🏰 Colocar asentamientos', o_symlegend:'Leyenda', panel_toggle_left:'Mostrar/ocultar el panel izquierdo', panel_toggle_right:'Mostrar/ocultar el panel derecho', regions_maptree:'Árbol de mapas', regions_political:'Regiones políticas', regions_political_empty:'Aún no hay regiones con nombre. Dibuja con la herramienta «Territorio» y luego dale un nombre.', rivergen_noelev:'Pinta primero montañas/colinas con el pincel «Relieve».', rivergen_none:'No se encontró una fuente de río adecuada.', roadgen_noland:'No se encontró suficiente tierra/puntos para caminos.', roadgen_none:'No se pudo generar ningún camino — las masas de tierra pueden estar desconectadas.', sc_cancel:'Cancelar / deseleccionar', sc_delete:'Eliminar selección', sc_finish:'Terminar el trazado', sc_fit:'Ajustar a la pantalla', sc_general:'General', sc_help:'Abrir esta pantalla', sc_pan:'Desplazar', sc_panfast:'Desplazar más rápido', sc_redo:'Rehacer', sc_rotsym:'Rotar símbolo', sc_save:'Guardar', sc_title:'Atajos de teclado', sc_undo:'Deshacer', sc_zoom:'Acercar / alejar', settlegen_noland:'No se encontró tierra adecuada para asentamientos.', settlegen_none:'No se pudo colocar ningún asentamiento.', share_editbtn:'Abrir en Wayborne', tab_regions:'Regiones', tab_todo:'Tareas', todo_add:'Añadir', todo_empty:'Aún no hay tareas.', todo_placeholder:'Nueva tarea...'
     },
-    it: {
+    it: { tut_extras:'Oltre gli strumenti — generatori automatici', tut_extras_d:'Non si trovano nella barra degli strumenti; compaiono nel pannello di destra quando selezioni lo strumento corrispondente.', o_measurearea:'Chiudi come area', tpa_undo:'Annulla ultimo punto', tpa_finish:'Termina', tpa_cancel:'Annulla',
       new:'Nuovo', open:'Apri', save:'Salva', parchment:'Pergamena', grid:'Griglia', shore:'Costa',
       o_gridsec:'Griglia', o_gridtype:'Tipo', o_grid_square:'Quadrato', o_grid_hex:'Esagono', o_grid_dot:'Punto', o_gridcell:'Dimensione cella', o_gridcolor:'Colore', o_gridop:'Intensità', h_grid:'Attiva la griglia dalla casella \'Griglia\' in alto. L\'esagono è lo standard dei giochi di ruolo da tavolo.',
       o_polsec:'Mappa politica', o_polmode:'Vista politica', o_polmute:'Attenua la texture del terreno', o_pollegend:'Mostra legenda', o_polfill:'Intensità riempimento', o_polcolors:'Assegna colori agli stati', o_polname:'Nome della regione selezionata', o_polname_ph:'Nome dello stato', h_political:'La vista politica non è un livello separato; presenta le regioni disegnate come stati.', m_polon:'Vista politica attiva', m_poloff:'Vista fisica', m_polcolored:'regioni colorate', m_polempty:'Disegna prima una regione',
@@ -450,8 +441,7 @@
       confirmNew:'La mappa attuale verrà eliminata. Scegli una dimensione della tela:',
       confirmSize:'Cambiare la dimensione della tela ridimensiona i livelli esistenti. Continuare?',
       histStart:'Inizio', selNone:'Nessun oggetto selezionato', symbols:'simboli',
-      selScale:'Barra della scala selezionata',
-      o_zorder:'Ordine', o_front:'Porta in primo piano', o_back:'Porta sullo sfondo',
+      selScale:'Barra della scala selezionata', o_front:'Porta in primo piano', o_back:'Porta sullo sfondo',
       o_fwd:'Avanti di uno', o_bwd:'Indietro di uno',
       o_group:'Raggruppa', o_ungroup:'Separa',
       selMulti:'oggetti selezionati',
@@ -461,10 +451,9 @@
       o_windrose:'Rosa dei venti', o_wrvis:'Mostra sulla mappa', o_wrsize:'Dimensione',
       o_wrstyle_classic:'Classico', o_wrstyle_minimal:'Minimalista', o_wrstyle:'Stile', o_wrcolor:'Colore', h_windrose:'Trascina sulla mappa per riposizionarla.',
       o_snap:'Aggancia alla griglia', o_snapsize:'Dimensione griglia', o_frame:'Cornice della mappa', o_frame_none:'Nessuna', o_frame_simple:'Linea semplice', o_frame_rope:'Corda', o_frame_ornate:'Ornata', o_frame_color:'Colore',
-      o_png2x:'PNG 2×', o_png4x:'PNG 4×',
       biomegen_empty:'Disegna prima la terra.', copied:'Copiato', copy:'Copia', exp_share_embedcode:'Codice di incorporamento (iframe)', exp_share_gen:'🔗 Genera link', exp_share_help:'Nessun server — l\'immagine della mappa è incorporata direttamente nel link (la parte # dell\'URL). Il link non viene mai caricato da nessuna parte a meno che tu non lo invii tu stesso; le mappe grandi generano link più lunghi.', exp_share_link:'Link', exp_share_sizehint:'Lunghezza del link ≈ {kb} KB', exp_share_t:'Link di condivisione', h_biomegen:'Riempie automaticamente il livello del terreno in base ad altitudine e latitudine; sostituisce il livello del terreno attuale.', h_rivergen:'Aggiunge fiumi che scorrono verso il mare a partire dalla griglia di altitudine. Richiede montagne/colline dipinte con il pennello «Rilievo».', h_roadgen:'Traccia strade tra i simboli degli insediamenti (città/paese/villaggio/castello/porto) evitando i pendii ripidi. Collega alcuni punti di terra casuali se non ci sono insediamenti.', h_settlegen:'Distribuisce simboli di città/paese/villaggio su terreno pianeggiante vicino alla costa — il punto migliore riceve un castello/porto, il resto paesi/villaggi. «Genera strade» trova questi simboli e li collega.', lakegen_none:'Nessun punto adatto trovato per un lago.', o_biomegen:'Assegna automaticamente i biomi', o_biomegen_go:'🌍 Assegna biomi', o_landgen_lakes:'Aggiungi laghi', o_landgen_rivers:'Aggiungi fiumi', o_landgen_terrain:'Aggiungi terreno', o_rivergen:'Genera automaticamente i fiumi', o_rivergen_go:'💧 Genera fiumi', o_roadgen:'Genera automaticamente le strade', o_roadgen_go:'🛤️ Genera strade', o_seacolor:'Colore del mare', o_settlegen:'Posiziona automaticamente gli insediamenti', o_settlegen_go:'🏰 Posiziona insediamenti', o_symlegend:'Legenda', panel_toggle_left:'Mostra/nascondi il pannello sinistro', panel_toggle_right:'Mostra/nascondi il pannello destro', regions_maptree:'Albero delle mappe', regions_political:'Regioni politiche', regions_political_empty:'Ancora nessuna regione denominata. Disegna con lo strumento «Territorio», poi assegnale un nome.', rivergen_noelev:'Dipingi prima montagne/colline con il pennello «Rilievo».', rivergen_none:'Nessuna sorgente fluviale adatta trovata.', roadgen_noland:'Non è stata trovata terra/punti sufficienti per le strade.', roadgen_none:'Non è stato possibile generare strade — le masse di terra potrebbero essere separate.', sc_cancel:'Annulla / deseleziona', sc_delete:'Elimina selezione', sc_finish:'Termina il percorso', sc_fit:'Adatta allo schermo', sc_general:'Generale', sc_help:'Apri questa schermata', sc_pan:'Sposta', sc_panfast:'Sposta più velocemente', sc_redo:'Ripeti', sc_rotsym:'Ruota simbolo', sc_save:'Salva', sc_title:'Scorciatoie da tastiera', sc_undo:'Annulla', sc_zoom:'Ingrandisci / riduci', settlegen_noland:'Non è stata trovata terra adatta per gli insediamenti.', settlegen_none:'Non è stato possibile posizionare alcun insediamento.', share_editbtn:'Apri in Wayborne', tab_regions:'Regioni', tab_todo:'Attività', todo_add:'Aggiungi', todo_empty:'Ancora nessuna attività.', todo_placeholder:'Nuova attività...'
     },
-    pt: {
+    pt: { tut_extras:'Para além das ferramentas — geradores automáticos', tut_extras_d:'Não estão na barra de ferramentas; aparecem no painel da direita quando escolhe a ferramenta correspondente.', o_measurearea:'Fechar como área', tpa_undo:'Desfazer o último ponto', tpa_finish:'Concluir', tpa_cancel:'Cancelar',
       new:'Novo', open:'Abrir', save:'Guardar', parchment:'Pergaminho', grid:'Grelha', shore:'Costa',
       o_gridsec:'Grelha', o_gridtype:'Tipo', o_grid_square:'Quadrado', o_grid_hex:'Hexágono', o_grid_dot:'Ponto', o_gridcell:'Tamanho da célula', o_gridcolor:'Cor', o_gridop:'Intensidade', h_grid:'Ative a grelha na caixa \'Grelha\' no topo. O hexágono é o padrão do RPG de mesa.',
       o_polsec:'Mapa político', o_polmode:'Vista política', o_polmute:'Atenuar textura do terreno', o_pollegend:'Mostrar legenda', o_polfill:'Intensidade do preenchimento', o_polcolors:'Atribuir cores dos estados', o_polname:'Nome da região selecionada', o_polname_ph:'Nome do estado', h_political:'A vista política não é uma camada separada; apresenta as regiões desenhadas como estados.', m_polon:'Vista política ativa', m_poloff:'Vista física', m_polcolored:'regiões coloridas', m_polempty:'Desenhe primeiro uma região',
@@ -519,8 +508,7 @@
       confirmNew:'O mapa atual será descartado. Escolha um tamanho de tela:',
       confirmSize:'Alterar o tamanho da tela redimensiona as camadas existentes. Continuar?',
       histStart:'Início', selNone:'Nada selecionado', symbols:'símbolos',
-      selScale:'Barra de escala selecionada',
-      o_zorder:'Ordem de sobreposição', o_front:'Trazer para a frente', o_back:'Enviar para trás',
+      selScale:'Barra de escala selecionada', o_front:'Trazer para a frente', o_back:'Enviar para trás',
       o_fwd:'Avançar', o_bwd:'Recuar',
       o_group:'Agrupar', o_ungroup:'Desagrupar',
       selMulti:'objetos selecionados',
@@ -530,10 +518,9 @@
       o_windrose:'Rosa dos ventos', o_wrvis:'Mostrar no mapa', o_wrsize:'Tamanho',
       o_wrstyle_classic:'Clássico', o_wrstyle_minimal:'Minimalista', o_wrstyle:'Estilo', o_wrcolor:'Cor', h_windrose:'Arraste no mapa para reposicionar.',
       o_snap:'Alinhar à grelha', o_snapsize:'Tamanho da grelha', o_frame:'Moldura do mapa', o_frame_none:'Nenhuma', o_frame_simple:'Linha simples', o_frame_rope:'Corda', o_frame_ornate:'Ornamentada', o_frame_color:'Cor',
-      o_png2x:'PNG 2×', o_png4x:'PNG 4×',
       biomegen_empty:'Desenhe primeiro a terra.', copied:'Copiado', copy:'Copiar', exp_share_embedcode:'Código de incorporação (iframe)', exp_share_gen:'🔗 Gerar link', exp_share_help:'Sem servidor — a imagem do mapa é incorporada diretamente no link (a parte # do URL). O link nunca é enviado para lado nenhum a menos que o envies tu próprio; mapas grandes geram links mais longos.', exp_share_link:'Link', exp_share_sizehint:'Comprimento do link ≈ {kb} KB', exp_share_t:'Link de partilha', h_biomegen:'Preenche automaticamente a camada de terreno com base na altitude e na latitude; substitui a camada de terreno atual.', h_rivergen:'Adiciona rios que fluem até ao mar a partir da grelha de altitude. Requer montanhas/colinas pintadas com o pincel «Relevo».', h_roadgen:'Traça estradas entre os símbolos de povoações (cidade/vila/aldeia/castelo/porto) evitando declives acentuados. Liga alguns pontos de terra aleatórios se não houver povoações.', h_settlegen:'Distribui símbolos de cidade/vila/aldeia em terreno plano perto da costa — o melhor local recebe um castelo/porto, os restantes vilas/aldeias. «Gerar estradas» encontra estes símbolos e liga-os.', lakegen_none:'Não foi encontrado um local adequado para um lago.', o_biomegen:'Atribuir biomas automaticamente', o_biomegen_go:'🌍 Atribuir biomas', o_landgen_lakes:'Adicionar lagos', o_landgen_rivers:'Adicionar rios', o_landgen_terrain:'Adicionar terreno', o_rivergen:'Gerar rios automaticamente', o_rivergen_go:'💧 Gerar rios', o_roadgen:'Gerar estradas automaticamente', o_roadgen_go:'🛤️ Gerar estradas', o_seacolor:'Cor do mar', o_settlegen:'Colocar povoações automaticamente', o_settlegen_go:'🏰 Colocar povoações', o_symlegend:'Legenda', panel_toggle_left:'Mostrar/ocultar o painel esquerdo', panel_toggle_right:'Mostrar/ocultar o painel direito', regions_maptree:'Árvore de mapas', regions_political:'Regiões políticas', regions_political_empty:'Ainda não há regiões com nome. Desenha com a ferramenta «Território» e depois dá-lhe um nome.', rivergen_noelev:'Pinta primeiro montanhas/colinas com o pincel «Relevo».', rivergen_none:'Não foi encontrada uma nascente adequada.', roadgen_noland:'Não foi encontrada terra/pontos suficientes para estradas.', roadgen_none:'Não foi possível gerar estradas — as massas de terra podem estar desligadas entre si.', sc_cancel:'Cancelar / desmarcar seleção', sc_delete:'Eliminar seleção', sc_finish:'Terminar o traçado', sc_fit:'Ajustar ao ecrã', sc_general:'Geral', sc_help:'Abrir este ecrã', sc_pan:'Deslocar', sc_panfast:'Deslocar mais depressa', sc_redo:'Refazer', sc_rotsym:'Rodar símbolo', sc_save:'Guardar', sc_title:'Atalhos de teclado', sc_undo:'Desfazer', sc_zoom:'Aumentar / diminuir zoom', settlegen_noland:'Não foi encontrada terra adequada para povoações.', settlegen_none:'Não foi possível colocar nenhuma povoação.', share_editbtn:'Abrir no Wayborne', tab_regions:'Regiões', tab_todo:'Tarefas', todo_add:'Adicionar', todo_empty:'Ainda não há tarefas.', todo_placeholder:'Nova tarefa...'
     },
-    nl: {
+    nl: { tut_extras:'Verder dan de gereedschappen — automatische generatoren', tut_extras_d:'Deze staan niet op de gereedschapsbalk; ze verschijnen in het rechterpaneel wanneer je het bijbehorende gereedschap kiest.', o_measurearea:'Als gebied sluiten', tpa_undo:'Laatste punt ongedaan maken', tpa_finish:'Voltooien', tpa_cancel:'Annuleren',
       new:'Nieuw', open:'Openen', save:'Opslaan', parchment:'Perkament', grid:'Raster', shore:'Kust',
       o_gridsec:'Raster', o_gridtype:'Type', o_grid_square:'Vierkant', o_grid_hex:'Zeshoek', o_grid_dot:'Punt', o_gridcell:'Celgrootte', o_gridcolor:'Kleur', o_gridop:'Sterkte', h_grid:'Schakel het raster in via het vakje \'Raster\' bovenaan. Zeshoeken zijn de standaard bij tafelrollenspellen.',
       o_polsec:'Politieke kaart', o_polmode:'Politieke weergave', o_polmute:'Terreintextuur dempen', o_pollegend:'Legenda tonen', o_polfill:'Vulsterkte', o_polcolors:'Staatskleuren automatisch toewijzen', o_polname:'Naam van geselecteerde regio', o_polname_ph:'Staatsnaam', h_political:'De politieke weergave is geen aparte laag; ze toont je regio\'s als staten.', m_polon:'Politieke weergave aan', m_poloff:'Fysieke weergave', m_polcolored:'regio\'s gekleurd', m_polempty:'Teken eerst een regio',
@@ -588,8 +575,7 @@
       confirmNew:'De huidige kaart wordt verwijderd. Kies een canvasgrootte:',
       confirmSize:'Het wijzigen van de canvasgrootte schaalt bestaande lagen. Doorgaan?',
       histStart:'Begin', selNone:'Niets geselecteerd', symbols:'symbolen',
-      selScale:'Schaalbalk geselecteerd',
-      o_zorder:'Volgorde', o_front:'Naar voorgrond', o_back:'Naar achtergrond',
+      selScale:'Schaalbalk geselecteerd', o_front:'Naar voorgrond', o_back:'Naar achtergrond',
       o_fwd:'Naar voren', o_bwd:'Naar achteren',
       o_group:'Groeperen', o_ungroup:'Groepering opheffen',
       selMulti:'objecten geselecteerd',
@@ -599,10 +585,9 @@
       o_windrose:'Windroos', o_wrvis:'Tonen op de kaart', o_wrsize:'Grootte',
       o_wrstyle_classic:'Klassiek', o_wrstyle_minimal:'Minimalistisch', o_wrstyle:'Stijl', o_wrcolor:'Kleur', h_windrose:'Sleep op de kaart om te verplaatsen.',
       o_snap:'Uitlijnen op raster', o_snapsize:'Rastergrootte', o_frame:'Kaartlijst', o_frame_none:'Geen', o_frame_simple:'Eenvoudige lijn', o_frame_rope:'Touw', o_frame_ornate:'Versierd', o_frame_color:'Kleur',
-      o_png2x:'PNG 2×', o_png4x:'PNG 4×',
       biomegen_empty:'Teken eerst land.', copied:'Gekopieerd', copy:'Kopiëren', exp_share_embedcode:'Insluitcode (iframe)', exp_share_gen:'🔗 Link genereren', exp_share_help:'Geen server — de kaartafbeelding wordt direct in de link ingesloten (het #-gedeelte van de URL). De link wordt nergens geüpload, tenzij je hem zelf verstuurt; grote kaarten geven langere links.', exp_share_link:'Link', exp_share_sizehint:'Linklengte ≈ {kb} KB', exp_share_t:'Deellink', h_biomegen:'Vult de terreinlaag automatisch op basis van hoogte en breedtegraad; vervangt de huidige terreinlaag.', h_rivergen:'Voegt rivieren toe die vanaf het hoogterooster naar zee stromen. Vereist bergen/heuvels geschilderd met het penseel "Reliëf".', h_roadgen:'Tekent wegen tussen nederzettingssymbolen (stad/dorp/gehucht/kasteel/haven) en vermijdt steile hellingen. Verbindt enkele willekeurige landpunten als er geen nederzettingen zijn.', h_settlegen:'Verspreidt stad-/dorp-/gehuchtsymbolen over vlak land bij de kust — de beste plek krijgt een kasteel/haven, de rest steden/dorpen. "Wegen genereren" vindt deze symbolen en verbindt ze.', lakegen_none:'Geen geschikte plek voor een meer gevonden.', o_biomegen:'Biomen automatisch toewijzen', o_biomegen_go:'🌍 Biomen toewijzen', o_landgen_lakes:'Meren toevoegen', o_landgen_rivers:'Rivieren toevoegen', o_landgen_terrain:'Terrein toevoegen', o_rivergen:'Rivieren automatisch genereren', o_rivergen_go:'💧 Rivieren genereren', o_roadgen:'Wegen automatisch genereren', o_roadgen_go:'🛤️ Wegen genereren', o_seacolor:'Zeekleur', o_settlegen:'Nederzettingen automatisch plaatsen', o_settlegen_go:'🏰 Nederzettingen plaatsen', o_symlegend:'Legenda', panel_toggle_left:'Linkerpaneel in-/uitschakelen', panel_toggle_right:'Rechterpaneel in-/uitschakelen', regions_maptree:'Kaartboom', regions_political:'Politieke regio\'s', regions_political_empty:'Nog geen benoemde regio\'s. Teken met het gereedschap "Gebied" en geef het daarna een naam.', rivergen_noelev:'Schilder eerst bergen/heuvels met het penseel "Reliëf".', rivergen_none:'Geen geschikte rivierbron gevonden.', roadgen_noland:'Onvoldoende land/punten gevonden voor wegen.', roadgen_none:'Er konden geen wegen worden gegenereerd — landmassa\'s zijn mogelijk niet verbonden.', sc_cancel:'Annuleren / deselecteren', sc_delete:'Selectie verwijderen', sc_finish:'Pad voltooien', sc_fit:'Passend maken', sc_general:'Algemeen', sc_help:'Dit scherm openen', sc_pan:'Verschuiven', sc_panfast:'Sneller verschuiven', sc_redo:'Opnieuw', sc_rotsym:'Symbool draaien', sc_save:'Opslaan', sc_title:'Sneltoetsen', sc_undo:'Ongedaan maken', sc_zoom:'In-/uitzoomen', settlegen_noland:'Geen geschikt land gevonden voor nederzettingen.', settlegen_none:'Er konden geen nederzettingen worden geplaatst.', share_editbtn:'Openen in Wayborne', tab_regions:'Regio\'s', tab_todo:'Taken', todo_add:'Toevoegen', todo_empty:'Nog geen taken.', todo_placeholder:'Nieuwe taak...'
     },
-    pl: {
+    pl: { tut_extras:'Poza narzędziami — generatory automatyczne', tut_extras_d:'Nie ma ich na pasku narzędzi; pojawiają się w prawym panelu po wybraniu powiązanego narzędzia.', o_measurearea:'Zamknij jako obszar', tpa_undo:'Cofnij ostatni punkt', tpa_finish:'Zakończ', tpa_cancel:'Anuluj',
       new:'Nowy', open:'Otwórz', save:'Zapisz', parchment:'Pergamin', grid:'Siatka', shore:'Wybrzeże',
       o_gridsec:'Siatka', o_gridtype:'Typ', o_grid_square:'Kwadrat', o_grid_hex:'Heksagon', o_grid_dot:'Kropka', o_gridcell:'Rozmiar komórki', o_gridcolor:'Kolor', o_gridop:'Intensywność', h_grid:'Włącz siatkę polem \'Siatka\' na górze. Heksy to standard w RPG-ach stołowych.',
       o_polsec:'Mapa polityczna', o_polmode:'Widok polityczny', o_polmute:'Wycisz teksturę terenu', o_pollegend:'Pokaż legendę', o_polfill:'Siła wypełnienia', o_polcolors:'Przypisz kolory państw', o_polname:'Nazwa zaznaczonego regionu', o_polname_ph:'Nazwa państwa', h_political:'Widok polityczny nie jest osobną warstwą; przedstawia narysowane regiony jako państwa.', m_polon:'Widok polityczny włączony', m_poloff:'Widok fizyczny', m_polcolored:'regionów pokolorowano', m_polempty:'Najpierw narysuj region',
@@ -657,8 +642,7 @@
       confirmNew:'Bieżąca mapa zostanie odrzucona. Wybierz rozmiar płótna:',
       confirmSize:'Zmiana rozmiaru płótna przeskaluje istniejące warstwy. Kontynuować?',
       histStart:'Początek', selNone:'Nic nie zaznaczono', symbols:'symboli',
-      selScale:'Zaznaczono podziałkę',
-      o_zorder:'Kolejność warstw', o_front:'Przenieś na wierzch', o_back:'Przenieś na spód',
+      selScale:'Zaznaczono podziałkę', o_front:'Przenieś na wierzch', o_back:'Przenieś na spód',
       o_fwd:'Przenieś wyżej', o_bwd:'Przenieś niżej',
       o_group:'Grupuj', o_ungroup:'Rozgrupuj',
       selMulti:'zaznaczonych obiektów',
@@ -668,10 +652,9 @@
       o_windrose:'Róża wiatrów', o_wrvis:'Pokaż na mapie', o_wrsize:'Rozmiar',
       o_wrstyle_classic:'Klasyczny', o_wrstyle_minimal:'Minimalistyczny', o_wrstyle:'Styl', o_wrcolor:'Kolor', h_windrose:'Przeciągnij na mapie, aby przesunąć.',
       o_snap:'Przyciągaj do siatki', o_snapsize:'Rozmiar siatki', o_frame:'Ramka mapy', o_frame_none:'Brak', o_frame_simple:'Prosta linia', o_frame_rope:'Lina', o_frame_ornate:'Zdobiona', o_frame_color:'Kolor',
-      o_png2x:'PNG 2×', o_png4x:'PNG 4×',
       biomegen_empty:'Najpierw narysuj ląd.', copied:'Skopiowano', copy:'Kopiuj', exp_share_embedcode:'Kod osadzania (iframe)', exp_share_gen:'🔗 Generuj link', exp_share_help:'Brak serwera — obraz mapy jest osadzany bezpośrednio w linku (w części # adresu URL). Link nigdzie nie jest wysyłany, chyba że sam go udostępnisz; duże mapy dają dłuższe linki.', exp_share_link:'Link', exp_share_sizehint:'Długość linku ≈ {kb} KB', exp_share_t:'Link do udostępniania', h_biomegen:'Automatycznie wypełnia warstwę terenu na podstawie wysokości i szerokości geograficznej; zastępuje bieżącą warstwę terenu.', h_rivergen:'Dodaje rzeki płynące do morza na podstawie siatki wysokości. Wymaga gór/wzgórz namalowanych pędzlem "Wysokość".', h_roadgen:'Rysuje drogi między symbolami osad (miasto/miasteczko/wieś/zamek/port), omijając strome zbocza. Łączy kilka losowych punktów lądu, jeśli nie ma osad.', h_settlegen:'Rozmieszcza symbole miasta/miasteczka/wsi na płaskim terenie blisko wybrzeża — najlepsze miejsce dostaje zamek/port, reszta miasteczka/wsie. "Generuj drogi" znajduje te symbole i je łączy.', lakegen_none:'Nie znaleziono odpowiedniego miejsca na jezioro.', o_biomegen:'Automatycznie przypisz biomy', o_biomegen_go:'🌍 Przypisz biomy', o_landgen_lakes:'Dodaj jeziora', o_landgen_rivers:'Dodaj rzeki', o_landgen_terrain:'Dodaj teren', o_rivergen:'Automatycznie generuj rzeki', o_rivergen_go:'💧 Generuj rzeki', o_roadgen:'Automatycznie generuj drogi', o_roadgen_go:'🛤️ Generuj drogi', o_seacolor:'Kolor morza', o_settlegen:'Automatycznie rozmieść osady', o_settlegen_go:'🏰 Rozmieść osady', o_symlegend:'Legenda', panel_toggle_left:'Przełącz lewy panel', panel_toggle_right:'Przełącz prawy panel', regions_maptree:'Drzewo map', regions_political:'Regiony polityczne', regions_political_empty:'Brak jeszcze nazwanych regionów. Narysuj narzędziem "Terytorium", a potem nadaj nazwę.', rivergen_noelev:'Najpierw namaluj góry/wzgórza pędzlem "Wysokość".', rivergen_none:'Nie znaleziono odpowiedniego źródła rzeki.', roadgen_noland:'Nie znaleziono wystarczającej ilości lądu/punktów na drogi.', roadgen_none:'Nie udało się wygenerować dróg — masy lądowe mogą być rozłączone.', sc_cancel:'Anuluj / odznacz', sc_delete:'Usuń zaznaczenie', sc_finish:'Zakończ ścieżkę', sc_fit:'Dopasuj do ekranu', sc_general:'Ogólne', sc_help:'Otwórz ten ekran', sc_pan:'Przesuń', sc_panfast:'Szybsze przesuwanie', sc_redo:'Ponów', sc_rotsym:'Obróć symbol', sc_save:'Zapisz', sc_title:'Skróty klawiszowe', sc_undo:'Cofnij', sc_zoom:'Powiększ / pomniejsz', settlegen_noland:'Nie znaleziono odpowiedniego lądu na osady.', settlegen_none:'Nie udało się rozmieścić żadnych osad.', share_editbtn:'Otwórz w Wayborne', tab_regions:'Regiony', tab_todo:'Zadania', todo_add:'Dodaj', todo_empty:'Brak jeszcze zadań.', todo_placeholder:'Nowe zadanie...'
     },
-    ar: {
+    ar: { tut_extras:'ما وراء الأدوات — مولّدات تلقائية', tut_extras_d:'هذه ليست في شريط الأدوات؛ تظهر في اللوحة اليمنى عند اختيار الأداة المرتبطة بها.', o_measurearea:'إغلاق كمساحة', tpa_undo:'تراجع عن آخر نقطة', tpa_finish:'إنهاء', tpa_cancel:'إلغاء',
       new:'جديد', open:'فتح', save:'حفظ', parchment:'رَق', grid:'شبكة', shore:'ساحل', 
        o_gridsec:'الشبكة', o_gridtype:'النوع', o_grid_square:'مربّعة',
       o_grid_hex:'سداسية', o_grid_dot:'نقطية', o_gridcell:'حجم الخلية', o_gridcolor:'اللون', o_gridop:'الوضوح',
@@ -767,7 +750,7 @@
       loaded:'حُمِّل المشروع.', badfile:'ملف مشروع غير صالح.', newmap:'أُنشئت خريطة جديدة.',
       confirmNew:'ستُلغى الخريطة الحالية. اختر حجم اللوحة:',
       confirmSize:'تغيير حجم اللوحة يعيد تحجيم الطبقات الموجودة. أتريد المتابعة؟', histStart:'البداية', selNone:'لا شيء محدَّد',
-      symbols:'رمز', selScale:'شريط المقياس محدَّد', o_zorder:'ترتيب الطبقات', o_front:'إلى الأمام تمامًا',
+      symbols:'رمز', selScale:'شريط المقياس محدَّد', o_front:'إلى الأمام تمامًا',
       o_back:'إلى الخلف تمامًا', o_fwd:'خطوة إلى الأمام', o_bwd:'خطوة إلى الخلف', o_group:'تجميع', o_ungroup:'فكّ التجميع',
       selMulti:'كائن محدَّد', t_lake:'بحيرة', o_lake:'بحيرة', h_lake:'انقر لإضافة نقاط، ومع 3 نقاط أو أكثر اضغط Enter للإغلاق.',
       t_territory:'منطقة', o_territory:'منطقة', o_territorycolor:'لون التعبئة', o_territorybcolor:'لون الحدّ',
@@ -781,10 +764,9 @@
       o_wrsize:'الحجم', o_wrstyle_classic:'كلاسيكي', o_wrstyle_minimal:'مبسَّط', o_wrstyle:'النمط', o_wrcolor:'اللون',
       h_windrose:'اسحب على الخريطة لتغيير الموضع.', o_snap:'محاذاة إلى الشبكة', o_snapsize:'حجم الشبكة', o_frame:'إطار الخريطة',
       o_frame_none:'بلا', o_frame_simple:'خطّ بسيط', o_frame_rope:'حبل', o_frame_ornate:'مزخرف', o_frame_color:'اللون',
-      o_png2x:'PNG 2×', o_png4x:'PNG 4×',
       biomegen_empty:'ارسم اليابسة أولاً.', copied:'تم النسخ', copy:'نسخ', exp_share_embedcode:'كود التضمين (iframe)', exp_share_gen:'🔗 إنشاء رابط', exp_share_help:'بلا خادم — تُضمَّن صورة الخريطة مباشرة داخل الرابط (في جزء # من العنوان). لا يُرفَع الرابط إلى أي مكان إلا إذا أرسلته بنفسك؛ الخرائط الكبيرة تُنتج روابط أطول.', exp_share_link:'الرابط', exp_share_sizehint:'طول الرابط ≈ {kb} كيلوبايت', exp_share_t:'رابط المشاركة', h_biomegen:'يملأ طبقة التضاريس تلقائيًا حسب الارتفاع وخط العرض؛ يستبدل طبقة التضاريس الحالية.', h_rivergen:'يضيف أنهارًا تصبّ في البحر بالاعتماد على شبكة الارتفاع. يتطلّب جبالًا/تلالًا مرسومة بفرشاة «الارتفاع».', h_roadgen:'يرسم طرقًا بين رموز المستوطنات (مدينة/بلدة/قرية/قلعة/ميناء) متجنّبًا المنحدرات الشديدة. يصل بضع نقاط يابسة عشوائية إن لم توجد مستوطنات.', h_settlegen:'يوزّع رموز المدن/البلدات/القرى على أرض مستوية قرب الساحل — يحصل أفضل موضع على قلعة/ميناء، والباقي على بلدات/قرى. يجد «توليد الطرق» هذه الرموز ويصلها ببعضها.', lakegen_none:'لم يُعثر على موضع مناسب لبحيرة.', o_biomegen:'تعيين النطاقات الحيوية تلقائيًا', o_biomegen_go:'🌍 تعيين النطاقات', o_landgen_lakes:'إضافة بحيرات', o_landgen_rivers:'إضافة أنهار', o_landgen_terrain:'إضافة تضاريس', o_rivergen:'توليد الأنهار تلقائيًا', o_rivergen_go:'💧 توليد الأنهار', o_roadgen:'توليد الطرق تلقائيًا', o_roadgen_go:'🛤️ توليد الطرق', o_seacolor:'لون البحر', o_settlegen:'وضع المستوطنات تلقائيًا', o_settlegen_go:'🏰 وضع المستوطنات', o_symlegend:'وسيلة الإيضاح', panel_toggle_left:'إظهار/إخفاء اللوحة اليسرى', panel_toggle_right:'إظهار/إخفاء اللوحة اليمنى', regions_maptree:'شجرة الخرائط', regions_political:'المناطق السياسية', regions_political_empty:'لا توجد مناطق مسمّاة بعد. ارسم بأداة «منطقة» ثم أعطِها اسمًا.', rivergen_noelev:'ارسم الجبال/التلال أولاً بفرشاة «الارتفاع».', rivergen_none:'لم يُعثر على منبع نهر مناسب.', roadgen_noland:'لم يُعثر على يابسة/نقاط كافية للطرق.', roadgen_none:'تعذّر توليد أي طرق — قد تكون الكتل اليابسة غير متصلة.', sc_cancel:'إلغاء / إلغاء التحديد', sc_delete:'حذف التحديد', sc_finish:'إنهاء المسار', sc_fit:'ملاءمة الشاشة', sc_general:'عام', sc_help:'فتح هذه الشاشة', sc_pan:'تحريك', sc_panfast:'تحريك أسرع', sc_redo:'إعادة', sc_rotsym:'تدوير الرمز', sc_save:'حفظ', sc_title:'اختصارات لوحة المفاتيح', sc_undo:'تراجع', sc_zoom:'تكبير / تصغير', settlegen_noland:'لم توجد يابسة مناسبة للمستوطنات.', settlegen_none:'تعذّر وضع أي مستوطنة.', share_editbtn:'فتح في Wayborne', tab_regions:'المناطق', tab_todo:'المهام', todo_add:'إضافة', todo_empty:'لا مهام بعد.', todo_placeholder:'مهمة جديدة…'
     },
-    ru: {
+    ru: { tut_extras:'Помимо инструментов — автоматические генераторы', tut_extras_d:'Их нет на панели инструментов — они появляются в правой панели при выборе соответствующего инструмента.', o_measurearea:'Замкнуть как площадь', tpa_undo:'Отменить последнюю точку', tpa_finish:'Завершить', tpa_cancel:'Отмена',
       new:'Новый', open:'Открыть', save:'Сохранить', parchment:'Пергамент', grid:'Сетка', shore:'Берег',
       o_gridsec:'Сетка', o_gridtype:'Тип', o_grid_square:'Квадрат', o_grid_hex:'Гексагон', o_grid_dot:'Точка', o_gridcell:'Размер ячейки', o_gridcolor:'Цвет', o_gridop:'Насыщенность', h_grid:'Включите сетку флажком «Сетка» вверху. Гексы — стандарт настольных ролевых игр.',
       o_polsec:'Политическая карта', o_polmode:'Политический вид', o_polmute:'Приглушить текстуру рельефа', o_pollegend:'Показать легенду', o_polfill:'Плотность заливки', o_polcolors:'Назначить цвета государств', o_polname:'Название выбранного региона', o_polname_ph:'Название государства', h_political:'Политический вид — не отдельный слой; он показывает нарисованные регионы как государства.', m_polon:'Политический вид включён', m_poloff:'Физический вид', m_polcolored:'регионов раскрашено', m_polempty:'Сначала нарисуйте регион',
@@ -839,8 +821,7 @@
       confirmNew:'Текущая карта будет удалена. Выберите размер холста:',
       confirmSize:'Изменение размера холста масштабирует существующие слои. Продолжить?',
       histStart:'Начало', selNone:'Ничего не выделено', symbols:'символов',
-      selScale:'Выделена масштабная линейка',
-      o_zorder:'Порядок слоёв', o_front:'На передний план', o_back:'На задний план',
+      selScale:'Выделена масштабная линейка', o_front:'На передний план', o_back:'На задний план',
       o_fwd:'Переместить выше', o_bwd:'Переместить ниже',
       o_group:'Сгруппировать', o_ungroup:'Разгруппировать',
       selMulti:'объектов выделено',
@@ -850,7 +831,6 @@
       o_windrose:'Роза ветров', o_wrvis:'Показывать на карте', o_wrsize:'Размер',
       o_wrstyle_classic:'Классический', o_wrstyle_minimal:'Минималистичный', o_wrstyle:'Стиль', o_wrcolor:'Цвет', h_windrose:'Перетащите по карте, чтобы переместить.',
       o_snap:'Привязка к сетке', o_snapsize:'Размер сетки', o_frame:'Рамка карты', o_frame_none:'Нет', o_frame_simple:'Простая линия', o_frame_rope:'Канат', o_frame_ornate:'Узорная', o_frame_color:'Цвет',
-      o_png2x:'PNG 2×', o_png4x:'PNG 4×',
       biomegen_empty:'Сначала нарисуйте сушу.', copied:'Скопировано', copy:'Копировать', exp_share_embedcode:'Код для встраивания (iframe)', exp_share_gen:'🔗 Создать ссылку', exp_share_help:'Без сервера — изображение карты встраивается прямо в ссылку (в часть URL после #). Ссылка никуда не отправляется, пока вы сами её не пришлёте; для больших карт ссылки получаются длиннее.', exp_share_link:'Ссылка', exp_share_sizehint:'Длина ссылки ≈ {kb} КБ', exp_share_t:'Ссылка для доступа', h_biomegen:'Автоматически заполняет слой рельефа по высоте и широте; заменяет текущий слой рельефа.', h_rivergen:'Добавляет реки, стекающие в море по сетке высот. Требует гор/холмов, нарисованных кистью «Высоты».', h_roadgen:'Прокладывает дороги между символами поселений (город/посёлок/деревня/замок/порт), избегая крутых склонов. Соединяет несколько случайных точек суши, если поселений нет.', h_settlegen:'Расставляет символы городов/посёлков/деревень на ровной суше у берега — лучшее место получает замок/порт, остальные — посёлки/деревни. «Создать дороги» находит эти символы и соединяет их.', lakegen_none:'Не найдено подходящее место для озера.', o_biomegen:'Автоматически назначить биомы', o_biomegen_go:'🌍 Назначить биомы', o_landgen_lakes:'Добавить озёра', o_landgen_rivers:'Добавить реки', o_landgen_terrain:'Добавить рельеф', o_rivergen:'Автоматически создать реки', o_rivergen_go:'💧 Создать реки', o_roadgen:'Автоматически создать дороги', o_roadgen_go:'🛤️ Создать дороги', o_seacolor:'Цвет моря', o_settlegen:'Автоматически разместить поселения', o_settlegen_go:'🏰 Разместить поселения', o_symlegend:'Легенда', panel_toggle_left:'Показать/скрыть левую панель', panel_toggle_right:'Показать/скрыть правую панель', regions_maptree:'Дерево карт', regions_political:'Политические регионы', regions_political_empty:'Именованных регионов пока нет. Нарисуйте инструментом «Территория», затем дайте название.', rivergen_noelev:'Сначала нарисуйте горы/холмы кистью «Высоты».', rivergen_none:'Не найден подходящий исток реки.', roadgen_noland:'Недостаточно суши/точек для дорог.', roadgen_none:'Не удалось создать дороги — участки суши могут быть не связаны между собой.', sc_cancel:'Отмена / снять выделение', sc_delete:'Удалить выделенное', sc_finish:'Завершить путь', sc_fit:'По размеру экрана', sc_general:'Общее', sc_help:'Открыть этот экран', sc_pan:'Перемещение', sc_panfast:'Быстрое перемещение', sc_redo:'Повторить', sc_rotsym:'Повернуть символ', sc_save:'Сохранить', sc_title:'Горячие клавиши', sc_undo:'Отменить', sc_zoom:'Увеличить / уменьшить', settlegen_noland:'Не найдена подходящая суша для поселений.', settlegen_none:'Не удалось разместить ни одного поселения.', share_editbtn:'Открыть в Wayborne', tab_regions:'Регионы', tab_todo:'Задачи', todo_add:'Добавить', todo_empty:'Пока нет задач.', todo_placeholder:'Новая задача...'
     }
   };
@@ -903,6 +883,19 @@
       { id:'regionlink', key:'M',     ico:'◈', hint:'h_regionlink' },
       { id:'measure',    key:'Q',     ico:'↔︎', hint:'h_measure' }
     ]}
+  ];
+
+  /* Rehber'in "araçların ötesinde" bölümü: araç rayında yer almayan, yalnız
+     sağ panelde beliren otomatik üreticiler. Ad/açıklama anahtarları PANELİN
+     KENDİSİYLE ORTAK — panel metni değişince rehber kendiliğinden güncel
+     kalır ve iki metin asla birbirinden sapamaz (ayrıca hepsi zaten 11 dilde
+     çevrili olduğu için yeni çeviri borcu doğurmaz). */
+  var TUTORIAL_EXTRAS = [
+    { ico:'◕',  name:'o_landgen',   hint:'h_landgen'   },
+    { ico:'▨',  name:'o_biomegen',  hint:'h_biomegen'  },
+    { ico:'⋯',  name:'o_roadgen',   hint:'h_roadgen'   },
+    { ico:'⛰︎', name:'o_settlegen', hint:'h_settlegen' },
+    { ico:'⌖',  name:'ref_scan',    hint:'h_ref_scan'  }
   ];
 
   /* Klavye kısayolları ekranının "Genel" bölümü — araç kısayolları zaten
@@ -1363,6 +1356,34 @@
           row.appendChild(ico); row.appendChild(body);
           box.appendChild(row);
         });
+      });
+
+      /* Araç rayında OLMAYAN, yalnız sağ panelde beliren otomatik
+         üreticiler. Rehber bunları göstermezse kullanıcının keşfetmesi
+         için panelleri tek tek gezmesi gerekiyordu. */
+      var xh = document.createElement('div');
+      xh.className = 'tutorial-group-label';
+      xh.textContent = self.t('tut_extras');
+      box.appendChild(xh);
+      var xn = document.createElement('div');
+      xn.className = 'tutorial-desc tutorial-extras-note';
+      xn.textContent = self.t('tut_extras_d');
+      box.appendChild(xn);
+      TUTORIAL_EXTRAS.forEach(function (x) {
+        var row = document.createElement('div'); row.className = 'tutorial-row';
+        var ico = document.createElement('div'); ico.className = 'tutorial-ico'; ico.textContent = x.ico;
+        var body = document.createElement('div'); body.className = 'tutorial-body';
+        var nameRow = document.createElement('div'); nameRow.className = 'tutorial-name';
+        /* Bazı düğme etiketleri kendi glifini taşıyor ("⌖ Coğrafyayı tara").
+           Rehber satırının zaten ayrı bir ikon sütunu var, yoksa glif iki kez
+           görünürdü — baştaki harf-olmayan süsü kırp. Etiketin kendisi tek
+           kaynak olarak panelde olduğu gibi kalıyor. */
+        nameRow.textContent = self.t(x.name).replace(/^[^\p{L}\p{N}]+/u, '');
+        var desc = document.createElement('div'); desc.className = 'tutorial-desc';
+        desc.textContent = self.t(x.hint);
+        body.appendChild(nameRow); body.appendChild(desc);
+        row.appendChild(ico); row.appendChild(body);
+        box.appendChild(row);
       });
     },
 

@@ -1,6 +1,6 @@
 # Wayborne Map Editor (Cartographer)
 
-Fantastik / ortaçağ tarzı, tarayıcı üzerinde çalışan bir harita editörü. Tamamen vanilla JavaScript ve Canvas 2D ile yazılmıştır — framework, build adımı, bundler, npm bağımlılığı veya CDN varlığı yoktur. Karada, denizde, kıyıda, arazi dokularında, izometrik binalarda kullanılan her şey (891 sembol, 34 arazi tipi, onlarca izometrik yapı) kodun içinde üretilir; dışarıdan görsel dosyası yüklenmez.
+Fantastik / ortaçağ tarzı, tarayıcı üzerinde çalışan bir harita editörü. Tamamen vanilla JavaScript ve Canvas 2D ile yazılmıştır — framework, build adımı, bundler, npm bağımlılığı veya CDN varlığı yoktur. Karada, denizde, kıyıda, arazi dokularında, izometrik binalarda kullanılan her şey (894 sembol, 34 arazi tipi, onlarca izometrik yapı) kodun içinde üretilir; dışarıdan görsel dosyası yüklenmez.
 
 Arayüz 11 dilde kullanılabilir: Türkçe, İngilizce, Almanca, Fransızca, İspanyolca, İtalyanca, Portekizce, Hollandaca, Lehçe, Rusça, Arapça (bu sonuncusu sağdan sola yerleşimle). Sağ üstteki 🌐 simgesinden değiştirilir; tüm arayüz metinleri her 11 dilde eksiksiz çevrilidir.
 
@@ -63,7 +63,7 @@ bölümünü açar ve tuşuyla da seçilebilir. Rehber sayfası da aynı gruplam
 
 | Araç | Tuş | İşlev |
 |---|---|---|
-| **Kara** | `B` | Kara kütlesi fırçası — karayı boyar, deniz ile arasına otomatik kıyı efekti (glow) uygulanır. Aynı panelde **prosedürel kara üreteci** de bulunur: Kıta / Ada / Takımada şablonlarından biriyle, tohumlu Perlin gürültüsüne dayalı tek tıkla rastgele kıyı çizgisi üretir (detay/pürüzlülük ayarlanabilir, harici kütüphane kullanılmaz). Bir **kapsama garantisi** kıtanın tuvalin en az %40'ını, ada/takımadanın en az %20'sini kaplamasını sağlar; takımada adaları birbirinden gerçekten ayrık, dağınık parçalar olarak üretir (tek bir kaynaşmış kara kütlesi değil). "Üret" düğmesinin üstündeki **Nehir / Göl / Arazi** onay kutuları işaretlenirse aynı tohumdan otomatik nehir, göl ve biyom da eklenir. Uyarı penceresi yalnızca ilk kullanımda çıkar. |
+| **Kara** | `B` | Kara kütlesi fırçası — karayı boyar, deniz ile arasına otomatik kıyı efekti (glow) uygulanır. Aynı panelde **prosedürel kara üreteci** de bulunur: Kıta / Ada / Takımada şablonlarından biriyle, tohumlu Perlin gürültüsüne dayalı tek tıkla rastgele kıyı çizgisi üretir (detay/pürüzlülük ayarlanabilir, harici kütüphane kullanılmaz); üretim sürerken "Üret" düğmesindeki zar simgesi yuvarlanır. Bir **kapsama garantisi** kıtanın tuvalin en az %40'ını, ada/takımadanın en az %20'sini kaplamasını sağlar; takımada adaları birbirinden gerçekten ayrık, dağınık parçalar olarak üretir (tek bir kaynaşmış kara kütlesi değil). "Üret" düğmesinin üstündeki **Nehir / Göl / Arazi** onay kutuları işaretlenirse aynı tohumdan otomatik nehir, göl ve biyom da eklenir. Uyarı penceresi yalnızca ilk kullanımda çıkar. |
 | **Deniz** | `E` | Silgi — boyanmış karayı (ve üzerindeki arazi dokusunu) tek adımda kaldırır. |
 | **Doldur** | `F` | Kova doldurma — kalemle çizilmiş kapalı bir kıyı çevriminin (ring) içini tek tıkla dolduran flood-fill aracı; tıklanan pikselle aynı kara/deniz durumundaki bitişik alanı doldurur. |
 | **Arazi** | `T` | 34 arazi tipinden biriyle doku boyar (otlak, orman, karanlık orman, tayga, bozkır, savan, çöl, bataklık, kayalık, kar/buz, arnavut kaldırımı, kırık taş yol, çamur yol, pis su akıntısı, süs çiçeği tarhı, çalı bordürü vb.). Her fırça darbesinde desen rastgele serpilir; iki darbe asla birebir aynı görünmez. Fırçanın kara sınırlarını aşmaması otomatik sağlanır. |
@@ -114,6 +114,8 @@ Bağlantı iğneleri yalnızca editör içi gezinme yardımcısıdır; PNG/SVG �
 Seçili araca göre değişen ayarlar burada görünür: fırça boyutu, opaklık, renk, kenarlık rengi/kalınlığı, kıyı stili (kumlu / kayalık / resif), **deniz rengi** (Kara aracının panelinde bir renk seçici — okyanus dokusu ve derinlik gradyanı anında yeni renkten türetilir, proje kaydında saklanır), yükselti gücü ve alçaltma modu, pusula gülü stili, ölçek çubuğu ayarları, ızgaraya yapış (snap-to-grid) açma/kapama, referans görsel yükleme/opaklık ve görünüm (yakınlaştır/sığdır) kontrolleri.
 
 **Referans görsel — iz sürme (trace) modu:** Bir referans görsel yüklendikten sonra "İz sürme modu" işaretlenirse, görsel boyanan kara/arazi katmanlarının üstünde yarı saydam olarak gösterilmeye devam eder (normalde opak fırça darbeleri altında kalırdı) ve kara/deniz fırçası, referanstaki en yakın belirgin kenara (elle çizilmiş kıyı hattı gibi) otomatik kenetlenir. Bu mod yalnızca ekranda geçerlidir, PNG/SVG çıktısını etkilemez.
+
+**Referans görsel — coğrafya tarama:** "⌖ Coğrafyayı tara" düğmesi, yüklenen referans görseldeki kıyı çizgisini, gölleri ve nehirleri otomatik olarak tuvale çıkarır — harici bir yapay zekâ/model kullanmadan, saf görüntü işleme (k=2 renk kümelemesi, bağlı bileşen analizi, çift-BFS ile nehir gövdesi çıkarımı) ile. Şehir/dağ gibi harita işaretleri coğrafyaya karışmaz: küçük, kompakt ve rengi baskın kümesinden sapan lekeler önce ayıklanıp altındaki arazi kesintisiz devam ettirilir, sonra kıyı/nehir/göl sınıflandırması yapılır. Tarama sırasında aşamalı bir ilerleme çubuğu gösterilir (hazırlık → işaretleri ayıkla → altını doldur → kıyı → nehir/göl → katmanlara yaz), istenirse iptal edilebilir. Bu, mevcut karayı değiştiren yıkıcı bir işlemdir; her seferinde onay istenir.
 
 Bir nesne seçildiğinde ek işlemler görünür: **Çoğalt**, **Sil**, öne/arkaya getir, en öne/en arkaya gönder, gruplama/grup çözme.
 
@@ -166,10 +168,7 @@ viewport'a bağlı büyür, üst sınır çok büyük ekranda satır uzunluğunu
 Araç rayı + tuval + katman paneli yan yana çalışan üç sütunlu düzen ~860 piksel
 altında tek sütuna iner; sol ve sağ paneller tuvalin üzerine kayan çekmecelere
 dönüşür (kolçak düğmesiyle açılıp kapatılır, editöre ilk girişte dar ekranlarda
-varsayılan kapalı başlarlar ki tuval hemen görünür olsun). Bu, çekirdek düzeyde
-bir mobil destektir — telefon/tablette editör açılır ve kullanılabilir, ama
-derinlemesine dokunmatik-arayüz cilası (uzun basma menüleri, jest kütüphanesi
-vb.) henüz hedeflenmiyor.
+varsayılan kapalı başlarlar ki tuval hemen görünür olsun).
 
 Dokunmatik cihazlarda çizim `pointer` olaylarıyla çalışır, yol araçları çift
 dokunmayla bitirilebilir, ve **iki parmakla yakınlaştırma/kaydırma (pinch-zoom)**
@@ -177,6 +176,11 @@ desteklenir: ikinci parmak indiğinde birinci parmağın başlattığı tekli i�
 (varsa) önce düzgünce tamamlanır, sonra iki parmak birlikte tuvali yakınlaştırıp
 kaydırır. Dar ekranlarda dokunma hedefleri (araç kareleri, sekmeler, düğmeler)
 büyütülür; üst araç çubuğu sığmadığında kendi içinde yatay kaydırılabilir.
+Çok-noktalı yol araçları (nehir/yol/bölge/göl/ölç) ve kement seçimi klavyesiz de
+tamamlanır: tuvalin üzerinde beliren yüzen bir eylem çubuğu (bitir / iptal /
+son noktayı geri al) aynı `Enter`/`Escape`/`Delete` işlevlerini dokunmatik
+karşılıklarıyla sunar, böylece telefon/tablette klavye olmadan tam bir çizim
+akışı (nehir çiz → bitir → sembol yerleştir → seç → sil) mümkündür.
 
 ## Mimari (geliştiriciler için)
 

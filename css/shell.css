@@ -227,3 +227,7 @@ label.btn.wide{display:block; text-align:center; cursor:pointer; margin-top:6px;
 .tpl-card .tpl-name{display:block; font-size:12.5px; color:var(--text); padding:9px 10px 3px}
 .tpl-card .tpl-sub{display:block; font-size:10.5px; color:var(--text-dim); padding:0 10px 10px}
 @media (max-width:640px){ .tpl-grid{grid-template-columns:1fr 1fr} }
+
+/* Rehber: "araçların ötesinde" bölümünün açıklama satırı — araç
+   satırlarının girintisine hizalanmadan, bölüm başlığının altında durur. */
+.tutorial-extras-note{margin:-2px 0 10px;opacity:.8;max-width:70ch}
