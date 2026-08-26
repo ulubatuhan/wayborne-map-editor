@@ -2756,26 +2756,350 @@
       }
       if (!picked.length) { UI.msg(UI.t('settlegen_none')); return; }
 
+      /* Nüfus: yerleşim uygunluğu (c.score, kıyı/eğim) × başkente yakınlık
+         bonusu. Devletler (Tools.generateStates) henüz üretilmemişse bonus
+         nötr (1) kalır — bu yüzden #2 (nüfus) #1'den (devlet) tamamen
+         bağımsız çalışır, sıra önemli değil. */
+      var Tv0 = Layers.get('territories');
+      var capitals0 = Tv0 ? Tv0.objects.filter(function (o) { return o.kind === 'state' && o.capital; }).map(function (o) { return o.capital; }) : [];
+      function capitalBonus(x, y) {
+        if (!capitals0.length) return 1;
+        var best = Infinity;
+        capitals0.forEach(function (p) { var d = Math.hypot(p.x-x, p.y-y); if (d < best) best = d; });
+        var norm = best / (Math.min(w,h)*0.5);
+        return 1 + 0.5*Math.max(0, 1-norm);
+      }
+      var self = this;
+
       var before = JSON.parse(JSON.stringify(Sy.objects));
       picked.forEach(function (c, idx) {
-        var cat, sizeBase;
-        if (idx === 0)    { cat = (c.coastal && Sym.SYMBOLS.ports) ? 'ports' : 'castles'; sizeBase = 84; }
-        else if (idx < 3) { cat = 'towns'; sizeBase = 68; }
-        else              { cat = 'villages'; sizeBase = 52; }
+        var cat, sizeBase, popRange;
+        if (idx === 0)    { cat = (c.coastal && Sym.SYMBOLS.ports) ? 'ports' : 'castles'; sizeBase = 84; popRange = [3000,9000]; }
+        else if (idx < 3) { cat = 'towns'; sizeBase = 68; popRange = [700,2500]; }
+        else              { cat = 'villages'; sizeBase = 52; popRange = [80,400]; }
         var catDef = Sym.SYMBOLS[cat] || Sym.SYMBOLS.villages;
         var items = catDef.items;
         var def = items[Math.floor(rnd.next()*items.length)];
         var x = (c.gx+0.5)/sw*w, y = (c.gy+0.5)/sh*h;
+        var suitability = Math.min(1.4, Math.max(0.4, c.score));
+        var pop = Math.round((popRange[0] + rnd.next()*(popRange[1]-popRange[0])) * suitability * capitalBonus(x,y));
         Sy.objects.push({
           id:uid(), sym:def.id, x:x, y:y,
           size: sizeBase * (0.9 + rnd.next()*0.2), rot:0,
-          hue:0, opacity:1, wear:0
+          hue:0, opacity:1, wear:0,
+          population:pop, cultureKey: self.cultureAt(x,y)
         });
       });
 
       History.pushVector('symbols', before, JSON.parse(JSON.stringify(Sy.objects)), 'settlegen');
       UI.refreshHistory();
       Cv.requestRender();
+    },
+
+    /* ================= DEVLET OTOMATİK ÜRETİMİ =================
+       Çok-kaynaklı maliyet-mesafe büyümesi (multi-source Dijkstra): her
+       başkentten eşzamanlı bir "fetih" başlar, en düşük maliyetli komşu
+       hücreyi önce alır. Maliyet = 1 birim mesafe × (1/büyüme çarpanı) +
+       yükselti cezası (dağlar geçişi yavaşlatır) — deniz hücreleri hiç
+       genişlemez (devlet asla denize taşmaz, traceContour zaten kara
+       maskesiyle kesişimde çalışır). `variety` (0..1) her devlete rastgele
+       bir büyüme çarpanı [1-variety, 1+variety] atar, böylece bazı
+       devletler diğerlerinden belirgin şekilde büyük çıkar (AFMG'nin
+       "expansionism" parametresinin karşılığı). Aynı tohum → aynı
+       sınırlar (rngFrom yerine burada da _noiseGrid'in deterministik
+       PRNG'si kullanılıyor, öncekilerle aynı desen). */
+    generateStates: function (count, variety, seed) {
+      var Lm = Layers.get('landmass'), Ev = Layers.get('elevation'), Tv = Layers.get('territories');
+      if (!Lm || !Tv) return 0;
+      if (Tv.locked || !Tv.visible) { UI.msg(UI.t('locked')); return 0; }
+      var w = Lm.canvas.width, h = Lm.canvas.height;
+      var rnd = this._noiseGrid((seed >>> 0) || Math.floor(Math.random()*4294967296));
+
+      var N = Math.max(60, Math.min(140, Math.round(Math.min(w,h)/28)));
+      var sw = N, sh = Math.max(1, Math.round(N * h/w));
+
+      var lc = document.createElement('canvas'); lc.width = sw; lc.height = sh;
+      var lctx = lc.getContext('2d', { willReadFrequently:true });
+      lctx.drawImage(Lm.canvas, 0, 0, sw, sh);
+      var land = lctx.getImageData(0, 0, sw, sh).data;
+
+      var elev = null;
+      if (Ev) {
+        var ec = document.createElement('canvas'); ec.width = sw; ec.height = sh;
+        var ectx = ec.getContext('2d', { willReadFrequently:true });
+        ectx.drawImage(Ev.canvas, 0, 0, sw, sh);
+        elev = ectx.getImageData(0, 0, sw, sh).data;
+      }
+
+      function isLand(gx, gy) {
+        if (gx < 0 || gy < 0 || gx >= sw || gy >= sh) return false;
+        return land[(gy*sw+gx)*4+3]/255 > 0.4;
+      }
+      function heightAt(gx, gy) {
+        if (!elev) return 128;
+        var i = (gy*sw+gx)*4, a = elev[i+3]/255;
+        return a > 0.02 ? (elev[i]*a + 128*(1-a)) : 128;
+      }
+
+      var landCells = [];
+      for (var gy = 0; gy < sh; gy++) for (var gx = 0; gx < sw; gx++) if (isLand(gx,gy)) landCells.push({gx:gx, gy:gy});
+      if (landCells.length < 8) { UI.msg(UI.t('stategen_noland')); return 0; }
+
+      count = Math.max(2, Math.min(10, Math.round(count) || 5));
+      var minSep = Math.max(4, Math.round(Math.min(sw,sh) * 0.12));
+      var capitals = [], tries = 0, maxTries = landCells.length * 6;
+      while (capitals.length < count && tries < maxTries) {
+        tries++;
+        var c = landCells[Math.floor(rnd.next()*landCells.length)];
+        var ok = true;
+        for (var pi = 0; pi < capitals.length; pi++) {
+          if (Math.hypot(capitals[pi].gx-c.gx, capitals[pi].gy-c.gy) < minSep) { ok = false; break; }
+        }
+        if (ok) capitals.push({ gx:c.gx, gy:c.gy });
+      }
+      if (capitals.length < 2) { UI.msg(UI.t('stategen_noland')); return 0; }
+
+      var vr = Math.max(0, Math.min(1, variety === undefined ? 0.35 : variety));
+      var growth = capitals.map(function () { return Math.max(0.35, 1 + (rnd.next()*2-1)*vr); });
+
+      /* ikili min-heap: [maliyet, gx, gy, devletIndeksi] */
+      var heap = [];
+      function heapPush(item) {
+        heap.push(item);
+        var i = heap.length-1;
+        while (i > 0) {
+          var p = (i-1)>>1;
+          if (heap[p][0] <= heap[i][0]) break;
+          var t = heap[p]; heap[p] = heap[i]; heap[i] = t; i = p;
+        }
+      }
+      function heapPop() {
+        var top = heap[0], last = heap.pop();
+        if (heap.length) {
+          heap[0] = last;
+          var i = 0;
+          while (true) {
+            var l = 2*i+1, r = 2*i+2, s = i;
+            if (l < heap.length && heap[l][0] < heap[s][0]) s = l;
+            if (r < heap.length && heap[r][0] < heap[s][0]) s = r;
+            if (s === i) break;
+            var t = heap[s]; heap[s] = heap[i]; heap[i] = t; i = s;
+          }
+        }
+        return top;
+      }
+
+      var owner = new Int16Array(sw*sh); owner.fill(-1);
+      var costGrid = new Float64Array(sw*sh); costGrid.fill(Infinity);
+      capitals.forEach(function (c, si) {
+        var idx = c.gy*sw+c.gx;
+        owner[idx] = si; costGrid[idx] = 0;
+        heapPush([0, c.gx, c.gy, si]);
+      });
+
+      var NB = [[1,0],[-1,0],[0,1],[0,-1]];
+      var guard = 0, maxIter = sw*sh*5 + 16;
+      while (heap.length && guard++ < maxIter) {
+        var top = heapPop();
+        var cost = top[0], cgx = top[1], cgy = top[2], si2 = top[3];
+        if (cost > costGrid[cgy*sw+cgx]) continue; /* bayat giriş, atla */
+        for (var ni = 0; ni < 4; ni++) {
+          var nx = cgx+NB[ni][0], ny = cgy+NB[ni][1];
+          if (!isLand(nx, ny)) continue;
+          var e = Math.max(0, (heightAt(nx,ny)-128)/127);
+          var stepCost = (1 + e*2.2) / growth[si2];
+          var nCost = cost + stepCost, nIdx = ny*sw+nx;
+          if (nCost < costGrid[nIdx]) {
+            costGrid[nIdx] = nCost; owner[nIdx] = si2;
+            heapPush([nCost, nx, ny, si2]);
+          }
+        }
+      }
+
+      var GOV = ['kingdom','empire','theocracy','republic','confederation','citystate'];
+      var cultureKeys = Object.keys(Names.CULTURES);
+      var lang = (typeof UI !== 'undefined' && UI.lang) || 'tr';
+      var before = JSON.parse(JSON.stringify(Tv.objects));
+      var minAreaCells = Math.max(3, sw*sh*0.0015);
+      var newObjs = [];
+      for (var si3 = 0; si3 < capitals.length; si3++) {
+        var mask = new Uint8Array(sw*sh);
+        for (var q = 0; q < sw*sh; q++) if (owner[q] === si3) mask[q] = 1;
+        var rings = Geo.traceContour(mask, sw, sh);
+        var outer = rings.filter(function (r) { return !r.hole && r.area >= minAreaCells; });
+        if (!outer.length) continue;
+        var cultureKey = cultureKeys[Math.floor(rnd.next()*cultureKeys.length)];
+        var govKey = GOV[Math.floor(rnd.next()*GOV.length)];
+        var name = Names.generate(cultureKey, 'region', lang, Math.floor(rnd.next()*1e9));
+        var hueBase = (si3 * 137.508) % 360;
+        var col = Cv._hsl(hueBase, 46, 54), bcol = Cv._hsl(hueBase, 60, 26);
+        var capPt = { x:(capitals[si3].gx+0.5)/sw*w, y:(capitals[si3].gy+0.5)/sh*h };
+        outer.sort(function (a, b) { return b.area - a.area; });
+        outer.forEach(function (ring, ri) {
+          var pts = ring.map(function (p) { return [p[0]/sw*w, p[1]/sh*h]; });
+          newObjs.push({
+            id:uid(), pts:pts, kind:'state',
+            name: ri === 0 ? name : (name + ' ' + (ri+1)),
+            government:govKey, cultureKey:cultureKey, capital:capPt,
+            color:col, borderColor:bcol, borderWidth:3, opacity:0.85
+          });
+        });
+      }
+      if (!newObjs.length) { UI.msg(UI.t('stategen_none')); return 0; }
+
+      Tv.objects = Tv.objects.concat(newObjs);
+      History.pushVector('territories', before, JSON.parse(JSON.stringify(Tv.objects)), 'stategen');
+      UI.refreshHistory();
+      if (UI.refreshTerritoryList) UI.refreshTerritoryList();
+      Cv.requestRender();
+      return newObjs.length;
+    },
+
+    /* ================= KÜLTÜR OTOMATİK ÜRETİMİ =================
+       generateStates ile birebir aynı çok-kaynaklı maliyet-mesafe
+       algoritması, farklı bir amaçla: devlet sınırlarından bağımsız,
+       kendi ızgarasında büyüyen kültür bölgeleri. Sonuç `territories`
+       katmanına kind:'culture' nesneleri olarak eklenir — Kural A
+       (performans planı, docs/afmg-parity-plan.md): ayrı bir raster
+       overlay DEĞİL, mevcut bölge render yoluyla aynı vektör nesneleri.
+       Görünürlüğü Cv.politicalMode ('state'/'culture') seçer. */
+    generateCultures: function (count, seed) {
+      var Lm = Layers.get('landmass'), Tv = Layers.get('territories');
+      if (!Lm || !Tv) return 0;
+      if (Tv.locked || !Tv.visible) { UI.msg(UI.t('locked')); return 0; }
+      var w = Lm.canvas.width, h = Lm.canvas.height;
+      var rnd = this._noiseGrid(((seed >>> 0) + 0x9e3779b9) >>> 0 || Math.floor(Math.random()*4294967296));
+
+      var N = Math.max(60, Math.min(140, Math.round(Math.min(w,h)/28)));
+      var sw = N, sh = Math.max(1, Math.round(N * h/w));
+      var lc = document.createElement('canvas'); lc.width = sw; lc.height = sh;
+      var lctx = lc.getContext('2d', { willReadFrequently:true });
+      lctx.drawImage(Lm.canvas, 0, 0, sw, sh);
+      var land = lctx.getImageData(0, 0, sw, sh).data;
+      function isLand(gx, gy) {
+        if (gx < 0 || gy < 0 || gx >= sw || gy >= sh) return false;
+        return land[(gy*sw+gx)*4+3]/255 > 0.4;
+      }
+
+      var landCells = [];
+      for (var gy = 0; gy < sh; gy++) for (var gx = 0; gx < sw; gx++) if (isLand(gx,gy)) landCells.push({gx:gx, gy:gy});
+      if (landCells.length < 8) { UI.msg(UI.t('stategen_noland')); return 0; }
+
+      var cultureKeys = Object.keys(Names.CULTURES);
+      count = Math.max(2, Math.min(cultureKeys.length, Math.round(count) || 4));
+      var minSep = Math.max(4, Math.round(Math.min(sw,sh) * 0.14));
+      var seeds = [], tries = 0, maxTries = landCells.length * 6;
+      var shuffled = cultureKeys.slice();
+      for (var si = shuffled.length-1; si > 0; si--) {
+        var sj = Math.floor(rnd.next()*(si+1)), tmp = shuffled[si]; shuffled[si] = shuffled[sj]; shuffled[sj] = tmp;
+      }
+      while (seeds.length < count && tries < maxTries) {
+        tries++;
+        var c = landCells[Math.floor(rnd.next()*landCells.length)];
+        var ok = true;
+        for (var pi = 0; pi < seeds.length; pi++) {
+          if (Math.hypot(seeds[pi].gx-c.gx, seeds[pi].gy-c.gy) < minSep) { ok = false; break; }
+        }
+        if (ok) seeds.push({ gx:c.gx, gy:c.gy, cultureKey:shuffled[seeds.length] });
+      }
+      if (seeds.length < 2) { UI.msg(UI.t('stategen_noland')); return 0; }
+
+      var heap = [];
+      function heapPush(item) {
+        heap.push(item);
+        var i = heap.length-1;
+        while (i > 0) { var p=(i-1)>>1; if (heap[p][0]<=heap[i][0]) break; var t=heap[p]; heap[p]=heap[i]; heap[i]=t; i=p; }
+      }
+      function heapPop() {
+        var top = heap[0], last = heap.pop();
+        if (heap.length) {
+          heap[0] = last; var i = 0;
+          while (true) {
+            var l=2*i+1, r=2*i+2, s=i;
+            if (l<heap.length && heap[l][0]<heap[s][0]) s=l;
+            if (r<heap.length && heap[r][0]<heap[s][0]) s=r;
+            if (s===i) break;
+            var t=heap[s]; heap[s]=heap[i]; heap[i]=t; i=s;
+          }
+        }
+        return top;
+      }
+      var owner = new Int16Array(sw*sh); owner.fill(-1);
+      var costGrid = new Float64Array(sw*sh); costGrid.fill(Infinity);
+      seeds.forEach(function (c, si2) {
+        var idx = c.gy*sw+c.gx;
+        owner[idx] = si2; costGrid[idx] = 0;
+        heapPush([0, c.gx, c.gy, si2]);
+      });
+      var NB = [[1,0],[-1,0],[0,1],[0,-1]];
+      var guard = 0, maxIter = sw*sh*5 + 16;
+      while (heap.length && guard++ < maxIter) {
+        var top = heapPop();
+        var cost = top[0], cgx = top[1], cgy = top[2], si3 = top[3];
+        if (cost > costGrid[cgy*sw+cgx]) continue;
+        for (var ni = 0; ni < 4; ni++) {
+          var nx = cgx+NB[ni][0], ny = cgy+NB[ni][1];
+          if (!isLand(nx, ny)) continue;
+          var nCost = cost + 1, nIdx = ny*sw+nx;
+          if (nCost < costGrid[nIdx]) { costGrid[nIdx] = nCost; owner[nIdx] = si3; heapPush([nCost, nx, ny, si3]); }
+        }
+      }
+
+      var lang = (typeof UI !== 'undefined' && UI.lang) || 'tr';
+      var before = JSON.parse(JSON.stringify(Tv.objects));
+      var minAreaCells = Math.max(3, sw*sh*0.0015);
+      var newObjs = [];
+      for (var si4 = 0; si4 < seeds.length; si4++) {
+        var mask = new Uint8Array(sw*sh);
+        for (var q = 0; q < sw*sh; q++) if (owner[q] === si4) mask[q] = 1;
+        var rings = Geo.traceContour(mask, sw, sh);
+        var outer = rings.filter(function (r) { return !r.hole && r.area >= minAreaCells; });
+        if (!outer.length) continue;
+        var ck = seeds[si4].cultureKey;
+        var cdef = Names.CULTURES[ck];
+        var dispName = (global.i18nName ? global.i18nName('nameculture_'+ck, cdef.tr, cdef.en, lang) : (lang==='tr'?cdef.tr:cdef.en));
+        var hueBase = (cultureKeys.indexOf(ck) * 51.4) % 360;
+        var col = Cv._hsl(hueBase, 38, 58), bcol = Cv._hsl(hueBase, 50, 30);
+        outer.sort(function (a, b) { return b.area - a.area; });
+        outer.forEach(function (ring, ri) {
+          var pts = ring.map(function (p) { return [p[0]/sw*w, p[1]/sh*h]; });
+          newObjs.push({
+            id:uid(), pts:pts, kind:'culture', cultureKey:ck,
+            name: ri === 0 ? dispName : (dispName + ' ' + (ri+1)),
+            color:col, borderColor:bcol, borderWidth:2, opacity:0.85
+          });
+        });
+      }
+      if (!newObjs.length) { UI.msg(UI.t('stategen_none')); return 0; }
+
+      Tv.objects = Tv.objects.concat(newObjs);
+      History.pushVector('territories', before, JSON.parse(JSON.stringify(Tv.objects)), 'culturegen');
+      UI.refreshHistory();
+      if (UI.refreshTerritoryList) UI.refreshTerritoryList();
+      Cv.requestRender();
+      return newObjs.length;
+    },
+
+    /* Verilen kanvas noktasının hangi kültür bölgesinin içinde olduğunu
+       söyler (nokta-çokgen testi, 'territories' katmanındaki kind:'culture'
+       nesneleri üzerinde) — null: hiçbiri. Names.generate çağrılarını
+       coğrafi olarak tutarlı kılmak isteyen çağrılar için (autoSettle vb.)
+       ileride kullanılabilir; bu turda henüz otomatik bağlanmadı. */
+    cultureAt: function (x, y) {
+      var Tv = Layers.get('territories');
+      if (!Tv) return null;
+      for (var i = 0; i < Tv.objects.length; i++) {
+        var o = Tv.objects[i];
+        if (o.kind !== 'culture' || !o.pts || o.pts.length < 3) continue;
+        var inside = false, pts = o.pts;
+        for (var j = 0, k = pts.length-1; j < pts.length; k = j++) {
+          var xi = pts[j][0], yi = pts[j][1], xj = pts[k][0], yj = pts[k][1];
+          var hit = ((yi > y) !== (yj > y)) && (x < (xj-xi) * (y-yi) / (yj-yi) + xi);
+          if (hit) inside = !inside;
+        }
+        if (inside) return o.cultureKey;
+      }
+      return null;
     },
 
     clearRasterLayer: function (id) {

@@ -97,6 +97,8 @@ bölümünü açar ve tuşuyla da seçilebilir. Rehber sayfası da aynı gruplam
 
 Tüm çizim yolları (nehir/yol/göl/bölge) isteğe bağlı **bezier tutamaç** düzenlemeyi destekler: bir noktayı seçip tutamaçlarını sürükleyerek eğriyi elle şekillendirebilirsiniz; tutamaç eklenmemiş eski projeler otomatik (Catmull-Rom eşdeğeri) eğriyle bire bir aynı görünmeye devam eder.
 
+**Devlet & kültür otomatik üretimi:** "Bölge" aracının panelinde, elle çizmeye ek olarak **"👑 Devlet üret"** ve **"🎭 Kültür üret"** düğmeleri bulunur. Devlet üreteci, seçtiğiniz sayıda başkentten aynı anda büyüyen ve birbirine tam oturan devlet sınırları üretir — dağlık arazi genişlemeyi yavaşlatır, "Büyüklük çeşitliliği" kaydırıcısı bazı devletlerin diğerlerinden belirgin şekilde büyük çıkmasını sağlar. Her devlete otomatik bir isim (mevcut fantastik ad üreteciyle), bir hükümet biçimi (Krallık, İmparatorluk, Teokrasi, Cumhuriyet, Konfederasyon, Şehir Devleti) ve bir başkent ataması yapılır. Kültür üreteci aynı mekanizmayı devlet sınırlarından bağımsız çalıştırır; paneldeki **"Görünüm"** seçiciyle devlet/kültür sunumu arasında geçiş yapabilirsiniz — ikisi de elle çizdiğiniz bölgeleri korur, üstüne ekler, ve aynı tohumla her zaman aynı sonucu üretir (deterministik). Ayrıca **"Yerleşim yerleştir"** artık her yerleşime kıyı/eğim uygunluğu ve (varsa) başkente yakınlığa göre bir nüfus değeri atar.
+
 ## Çoklu harita (dünya ↔ bölge bağlantısı)
 
 Büyük bir dünya haritasından, bir şehrin veya bölgenin kendi ayrıntılı haritasına geçiş yapılabilir — her biri kendi katmanlarına, nesnelerine ve geri al/yinele geçmişine sahip ayrı bir dokümandır:

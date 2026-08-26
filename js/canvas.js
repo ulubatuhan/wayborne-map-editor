@@ -189,6 +189,100 @@
         acc += segLen;
       }
       return best;
+    },
+
+    /* ---------- ızgara sınır izleme (devlet/kültür sınırları, GIS dışa aktarım) ----------
+       İkili (0/1) bir mask (Uint8Array veya düz dizi, w×h, satır-öncelikli)
+       üzerinde, dolu hücrelerin dış sınırlarını (ve varsa iç delik/enklav
+       sınırlarını) "hücre-kenarı" yöntemiyle izler: her dolu hücrenin, dolu
+       OLMAYAN bir komşuya bakan kenarını yönlü bir kenar parçası olarak
+       toplar (yön kuralı "dolu alan kenarın sağında" — bu, halkaları
+       tutarlı sarar: dış sınırlar bir yönde, delikler ters yönde imzalı
+       alan verir). Sonra bu yönlü kenarları başlangıç noktasından kapanana
+       kadar zincirleyip kapalı halkalar üretir. Köşegen-değme gibi nadir
+       belirsiz köşelerde ilk kullanılmamış aday seçilir; bir halka kapanmaz
+       ve adım sınırı (maxSteps) aşılırsa sessizce atlanır — bozuk girdide
+       çökme yerine eksik sınır tercih edilir.
+       Çıktı: [[x,y],...] biçiminde halka dizisi; her halkada `.hole`
+       (delik mi dış sınır mı) ve `.area` (piksel², ızgara biriminde)
+       özellikleri de bulunur. Koordinatlar ızgara birimindedir (0..w,
+       0..h) — piksel uzayına ölçekleme çağıranın işidir (bkz.
+       Tools.generateStates). */
+    traceContour: function (mask, w, h) {
+      function at(x, y) {
+        if (x < 0 || y < 0 || x >= w || y >= h) return 0;
+        return mask[y*w+x] ? 1 : 0;
+      }
+      var edges = {};
+      function addEdge(x1,y1,x2,y2) {
+        var k = x1+','+y1;
+        if (!edges[k]) edges[k] = [];
+        edges[k].push([x2,y2]);
+      }
+      for (var gy = 0; gy < h; gy++) {
+        for (var gx = 0; gx < w; gx++) {
+          if (!at(gx,gy)) continue;
+          if (!at(gx,gy-1)) addEdge(gx+1,gy, gx,gy);       /* üst */
+          if (!at(gx,gy+1)) addEdge(gx,gy+1, gx+1,gy+1);   /* alt */
+          if (!at(gx-1,gy)) addEdge(gx,gy, gx,gy+1);       /* sol */
+          if (!at(gx+1,gy)) addEdge(gx+1,gy+1, gx+1,gy);   /* sağ */
+        }
+      }
+      function edgeKey(x1,y1,x2,y2) { return x1+','+y1+'>'+x2+','+y2; }
+      var used = {}, rings = [], maxSteps = (w+1)*(h+1)*4 + 8;
+      for (var startKey in edges) {
+        var list = edges[startKey];
+        var parts = startKey.split(','), sx = +parts[0], sy = +parts[1];
+        for (var li = 0; li < list.length; li++) {
+          var ex = list[li][0], ey = list[li][1];
+          var firstKey = edgeKey(sx,sy,ex,ey);
+          if (used[firstKey]) continue;
+          used[firstKey] = true;
+          var ring = [[sx,sy]];
+          var cx = ex, cy = ey, guard = 0;
+          while ((cx !== sx || cy !== sy) && guard++ < maxSteps) {
+            ring.push([cx,cy]);
+            var cand = edges[cx+','+cy];
+            if (!cand || !cand.length) { cx = NaN; break; }
+            var next = null, nk = null;
+            for (var ci = 0; ci < cand.length; ci++) {
+              var tk = edgeKey(cx,cy,cand[ci][0],cand[ci][1]);
+              if (!used[tk]) { next = cand[ci]; nk = tk; break; }
+            }
+            if (!next) { cx = NaN; break; }
+            used[nk] = true;
+            cx = next[0]; cy = next[1];
+          }
+          if (ring.length >= 3 && cx === sx && cy === sy) {
+            var signed = 0;
+            for (var pi = 0; pi < ring.length; pi++) {
+              var p1 = ring[pi], p2 = ring[(pi+1) % ring.length];
+              signed += p1[0]*p2[1] - p2[0]*p1[1];
+            }
+            var simplified = this._simplifyRing(ring);
+            simplified.hole = signed > 0;
+            simplified.area = Math.abs(signed) / 2;
+            rings.push(simplified);
+          }
+        }
+      }
+      return rings;
+    },
+
+    /* Ardışık üç noktası neredeyse doğrusal olan köşeleri ayıklar — ızgara
+       kenarlarından gelen "merdiven" biçimindeki gereksiz nokta yığınını
+       inceltir. Render zaten Catmull-Rom ile yuvarlıyor (drawTerritory'nin
+       lakeSmoothPts çağrısı), burada amaç yalnızca nokta sayısını makul
+       tutmak. */
+    _simplifyRing: function (ring) {
+      if (ring.length <= 4) return ring;
+      var out = [], n = ring.length;
+      for (var i = 0; i < n; i++) {
+        var a = ring[(i-1+n)%n], b = ring[i], c = ring[(i+1)%n];
+        var cross = (b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0]);
+        if (Math.abs(cross) > 1e-9) out.push(b);
+      }
+      return out.length >= 3 ? out : ring;
     }
   };
 
@@ -1089,6 +1183,7 @@
               }
             }
             for (var jt = 0; jt < l.objects.length; jt++) {
+              if (!this.territoryVisibleInMode(l.objects[jt])) continue;
               this.drawTerritory(tctx2, l.objects[jt]);
             }
             if (tc) {
@@ -1103,6 +1198,7 @@
                yarıda kesilmemeli */
             if (this.political) {
               for (var jn = 0; jn < l.objects.length; jn++) {
+                if (!this.territoryVisibleInMode(l.objects[jn])) continue;
                 this.drawTerritoryName(ctx, l.objects[jn]);
               }
             }
@@ -1732,6 +1828,21 @@
     politicalMuteTerrain: true,
     politicalLegend: true,
 
+    /* 'state' (varsayılan): devlet + elle-çizilmiş bölgeler görünür,
+       kültür bölgeleri gizli. 'culture': tam tersi. Ayrı bir katman
+       DEĞİL — aynı `territories` nesne listesinin `kind` alanına göre
+       filtrelenmiş bir görünüm anahtarı (performans planı Kural A:
+       yeni bir raster overlay yok, mevcut vektör render yolu). */
+    politicalMode: 'state',
+
+    /* Bir bölge nesnesinin şu anki siyasi görünüm modunda görünür olup
+       olmadığı — renderMap'in 'territories' dalı ve dışa aktarımlar
+       (PNG/SVG/HTML) aynı süzgeci kullanır. */
+    territoryVisibleInMode: function (o) {
+      var isCulture = o.kind === 'culture';
+      return this.politicalMode === 'culture' ? isCulture : !isCulture;
+    },
+
     /* Sembol lejantı: siyasi görünümden bağımsız, haritadaki sembol
        katmanında fiilen kullanılan sembol türlerini listeler. */
     symbolLegend: false,
@@ -1796,7 +1907,8 @@
     drawPoliticalLegend: function (ctx) {
       var L = Layers.get('territories');
       if (!L || !L.visible) return;
-      var items = L.objects.filter(function (o) { return o.name; });
+      var self = this;
+      var items = L.objects.filter(function (o) { return o.name && self.territoryVisibleInMode(o); });
       if (!items.length) return;
 
       var pad = Math.max(10, this.W * 0.006);
