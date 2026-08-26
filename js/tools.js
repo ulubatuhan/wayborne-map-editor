@@ -158,7 +158,9 @@
   var Tools = {
     painting:false, panning:false, spaceDown:false,
     panStart:null, last:null, box:null,
-    beforeMain:null, beforeAux:null,
+    /* fırça darbesinin tembel "önce" yamaları (katman id → {canvas,x,y})
+       ve silginin arazi katmanına da dokunup dokunmadığı bayrağı */
+    _before:null, _eraseAux:false,
     pathPts:[], pathHover:null,
     dragging:null, activeLayerId:null,
     eyeStartPos:null,
@@ -625,6 +627,65 @@
       }
     },
 
+    /* ================= TEMBEL "ÖNCE" ANLIK GÖRÜNTÜSÜ =================
+       Bir fırça darbesi başlarken TÜM katmanı kopyalamak (eski davranış)
+       8192² tuvalde her darbede ~1.2sn'lik bir donmaya mal oluyordu —
+       üstelik darbe bittiğinde History yalnızca gerçekten kirlenen küçük
+       dikdörtgeni sakladığı için kopyanın neredeyse tamamı çöpe gidiyordu.
+
+       Artık hiçbir şey önceden kopyalanmıyor: her damga, boyamadan hemen
+       ÖNCE yalnızca kendi bölgesinin orijinal piksellerini saklıyor ve
+       darbe yayıldıkça bu yama artımlı olarak büyüyor. Büyütme sırası
+       önemli: yeni birleşik alan için önce katmanın ŞU ANKİ hâli çizilir
+       (yalnızca henüz dokunulmamış bölgede orijinaldir), sonra eski yama
+       üstüne bindirilir — böylece daha önce kirletilmiş bölgede orijinal
+       pikseller korunur. Maliyet, tam tuvalle değil darbenin gerçek
+       alanıyla orantılı hale gelir. */
+    BEFORE_PAD: 8,
+
+    _beforeReset: function () { this._before = {}; },
+
+    _beforeOf: function (layerId) {
+      return (this._before && this._before[layerId]) || null;
+    },
+
+    /* r, çağıranın expandBox'a verdiği yarıçapla AYNI olmalı — böylece
+       saklanan yama, darbe sonunda History'ye giden kutuyu daima kapsar. */
+    _ensureBefore: function (layerId, x, y, r) {
+      if (!this._before) this._before = {};
+      var L = Layers.get(layerId);
+      if (!L || !L.canvas) return;
+      var W = L.canvas.width, H = L.canvas.height, pad = this.BEFORE_PAD;
+      var nx0 = Math.max(0, Math.floor(x - r - pad));
+      var ny0 = Math.max(0, Math.floor(y - r - pad));
+      var nx1 = Math.min(W, Math.ceil(x + r + pad));
+      var ny1 = Math.min(H, Math.ceil(y + r + pad));
+      if (nx1 <= nx0 || ny1 <= ny0) return;
+
+      var cur = this._before[layerId];
+      if (cur && nx0 >= cur.x && ny0 >= cur.y &&
+          nx1 <= cur.x + cur.canvas.width && ny1 <= cur.y + cur.canvas.height) return;
+
+      var ux0 = cur ? Math.min(cur.x, nx0) : nx0;
+      var uy0 = cur ? Math.min(cur.y, ny0) : ny0;
+      var ux1 = cur ? Math.max(cur.x + cur.canvas.width,  nx1) : nx1;
+      var uy1 = cur ? Math.max(cur.y + cur.canvas.height, ny1) : ny1;
+
+      var c = document.createElement('canvas');
+      c.width = ux1 - ux0; c.height = uy1 - uy0;
+      var cx = c.getContext('2d');
+      cx.drawImage(L.canvas, ux0, uy0, c.width, c.height, 0, 0, c.width, c.height);
+      if (cur) {
+        /* Eski yama ÜSTÜNE değil, YERİNE geçmeli: orijinal pikseller
+           saydam olabilir (boş katman) ve source-over saydam kaynakla
+           altındakini silmez — o zaman yamaya, o bölgede zaten boyanmış
+           güncel pikseller sızardı. Önce temizle, sonra yaz. */
+        cx.clearRect(cur.x - ux0, cur.y - uy0, cur.canvas.width, cur.canvas.height);
+        cx.drawImage(cur.canvas, cur.x - ux0, cur.y - uy0);
+      }
+      this._before[layerId] = { canvas:c, x:ux0, y:uy0 };
+    },
+
     /* ================= RASTER FIRÇALAR ================= */
     startRaster: function (layerId, p, mode) {
       var layer = Layers.get(layerId);
@@ -637,13 +698,14 @@
       this.box = { x0:p.x, y0:p.y, x1:p.x, y1:p.y };
       this._terrainDensityScale = 1; /* tek tıkla damga: tam yoğunluk */
 
-      this.beforeMain = snap(layer.canvas);
-      this.beforeAux = null;
+      this._beforeReset();
 
-      /* silgi arazi katmanını da siler → ikinci anlık görüntü */
+      /* silgi arazi katmanını da siler → o katmanın da "önce" yaması
+         tutulur; bayrak damga döngüsünün ikinci hedefi eklemesini sağlar */
+      this._eraseAux = false;
       if (mode === 'erase') {
         var T = Layers.get('terrain');
-        if (T && !T.locked) this.beforeAux = snap(T.canvas);
+        this._eraseAux = !!(T && !T.locked);
       }
 
       this.stamp(p.x, p.y);
@@ -670,8 +732,9 @@
       var ctx = layer.ctx;
       var r = App.terrain.size/2;
       var Lm = Layers.get('landmass');
+      var pad2 = Math.ceil(r * 1.12) + 6;
+      this._ensureBefore('terrain', x, y, r + pad2);
       if (Lm && Lm.canvas) {
-        var pad2 = Math.ceil(r * 1.12) + 6;
         var bx2 = Math.max(0, Math.floor(x - pad2));
         var by2 = Math.max(0, Math.floor(y - pad2));
         var bw2 = Math.min(layer.canvas.width  - bx2, Math.ceil(pad2*2));
@@ -740,6 +803,7 @@
          (dağ/tepe) hissi verir, aşırı doygunluğa gitmez. */
       if (this.mode === 'elevation') {
         var er = App.elevation.brushSize/2;
+        this._ensureBefore(this.activeLayerId, x, y, er + 4);
         var lower = App.elevation.lower;
         var lvl = Math.round(128 + (lower ? -1 : 1) * App.elevation.strength * 127);
         ctx.save();
@@ -765,6 +829,7 @@
          etkilemez — kullanıcı katmanı yalnız kendi başına çizilir. */
       if (this.mode === 'sketch') {
         var sr = App.sketch.size/2;
+        this._ensureBefore(this.activeLayerId, x, y, sr + 2);
         var hard = Math.max(0, Math.min(1, App.sketch.hardness));
         ctx.save();
         ctx.globalAlpha = App.sketch.opacity;
@@ -789,7 +854,11 @@
       if (this.mode === 'erase') {
         var T = Layers.get('terrain');
         var targets = [ctx];
-        if (T && !T.locked && this.beforeAux) targets.push(T.ctx);
+        this._ensureBefore(this.activeLayerId, x, y, rr*1.9+4);
+        if (T && !T.locked && this._eraseAux) {
+          this._ensureBefore('terrain', x, y, rr*1.9+4);
+          targets.push(T.ctx);
+        }
         for (var t=0; t<targets.length; t++) {
           var c = targets[t];
           c.save();
@@ -815,6 +884,7 @@
       }
 
       /* ---- KARA ---- */
+      this._ensureBefore(this.activeLayerId, x, y, rr*1.9+4);
       ctx.save();
       ctx.fillStyle = App.brush.color;
       ctx.beginPath(); ctx.arc(x, y, rr*(1-rough*0.22), 0, Math.PI*2); ctx.fill();
@@ -839,31 +909,40 @@
       var b = this.box;
       if (!b) { this.last = null; return; }
 
+      var layer = Layers.get(this.activeLayerId);
+
+      /* Kutu, görünüm boyutuna (Cv.W/H) değil KATMAN TUVALİNE kırpılır.
+         Normalde ikisi eşittir, ama ayrıştıkları anda (katman tuvali
+         görünümden büyükken) eski hesap negatif genişlik üretiyor ve
+         History.pushRaster sessizce hiçbir adım kaydetmiyordu — yani o
+         darbe geri alınamaz oluyordu. Doğru referans her zaman yazılan
+         tuvalin kendisidir. */
       var pad = 6;
+      var LW = layer.canvas.width, LH = layer.canvas.height;
       var box = {
         x: Math.max(0, b.x0-pad), y: Math.max(0, b.y0-pad),
-        w: Math.min(Cv.W, b.x1+pad) - Math.max(0, b.x0-pad),
-        h: Math.min(Cv.H, b.y1+pad) - Math.max(0, b.y0-pad)
+        w: Math.min(LW, b.x1+pad) - Math.max(0, b.x0-pad),
+        h: Math.min(LH, b.y1+pad) - Math.max(0, b.y0-pad)
       };
-
-      var layer = Layers.get(this.activeLayerId);
 
       if (this.mode === 'terrain') this.maskToLand(box);
 
-      if (this.mode === 'erase' && this.beforeAux) {
+      var beforeMain = this._beforeOf(this.activeLayerId);
+      var beforeAux  = this._beforeOf('terrain');
+      if (this.mode === 'erase' && this._eraseAux && beforeAux) {
         var T = Layers.get('terrain');
         History.pushRasterMulti([
-          { layerId:'landmass', beforeCanvas:this.beforeMain, afterCanvas:layer.canvas },
-          { layerId:'terrain',  beforeCanvas:this.beforeAux,  afterCanvas:T.canvas }
+          { layerId:'landmass', beforeCanvas:beforeMain, afterCanvas:layer.canvas },
+          { layerId:'terrain',  beforeCanvas:beforeAux,  afterCanvas:T.canvas }
         ], box, 'erase');
-      } else {
-        History.pushRaster(this.activeLayerId, this.beforeMain, layer.canvas, box,
+      } else if (beforeMain) {
+        History.pushRaster(this.activeLayerId, beforeMain, layer.canvas, box,
           this.mode === 'terrain' ? 'terrain:'+App.terrain.type
           : this.mode === 'eyedrop' ? 'sample-paint' : this.mode);
       }
 
       this.box = null; this.last = null;
-      this.beforeMain = null; this.beforeAux = null;
+      this._beforeReset(); this._eraseAux = false;
       /* Kıyıyı yalnızca kara sınırını gerçekten değiştiren darbeler
          geçersizleştirir; arazi/yükselti/çizim darbeleri kıyıyı
          etkilemez ve boşuna yeniden inşa ettirmemeli. */
@@ -897,8 +976,8 @@
       this.activeLayerId = lid;
       this.last = p;
       this.box = { x0:p.x, y0:p.y, x1:p.x, y1:p.y };
-      this.beforeMain = snap(layer.canvas);
-      this.beforeAux = null;
+      this._beforeReset();
+      this._eraseAux = false;
       this.eyedropStamp(p.x, p.y);
     },
 
@@ -906,6 +985,7 @@
       var layer = Layers.get(this.activeLayerId);
       if (!layer) return;
       var r = App.eyedrop.brushRadius || 80;
+      this._ensureBefore(this.activeLayerId, x, y, r + 3);
 
       /* Landmass maskesine clip et: önce geçici canvas'a çiz, sonra
          destination-in ile landmass alpha'sını uygula, ardından hedef

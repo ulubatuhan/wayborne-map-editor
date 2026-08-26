@@ -37,6 +37,17 @@
     return c.toDataURL('image/png');
   }
 
+  /* "Önce" görüntüsü iki biçimde gelebilir: tam boy bir tuval (katman
+     uzayıyla birebir örtüşür) ya da {canvas,x,y} biçiminde katman
+     uzayında konumlanmış bir YAMA. İkincisini fırça darbeleri kullanır —
+     artık tüm katmanı değil, yalnızca kirlettikleri bölgeyi kopyalıyorlar
+     (bkz. tools.js#_ensureBefore). Kırpma koordinatları her iki durumda
+     da katman uzayında verilir; yama ise kendi ofseti kadar kaydırılır. */
+  function sourceCrop(src, x, y, w, h) {
+    if (src && src.canvas) return cropDataURL(src.canvas, x - src.x, y - src.y, w, h);
+    return cropDataURL(src, x, y, w, h);
+  }
+
   function clampBox(box, canvas) {
     var x = Math.max(0, Math.floor(box.x)), y = Math.max(0, Math.floor(box.y));
     var w = Math.min(canvas.width - x, Math.ceil(box.w));
@@ -66,7 +77,7 @@
       this.push({
         kind:'raster', layerId:layerId, label:label || 'raster',
         x:b.x, y:b.y, w:b.w, h:b.h,
-        before: cropDataURL(beforeCanvas, b.x, b.y, b.w, b.h),
+        before: sourceCrop(beforeCanvas, b.x, b.y, b.w, b.h),
         after:  cropDataURL(afterCanvas,  b.x, b.y, b.w, b.h)
       });
     },
@@ -81,7 +92,7 @@
         if (b.w <= 0 || b.h <= 0) continue;
         items.push({
           layerId: p.layerId, x:b.x, y:b.y, w:b.w, h:b.h,
-          before: cropDataURL(p.beforeCanvas, b.x, b.y, b.w, b.h),
+          before: sourceCrop(p.beforeCanvas, b.x, b.y, b.w, b.h),
           after:  cropDataURL(p.afterCanvas,  b.x, b.y, b.w, b.h)
         });
       }
@@ -100,7 +111,7 @@
         if (b.w <= 0 || b.h <= 0) continue;
         items.push({
           layerId: p.layerId, x:b.x, y:b.y, w:b.w, h:b.h,
-          before: cropDataURL(p.beforeCanvas, b.x, b.y, b.w, b.h),
+          before: sourceCrop(p.beforeCanvas, b.x, b.y, b.w, b.h),
           after:  cropDataURL(p.afterCanvas,  b.x, b.y, b.w, b.h)
         });
       }
