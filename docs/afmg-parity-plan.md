@@ -32,6 +32,49 @@
 
 ---
 
+## Performans tasarım kuralları (FPS bütçesi garantisi)
+
+Her yeni özelliğin iki ayrı bütçeye çarpması gerekiyor: **render-döngüsü**
+(kare başına 16.67ms, `run-fps.mjs` idle/pan/zoom'da ölçüyor) ve **tek
+seferlik üretim** (`run-perf-audit.mjs`: işlem başına <1sn, tam pipeline
+<2sn). Aşağıdaki 8 maddenin çoğu ikinci bütçeye zaten güvenle sığıyor
+(hepsi `autoLakes`/`autoBiome` sınıfı ucuz ızgara işi); asıl dikkat isteyen
+**render-döngüsü** tarafı — iki madde (#1 kültür/din görünümü, #5 rüzgar
+okları) yanlış uygulanırsa bunu kolayca ihlal edebilir. O yüzden bu iki
+kural **zorunlu** — ilgili fazlarda tekrar referans veriliyor:
+
+**Kural A — Yeni "görünüm katmanları" vektör olmalı, raster olmamalı.**
+`territories` katmanı zaten çokgen nesnelerin listesi olarak render
+ediliyor (`Cv`'de `renderMap`'in `'territories'` dalı) — kaç nesne olursa
+olsun maliyet nesne sayısıyla orantılı, tuval boyutuyla değil. Kültür/din
+bölgeleri **aynı şekilde** çokgen nesneleri olarak (`kind:'culture'`,
+`kind:'religion'` gibi) `territories`'e eklenmeli, **asla** "her karede
+2048×2048 pikseli yeniden boyayan bir overlay canvas'ı" olarak değil. Bu,
+zaten yapılması planlanan şeyin (§1) doğal sonucu — ekstra iş değil,
+sadece "sakın raster'a kayma" uyarısı.
+
+**Kural B — Türetilmiş görselleştirmeler "dirty-ise-yeniden-üret, aksi
+halde önbellekten kompozitle" desenini kullanmalı.** Kıyı parlaması
+(`Cv.shoreDirty` → `Cv.buildShoreCanvas`) ve yükselti gölgelendirmesi
+(`Cv.elevationDirty` → `Cv.buildElevationEffect`) zaten bu deseni
+kullanıyor: pahalı hesaplama sadece kaynak veri değiştiğinde bir kez
+çalışır, sonucu bir önbellek canvas'ına yazılır, her kare o önbellek
+`drawImage` ile kompozitlenir. Rüzgar okları (#5) **aynı deseni** takip
+etmeli: `Cv.windArrowsDirty` bayrağı + `Cv.buildWindArrowsCache()` —
+oklar iklim verisi (deniz seviyesi/enlem/rüzgar yönü) her değiştiğinde bir
+kez hesaplanıp sabit sayıda ok-simgesi olarak bir önbellek canvas'ına
+çizilir; kare başına maliyet sabit bir `drawImage`, N×N ızgara boyutundan
+bağımsız.
+
+**Üçüncü, daha genel kural**: yeni bir "otomatik üret" adımı mevcut
+"Üret" düğmesinin Nehir/Göl/Arazi zincirine **sessizce eklenmemeli**.
+Devlet/kültür üretimi (§1) kendi ayrı düğmesinde kalmalı — aksi halde tam
+pipeline'ın ölçülü süresi (şu an ~1.2-1.3sn, 2sn bütçenin altında) yeniden
+doğrulanmadan büyür. Her yeni zincire eklenen adım `run-perf-audit.mjs`'e
+yeni bir satır olarak eklenmeli.
+
+---
+
 ## Ortak altyapı: `Geo.traceContour(mask, w, h)`
 
 Devlet sınırları (#1), GIS dışa aktarımı (#7) ve ileride başka "ızgara
@@ -84,10 +127,16 @@ flood)**:
    hangi kültüre ait olduğunu (dolayısıyla `Names.generate` çağrısında
    hangi kültür kullanılacağını) belirler — mevcut isim üreteci artık
    "coğrafi olarak tutarlı" isimler üretir, her seferinde elle seçilen
-   kültür yerine.
+   kültür yerine. **Render — Kural A zorunlu**: kültür/din bölgeleri
+   `territories`'e `kind:'culture'`/`kind:'religion'` çokgen nesneleri
+   olarak yazılır (devlet sınırlarıyla aynı yol); "Kültür görünümü" /
+   "Din görünümü" sağ panel anahtarı sadece **hangi `kind`'in görünür
+   olduğunu** değiştirir (mevcut katman `visible` mantığının bir
+   varyasyonu) — hiçbir zaman 2048×2048'lik ayrı bir raster overlay
+   canvas'ı hesaplanmaz/yeniden boyanmaz.
 5. **Dinler** aynı desenin üçüncü bir katmanı; düşük öncelikli, istenirse
    #1'in son alt-fazı olarak ertelenebilir (görsel karşılığı devlet/kültür
-   kadar güçlü değil).
+   kadar güçlü değil). Render kuralı 4. maddedeki ile birebir aynı.
 6. **Eyaletler (provinces)**: her devletin kendi iç ızgarasında daha küçük
    ölçekte aynı flood-fill'in tekrarı — devlet onaylandıktan sonra ikinci
    bir geçiş.
@@ -98,18 +147,21 @@ flood)**:
 
 **Fazlar**:
 - 1a. `Geo.traceContour` (ortak altyapı, yukarıda).
-- 1b. Devlet üretimi: flood-fill + sınır çizimi + sağ panelde "Devlet üret" düğmesi (`autoLakes`/`generateRoads` düğmeleriyle aynı yerde, Kara panelinin yanına).
+- 1b. Devlet üretimi: flood-fill + sınır çizimi + sağ panelde "Devlet üret" düğmesi (`autoLakes`/`generateRoads` düğmeleriyle aynı yerde, Kara panelinin yanına — **"Üret" zincirine eklenmez**, bkz. performans kuralları § üçüncü madde). `run-perf-audit.mjs`'e `generateStates(2048)` satırı eklenir, <1sn doğrulanır.
 - 1c. Devlet editörü: isim, hükümet biçimi (önceden tanımlı 6-8 tip: krallık, imparatorluk, teokrasi, cumhuriyet, konfederasyon...), başkenti işaretleme — `territory` seçiliyken sağ panelde ek alanlar.
-- 1d. Kültür katmanı + `Names.generate`'in bölgeye göre otomatik kültür seçmesi.
+- 1d. Kültür katmanı (Kural A: vektör çokgen, raster overlay değil) + `Names.generate`'in bölgeye göre otomatik kültür seçmesi. `run-fps.mjs`'e devlet+kültür+din birlikte görünürken idle/pan/zoom ölçümü eklenir (mevcut senaryoların yanına dördüncü bir "politik görünüm açık" senaryosu).
 - 1e. Eyaletler (devlet içi ikinci flood-fill geçişi).
-- 1f. Dinler (aynı desenin tekrarı, düşük öncelik).
-- 1g. Diplomasi editörü (basit ilişki matrisi).
+- 1f. Dinler (aynı desenin tekrarı, düşük öncelik, Kural A aynen geçerli).
+- 1g. Diplomasi editörü (basit ilişki matrisi, render maliyeti yok — salt UI).
 
 **Test**: determinizm (aynı tohum → aynı sınırlar — `Terrain.scatter`'ın
 kasıtlı rastgeleliğinin aksine, burada sınırların birebir tekrarlanabilir
 olması gerekir, `run-landgen-test.mjs`'teki biyom determinizm testiyle aynı
 desen), sınırların birbirine tam oturması (komşu devletler arasında boşluk/
-çakışma olmaması), performans bütçesi (`run-perf-audit.mjs`'e yeni satır).
+çakışma olmaması), performans bütçesi (`run-perf-audit.mjs`'e yeni satır),
+FPS regresyonu yok (`run-fps.mjs`'in yeni "politik görünüm" senaryosu
+idle/pan/zoom'da 16.67ms altında kalmalı — özellikle çok sayıda devlet/
+kültür/din çokgeni aynı anda görünürken).
 
 ---
 
@@ -132,6 +184,13 @@ yanına küçük bir sayı render edilebilir. #1 (devlet) yoksa da çalışır
 **Fazlar**: 2a. nüfus formülü + sembol nesnesine alan ekleme, 2b. sağ
 panelde gösterim/manuel düzenleme, 2c. (opsiyonel) haritada nüfus etiketi
 render modu.
+
+**Performans notu**: risk yok. Üretim tarafı `autoSettle`'a (ölçülü:
+3.9-18.7ms/2048²) eklenen tek bir çarpım işlemi — ihmal edilebilir.
+Render tarafı, nüfus etiketi açıkken sembol başına bir ekstra metin
+çizimi — proje zaten yüzlerce sembol/etiketi aynı anda render ediyor
+(Faz 4 şehir-blok kanıtı), bu sınıfta bir ekleme FPS'i etkilemez. Ayrı
+bir test satırı gerekmiyor, mevcut `run-fps.mjs` senaryoları yeterli.
 
 ---
 
@@ -158,6 +217,12 @@ render edilebilir.
 **Bağımlılık**: #1 (devlet/kültür) olmadan da bağımsız bir "amblem
 üreteci" aracı olarak (rastgele arma üret, PNG/SVG olarak indir) tek
 başına anlamlı — #1 varsa ekstra değer katıyor, gerekli değil.
+
+**Performans notu**: risk yok. Üretim birkaç `Path2D` çizimi, ms
+mertebesinde (mevcut tek bir sembolün çizim maliyetiyle aynı sınıf).
+Panelde önizleme render-döngüsünün dışında; haritada başkent yanında
+gösterilirse tek bir sembol nesnesi kadar maliyetli. Ayrı test satırı
+gerekmez.
 
 ---
 
@@ -186,9 +251,13 @@ basitleştirilmiş bir model kullanıyor. Uygulanabilir versiyon:
 4. Sonuç `pickBiome`'a ekstra bir girdi olarak akar; mevcut biyom
    tablosunda yeni bir kategori gerekmez, sadece hangi hücrenin hangi
    nem/sıcaklık değerini aldığı değişir.
-5. Sağ panelde küçük bir "rüzgar okları" görünürlük anahtarı (katman
-   değil, sadece bir görselleştirme overlay'i, tıpkı yükselti kontur
-   çizgileri gibi).
+5. Sağ panelde küçük bir "rüzgar okları" görünürlük anahtarı. **Render —
+   Kural B zorunlu**: oklar `Cv.windArrowsDirty` bayrağı + tek seferlik
+   `Cv.buildWindArrowsCache()` ile üretilir (yükselti kontur çizgilerinin
+   `Cv.elevationDirty`/`Cv.buildElevationEffect` desenindeki birebir aynı
+   ikili) — iklim parametreleri (ekvator konumu/yarımküre) değişmediği
+   sürece her kare sadece önbellek canvas'ını `drawImage` ile kompozitler,
+   ok sayısı/ızgara boyutu kare-başı maliyete **hiç girmez**.
 
 **Risk/verim notu**: bu madde en çok "sonuç aynı mı görünüyor" riskini
 taşıyan — mevcut moisture-noise zaten organik/inandırıcı sonuç veriyor
@@ -196,6 +265,18 @@ taşıyan — mevcut moisture-noise zaten organik/inandırıcı sonuç veriyor
 kaynaklanıyordu). Uygulanmadan önce görsel bir A/B karşılaştırması
 (mevcut vs rüzgar-yönlendirmeli) yapılmalı — fayda görsel olarak
 doğrulanamazsa bu madde ertelenebilir.
+
+**Fazlar**: 5a. ekvator konumu/yarımküre parametresi + sıcaklık gradyanı
+türetimi, 5b. rüzgar yönü + yağış-gölgesi çarpanının moisture-noise'a
+eklenmesi (görsel A/B karşılaştırması burada yapılır — fayda yoksa dur),
+5c. `Cv.buildWindArrowsCache()` + dirty-flag kompozitleme (Kural B),
+sağ panel anahtarı. `run-perf-audit.mjs`'e `autoBiome+iklim(2048)` satırı,
+`run-fps.mjs`'e "rüzgar okları açık" senaryosu eklenir.
+
+**Test**: A/B görsel karşılaştırma sonucu (fayda kararı), biyom
+determinizm testinin iklim çarpanıyla birlikte hâlâ geçtiği doğrulanır,
+FPS regresyonu yok (önbellek doğru dirty-invalidate ediliyor mu — iklim
+parametresi değişince önbellek yenileniyor, değişmeyince yenilenmiyor).
 
 ---
 
@@ -230,6 +311,12 @@ yapılabilir:
   düğüm editörü değil, mevcut parametrelerin adlandırılıp saklanması —
   düşük efor, orta değer.
 
+**Performans notu**: risk yok. Zones ve notlar mevcut nesne render
+yoluna (dolgu stili seçimi / küçük ikon) katılıyor — nesne sayısı zaten
+onlarca-yüzlerce mertebesinde test edilmiş bir yolda. Namesbase ve
+yükselti şablonu editörleri render-döngüsüne hiç girmiyor (salt form/
+depolama). Ayrı test satırı gerekmez.
+
 ---
 
 ## #7 — GIS veri dışa aktarımı
@@ -252,6 +339,11 @@ biz de aynısını yaparız). `downloadFile` ile `.geojson` uzantılı indirme;
 **Bağımlılık**: yok — bugün bile (devlet/nüfus sistemleri olmadan) anlamlı,
 #1/#2 eklendiğinde otomatik olarak daha zengin veri taşır.
 
+**Performans notu**: risk sıfır — render döngüsünün tamamen dışında, tek
+seferlik bir dışa aktarma çağrısı (PNG/SVG/HTML export'larıyla aynı
+tetikleme yolu). Büyük katmanlarda (binlerce nesne) bile bu bir kullanıcı
+etkileşimi anında çalışan, kare bütçesine hiç girmeyen bir işlem.
+
 ---
 
 ## #8 — Otomatik şehir üretimi
@@ -264,6 +356,13 @@ otomatik harita üretsin" özelliğinin karşılığı bu plan; #1'deki devlet/
 kültür sistemi tamamlanırsa şehir üretecinin bina paleti/duvar stili
 kültüre göre seçilebilir hale gelir (culture→wall-material eşlemesi
 `catalog2.js`'teki `CIVIC_CULTURE` ile zaten var, doğrudan bağlanabilir).
+
+**Performans notu**: `city-generation-plan.md`'nin hedeflediği 80-250
+sembollük ölçek, projenin zaten kanıtladığı render mimarisinin (görünür-
+alan kırpması + kompozit önbellek, `CLAUDE.md`'nin ilk maddesi) doğrudan
+kapsamında — üretim tarafı (`generateStreets`/`populateBlock`) `autoSettle`
+sınıfında tek seferlik bir işlem olarak bütçelenmeli, kendi planında ayrı
+ele alınıyor.
 
 ---
 
@@ -295,6 +394,13 @@ kültüre göre seçilebilir hale gelir (culture→wall-material eşlemesi
   editörün odağı görsel harita üretimi, anlatı/lore metni değil. Öneri:
   bu maddeyi atla; kullanıcı ısrar ederse ayrı, izole bir "deneysel"
   özellik olarak ele alınmalı.
+
+**Performans notu (9a-9c)**: risk sıfır — TTS tarayıcı API'sini
+çağırıyor, canvas'a hiç dokunmuyor; URL parametreleri sayfa yüklenirken
+bir kerelik `generateLandmass` çağrısına indirgeniyor (zaten ölçülü
+bütçede); tema özelleştirme CSS custom property, canvas/render
+döngüsüyle hiç kesişmiyor. (9d zaten önerilmiyor, performans tartışması
+onunla ilgisiz — asıl gerekçe backend-yok ilkesiyle gerilim.)
 
 ---
 
