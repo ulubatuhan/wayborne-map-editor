@@ -3300,6 +3300,238 @@
       UI.msg(UI.t('st_capital_set'));
     },
 
+    /* ================= ŞEHİR ÜRETİMİ =================
+       docs/city-generation-plan.md — blok-merkezli, kullanıcı-sınırlı,
+       OBB-parsellemeli boru hattı:
+
+         sınır poligonu
+           → ana caddeler + ara sokaklarla BLOKLARA özyinelemeli bölme
+           → her blok içeri çekilip (sokak payı) PARSELLERE bölünür
+           → her parsele district tipine uygun bir bina, cephesi en yakın
+             sokağa DÖNÜK olacak şekilde damgalanır
+           → (opsiyonel) sınır boyunca sur + kule + kapı
+
+       Watabou'nun blok-merkezli modeli izlenir (sokaklar blok şeklinden
+       türer, tersi değil) — Parish&Müller'in yol-merkezli L-system'i
+       yerine, çünkü bizim girdimiz zaten kullanıcının çizdiği bir alan.
+
+       Bölme, sabit derinlikli özyineleme yerine bir İŞ KUYRUĞU ile
+       yapılır: böylece hem tek karede yığın taşması riski yok, hem de
+       toplam parça sayısına sert bir üst sınır koyup patolojik girdide
+       (çok büyük alan + çok küçük hedef) donmayı baştan engelliyoruz. */
+
+    CITY_DISTRICTS: {
+      /* Her district: bina havuzu (kategori → ağırlık) + boyut aralığı.
+         Havuzlar mevcut izometrik katalogdan seçiliyor; yeni sembol
+         gerekmedi (bkz. catalog.js/catalog2.js kategori listesi). */
+      market:    { pools:[['towns',3],['misc',2],['cities',1]],     size:[26,44] },
+      noble:     { pools:[['castles',3],['cities',2],['temples',1]], size:[38,62] },
+      craftsmen: { pools:[['towns',3],['mines',2],['misc',1]],       size:[24,40] },
+      slum:      { pools:[['villages',4],['misc',1]],                size:[18,30] },
+      temple:    { pools:[['temples',4],['cities',1]],               size:[34,56] },
+      harbour:   { pools:[['ports',4],['towns',1]],                  size:[26,46] }
+    },
+
+    CITY_MAX_PIECES: 900,   /* blok+parsel toplam üst sınırı (güvenlik) */
+
+    /* Bir çokgeni hedef alana inene kadar OBB kısa-ekseninden ikiye
+       bölmeye devam eder. Her bölme çizgisi bir "sokak" adayı üretir.
+       Döner: { pieces:[poligon], cuts:[[p0,p1]] } */
+    _subdivide: function (poly, targetArea, rnd, jitter, maxPieces) {
+      var pieces = [], cuts = [], queue = [poly], guard = 0;
+      while (queue.length && pieces.length + queue.length < maxPieces && guard++ < maxPieces*3) {
+        var p = queue.shift();
+        var area = Geo.polygonArea(p);
+        if (area <= targetArea || p.length < 3) { pieces.push(p); continue; }
+
+        var obb = Geo.polygonOBB(p);
+        var c = Geo.polygonCentroid(p);
+        /* uzun eksen boyunca kes: kesme çizgisi KISA eksen yönünde uzanır */
+        var longIsX = obb.w >= obb.h;
+        var cutDirAngle = longIsX ? obb.angle + Math.PI/2 : obb.angle;
+        var dx = Math.cos(cutDirAngle), dy = Math.sin(cutDirAngle);
+        /* kesişme noktasını merkezden biraz kaydır — birebir ortadan
+           bölmek ızgara gibi tekdüze bir doku üretiyor */
+        var jx = (rnd.next()-0.5) * 2 * jitter * (longIsX ? obb.w : obb.h);
+        var nx = -dy, ny = dx;                       /* kesme çizgisinin normali */
+        var px = c[0] + nx*jx, py = c[1] + ny*jx;
+
+        var seg = Geo.lineThroughPolygon(p, px, py, dx, dy);
+        var a = Geo.clipHalfPlane(p, px, py,  nx,  ny);
+        var b = Geo.clipHalfPlane(p, px, py, -nx, -ny);
+        if (!a.length || !b.length) { pieces.push(p); continue; }  /* bölünemedi */
+        if (seg) cuts.push(seg);
+        queue.push(a); queue.push(b);
+      }
+      /* kuyrukta kalanlar da parça sayılır (üst sınıra takılmış olabilir) */
+      while (queue.length) pieces.push(queue.shift());
+      return { pieces:pieces, cuts:cuts };
+    },
+
+    /* Parselin hangi kenarının sokağa baktığını bulup binayı o kenara
+       dik yerleştirmek için: parsel merkezine EN YAKIN sokak segmentinin
+       açısı. Sokak yoksa 0. */
+    _facingAngle: function (cx, cy, streets) {
+      var best = Infinity, ang = 0;
+      for (var i = 0; i < streets.length; i++) {
+        var s = streets[i], ax = s[0][0], ay = s[0][1], bx = s[1][0], by = s[1][1];
+        var ex = bx-ax, ey = by-ay, L2 = ex*ex + ey*ey;
+        var t = L2 ? Math.max(0, Math.min(1, ((cx-ax)*ex + (cy-ay)*ey)/L2)) : 0;
+        var d = Math.hypot(cx-(ax+ex*t), cy-(ay+ey*t));
+        if (d < best) { best = d; ang = Math.atan2(ey, ex); }
+      }
+      return ang;
+    },
+
+    _pickBuilding: function (district, rnd) {
+      var def = this.CITY_DISTRICTS[district] || this.CITY_DISTRICTS.craftsmen;
+      var total = 0, i;
+      for (i = 0; i < def.pools.length; i++) total += def.pools[i][1];
+      var r = rnd.next() * total, cat = def.pools[0][0];
+      for (i = 0; i < def.pools.length; i++) {
+        r -= def.pools[i][1];
+        if (r <= 0) { cat = def.pools[i][0]; break; }
+      }
+      var catDef = Sym.SYMBOLS[cat];
+      if (!catDef || !catDef.items || !catDef.items.length) catDef = Sym.SYMBOLS.villages;
+      var items = catDef.items;
+      return items[Math.floor(rnd.next() * items.length)].id;
+    },
+
+    /* Ana giriş. boundary: [[x,y],...] kapalı poligon (kement ya da bir
+       territory nesnesinden). opts: {district, blockArea, parcelArea,
+       streetWidth, wall, gates, seed}. Döner: yerleştirilen sembol sayısı. */
+    generateCity: function (boundary, opts) {
+      opts = opts || {};
+      var Rd = Layers.get('roads'), Sy = Layers.get('symbols');
+      if (!Rd || !Sy) return 0;
+      if (Rd.locked || Sy.locked || !Sy.visible) { UI.msg(UI.t('locked')); return 0; }
+      if (!boundary || boundary.length < 3) { UI.msg(UI.t('city_noarea')); return 0; }
+
+      var totalArea = Geo.polygonArea(boundary);
+      if (totalArea < 4000) { UI.msg(UI.t('city_small')); return 0; }
+
+      var seed = (opts.seed >>> 0) || Math.floor(Math.random()*4294967296);
+      var rnd = this._noiseGrid(seed);
+      var district = opts.district || 'craftsmen';
+      var dDef = this.CITY_DISTRICTS[district] || this.CITY_DISTRICTS.craftsmen;
+      var streetW = Math.max(2, opts.streetWidth || 7);
+
+      /* Hedef alanlar: kullanıcı vermezse alanı ~yoğunluğa göre türet.
+         Amaç tek üretimde 80-250 bina (plan § Faz E). */
+      var wantBuildings = Math.max(30, Math.min(260, opts.buildings || 140));
+      var parcelArea = opts.parcelArea || Math.max(700, totalArea / (wantBuildings * 1.5));
+      var blockArea  = opts.blockArea  || Math.max(parcelArea * 6, totalArea / 14);
+
+      /* --- 1) BLOKLAR --- */
+      var blocks = this._subdivide(boundary, blockArea, rnd, 0.16, 120);
+      var streets = blocks.cuts.slice();
+
+      /* --- 2) PARSELLER + BİNALAR --- */
+      var beforeRoads = JSON.parse(JSON.stringify(Rd.objects));
+      var beforeSyms  = JSON.parse(JSON.stringify(Sy.objects));
+      var placed = 0, parcelCuts = [];
+
+      for (var bi = 0; bi < blocks.pieces.length && placed < wantBuildings*1.6; bi++) {
+        /* bloğu sokak payı kadar içeri çek — binalar caddeye taşmasın */
+        var inner = Geo.insetPolygon(blocks.pieces[bi], streetW * 0.9);
+        if (!inner) continue;
+        var sub = this._subdivide(inner, parcelArea, rnd, 0.22,
+                                  Math.max(4, Math.round(this.CITY_MAX_PIECES / blocks.pieces.length)));
+        for (var pi = 0; pi < sub.cuts.length; pi++) parcelCuts.push(sub.cuts[pi]);
+
+        for (var qi = 0; qi < sub.pieces.length; qi++) {
+          var parcel = sub.pieces[qi];
+          var pArea = Geo.polygonArea(parcel);
+          if (pArea < parcelArea * 0.35) continue;   /* çok küçük: avlu bırak */
+          var pc = Geo.polygonCentroid(parcel);
+          var obb = Geo.polygonOBB(parcel);
+          var fit = Math.min(obb.w, obb.h);
+          var size = Math.max(dDef.size[0], Math.min(dDef.size[1], fit * 0.95));
+          if (size < dDef.size[0] * 0.8) continue;   /* bina sığmıyor */
+
+          /* Cephe sokağa döner, AMA dönüş 90°'ye yuvarlanır: katalog
+             izometrik çizim (sabit projeksiyon), serbest açıyla
+             döndürülünce bina yana devriliyormuş gibi görünüyor.
+             Dik açıya oturtmak hem projeksiyonu bozmuyor hem de
+             kuzey-güney ile doğu-batı sokaklarındaki binaların
+             yönünü hâlâ farklılaştırıyor. */
+          var face = this._facingAngle(pc[0], pc[1], streets.length ? streets : parcelCuts);
+          var rot = Math.round(face / (Math.PI/2)) * 90;
+          Sy.objects.push({
+            id:uid(), sym:this._pickBuilding(district, rnd),
+            x:pc[0], y:pc[1],
+            size:size, rot:rot,
+            hue:0, opacity:1, wear:0
+          });
+          placed++;
+        }
+      }
+
+      if (!placed) { UI.msg(UI.t('city_small')); return 0; }
+
+      /* --- 3) SOKAKLARI YOL KATMANINA YAZ ---
+         Ana caddeler (blok bölmeleri) kalın, ara sokaklar (parsel
+         bölmeleri) ince — genişlik farkı hiyerarşiyi görünür kılıyor. */
+      streets.forEach(function (s) {
+        Rd.objects.push({ id:uid(), pts:[[s[0][0],s[0][1]],[s[1][0],s[1][1]]],
+                          width:streetW, style:'solid', color:App.road.color, opacity:1 });
+      });
+      parcelCuts.forEach(function (s) {
+        Rd.objects.push({ id:uid(), pts:[[s[0][0],s[0][1]],[s[1][0],s[1][1]]],
+                          width:Math.max(2, streetW*0.5), style:'solid', color:App.road.color, opacity:1 });
+      });
+
+      /* --- 4) OPSİYONEL SUR + KULE + KAPI --- */
+      if (opts.wall) this._buildCityWall(boundary, Sy, rnd, opts.gates === undefined ? 2 : opts.gates);
+
+      /* roads + symbols TEK atomik adım — undo şehri bir kerede kaldırır */
+      History.pushCombo([], null, [
+        { layerId:'roads',   before:beforeRoads, after:JSON.parse(JSON.stringify(Rd.objects)) },
+        { layerId:'symbols', before:beforeSyms,  after:JSON.parse(JSON.stringify(Sy.objects)) }
+      ], 'citygen');
+      UI.refreshHistory();
+      Cv.requestRender();
+      return placed;
+    },
+
+    /* Sınır boyunca eşit aralıklarla kule, aralarına duvar; birkaç nokta
+       kule yerine kapı olur. Ayrı bir History adımı DEĞİL — çağıran
+       generateCity'nin combo'suna dahil olur. */
+    _buildCityWall: function (boundary, Sy, rnd, gateCount) {
+      var per = 0, i;
+      for (i = 0; i < boundary.length; i++) {
+        var a = boundary[i], b = boundary[(i+1) % boundary.length];
+        per += Math.hypot(b[0]-a[0], b[1]-a[1]);
+      }
+      var step = Math.max(60, per / 26);
+      var towerCat = Sym.SYMBOLS.castles, gateCat = Sym.SYMBOLS.passes;
+      var count = Math.max(4, Math.floor(per / step));
+      var gateEvery = gateCount > 0 ? Math.max(2, Math.round(count / gateCount)) : Infinity;
+
+      var acc = 0, placedIdx = 0, target = 0;
+      for (i = 0; i < boundary.length; i++) {
+        var p0 = boundary[i], p1 = boundary[(i+1) % boundary.length];
+        var segLen = Math.hypot(p1[0]-p0[0], p1[1]-p0[1]);
+        var ang = Math.atan2(p1[1]-p0[1], p1[0]-p0[0]);
+        while (target < acc + segLen && placedIdx < count) {
+          var t = (target - acc) / segLen;
+          var isGate = (placedIdx % gateEvery === 0) && gateCount > 0;
+          var cat = isGate ? gateCat : towerCat;
+          var items = (cat && cat.items && cat.items.length) ? cat.items : Sym.SYMBOLS.villages.items;
+          var def = items[Math.floor(rnd.next() * items.length)];
+          Sy.objects.push({
+            id:uid(), sym:def.id,
+            x:p0[0] + (p1[0]-p0[0])*t, y:p0[1] + (p1[1]-p0[1])*t,
+            size: isGate ? 46 : 38, rot: ang * 180/Math.PI,
+            hue:0, opacity:1, wear:0
+          });
+          placedIdx++; target += step;
+        }
+        acc += segLen;
+      }
+    },
+
     clearRasterLayer: function (id) {
       var L = Layers.get(id);
       if (L.locked) { UI.msg(UI.t('locked')); return; }

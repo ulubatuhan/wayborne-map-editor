@@ -477,6 +477,27 @@
         <label class="row" style="margin-top:12px"><span data-i18n="o_cucount">Kültür sayısı</span><b id="v-cu-count">4</b></label>
         <input type="range" id="cu-count" min="2" max="7" value="4">
         <button class="btn wide" id="btn-culturegen" data-i18n="o_culturegen_go">🎭 Kültür üret</button>
+
+        <h3 style="margin-top:20px" data-i18n="o_citysec">Şehir Üretimi</h3>
+        <p class="hint" id="city-need-sel" data-i18n="h_city_nosel">Önce bir bölge seç — şehir o bölgenin sınırları içine üretilir.</p>
+        <div id="city-body" hidden>
+          <label class="row"><span data-i18n="o_citydistrict">Mahalle tipi</span></label>
+          <select id="city-district" class="sel">
+            <option value="craftsmen" data-i18n="dist_craftsmen">Zanaatkâr</option>
+            <option value="market" data-i18n="dist_market">Pazar</option>
+            <option value="noble" data-i18n="dist_noble">Soylu</option>
+            <option value="slum" data-i18n="dist_slum">Yoksul mahalle</option>
+            <option value="temple" data-i18n="dist_temple">Tapınak</option>
+            <option value="harbour" data-i18n="dist_harbour">Liman</option>
+          </select>
+          <label class="row"><span data-i18n="o_citybuildings">Bina sayısı</span><b id="v-city-buildings">140</b></label>
+          <input type="range" id="city-buildings" min="30" max="260" value="140">
+          <label class="row"><span data-i18n="o_citystreet">Sokak genişliği</span><b id="v-city-street">7</b></label>
+          <input type="range" id="city-street" min="2" max="20" value="7">
+          <label class="chk"><input type="checkbox" id="city-wall"><span data-i18n="o_citywall">Sur ve kapı ekle</span></label>
+          <button class="btn wide" id="btn-citygen" data-i18n="o_citygen_go">Şehir üret</button>
+          <p class="hint" data-i18n="h_citygen">Seçili bölgeyi caddeler ve ara sokaklarla bloklara, blokları parsellere böler; her parsele mahalle tipine uygun bir bina, cephesi en yakın sokağa dönük olacak şekilde yerleştirir. Tek adımda geri alınır.</p>
+        </div>
         <p class="hint" data-i18n="h_culturegen">Devlet sınırlarından bağımsız, kendi ızgarasında büyüyen kültür bölgeleri üretir — üstteki "Görünüm" seçiciyle devlet/kültür sunumu arasında geçiş yapabilirsin.</p>
       </section>
 

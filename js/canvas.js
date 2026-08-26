@@ -142,6 +142,99 @@
       return len;
     },
 
+    /* ---------- çokgen bölme yardımcıları (şehir üretimi) ---------- */
+
+    polygonCentroid: function (pts) {
+      var cx = 0, cy = 0;
+      for (var i = 0; i < pts.length; i++) { cx += pts[i][0]; cy += pts[i][1]; }
+      return [cx/pts.length, cy/pts.length];
+    },
+
+    /* Bir çokgenin yaklaşık en küçük alanlı yönlü sınır kutusu (OBB).
+       Kesin "rotating calipers" yerine sabit sayıda açı denenir: şehir
+       bloğu bölmede amaç en uygun kutuyu bulmak değil, bloğun UZUN
+       eksenini doğru yakalamak — 15 açı bunun için fazlasıyla yeterli
+       ve kod, dışbükey-zarf gerektiren tam çözümden çok daha basit.
+       Döner: {angle, w, h, cx, cy} — açı radyan, w>=h garanti değil,
+       hangisinin uzun olduğu çağıranın işi. */
+    polygonOBB: function (pts) {
+      var best = null, STEPS = 15;
+      for (var s = 0; s < STEPS; s++) {
+        var a = (s / STEPS) * Math.PI/2;   /* 90° yeterli: kutu simetrik */
+        var ca = Math.cos(-a), sa = Math.sin(-a);
+        var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (var i = 0; i < pts.length; i++) {
+          var x = pts[i][0]*ca - pts[i][1]*sa;
+          var y = pts[i][0]*sa + pts[i][1]*ca;
+          if (x < minX) minX = x; if (x > maxX) maxX = x;
+          if (y < minY) minY = y; if (y > maxY) maxY = y;
+        }
+        var w = maxX-minX, h = maxY-minY, area = w*h;
+        if (!best || area < best.area) best = { angle:a, w:w, h:h, area:area,
+                                                minX:minX, maxX:maxX, minY:minY, maxY:maxY };
+      }
+      return best;
+    },
+
+    /* Sutherland–Hodgman: çokgeni bir doğrunun bir yarı-düzlemine kırpar.
+       Doğru p0 noktasından geçer ve (nx,ny) normaline sahiptir; normalin
+       POZİTİF tarafında kalan parça döner. Dışbükey olmayan girdide de
+       çökmez (sonuç bozulabilir ama şehir bölmede üretilen parçalar
+       pratikte dışbükeye yakındır). */
+    clipHalfPlane: function (pts, px, py, nx, ny) {
+      if (!pts || pts.length < 3) return [];
+      var out = [], n = pts.length;
+      function side(p) { return (p[0]-px)*nx + (p[1]-py)*ny; }
+      for (var i = 0; i < n; i++) {
+        var a = pts[i], b = pts[(i+1) % n];
+        var da = side(a), db = side(b);
+        if (da >= 0) out.push([a[0], a[1]]);
+        if ((da > 0 && db < 0) || (da < 0 && db > 0)) {
+          var t = da / (da - db);
+          out.push([a[0] + (b[0]-a[0])*t, a[1] + (b[1]-a[1])*t]);
+        }
+      }
+      return out.length >= 3 ? out : [];
+    },
+
+    /* Bir doğrunun çokgenle kesiştiği ilk/son noktayı döner (sokak
+       segmenti olarak çizilecek parça). Dışbükey olmayan çokgende ara
+       boşlukları yok sayar — uç noktaları almak sokak çizimi için yeterli.
+       Kesişim yoksa null. */
+    lineThroughPolygon: function (pts, px, py, dx, dy) {
+      var ts = [], n = pts.length;
+      for (var i = 0; i < n; i++) {
+        var a = pts[i], b = pts[(i+1) % n];
+        var ex = b[0]-a[0], ey = b[1]-a[1];
+        var den = dx*ey - dy*ex;
+        if (Math.abs(den) < 1e-9) continue;
+        var t = ((a[0]-px)*ey - (a[1]-py)*ex) / den;      /* doğru üzerinde */
+        var u = ((a[0]-px)*dy - (a[1]-py)*dx) / den;      /* kenar üzerinde */
+        if (u >= 0 && u <= 1) ts.push(t);
+      }
+      if (ts.length < 2) return null;
+      ts.sort(function (p, q) { return p - q; });
+      var t0 = ts[0], t1 = ts[ts.length-1];
+      return [[px + dx*t0, py + dy*t0], [px + dx*t1, py + dy*t1]];
+    },
+
+    /* Çokgeni ağırlık merkezine doğru yaklaşık d piksel içeri çeker
+       (sokak genişliği payı). Gerçek bir "straight skeleton" offset'i
+       değil — köşeleri merkeze doğru oransal çekmek şehir bloğu
+       ölçeğinde görsel olarak yeterli ve her zaman geçerli bir çokgen
+       üretir. Çok küçük çokgende null döner. */
+    insetPolygon: function (pts, d) {
+      var c = this.polygonCentroid(pts), out = [];
+      for (var i = 0; i < pts.length; i++) {
+        var dx = pts[i][0]-c[0], dy = pts[i][1]-c[1];
+        var len = Math.hypot(dx, dy);
+        if (len <= d * 1.05) return null;      /* içeri çekince kapanırdı */
+        var k = (len - d) / len;
+        out.push([c[0] + dx*k, c[1] + dy*k]);
+      }
+      return out;
+    },
+
     /* Nokta kapalı çokgenin içinde mi? (ışın atma / even-odd). pts
        kapanışı içermese de olur. Kültür sorgusu (Tools.cultureAt) ve
        başkent yerleştirme (Tools._defaultCapital) aynı testi paylaşır. */
