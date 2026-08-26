@@ -424,6 +424,98 @@
       UI.msg(UI.t('exported') + ' SVG');
     },
 
+    /* ================= GIS (GeoJSON) DIŞA AKTARIMI =================
+       Vektör katmanlar zaten pts/x,y tabanlı nesneler olduğu için burada
+       yeni bir veri modeli yok: her nesne bir GeoJSON Feature'a çevriliyor.
+       Koordinatlar PROJE PİKSEL UZAYINDA kalır — gerçek bir enlem/boylam
+       dönüşümü yapılmaz, çünkü harita hayalî bir dünyaya ait ve bir CRS'e
+       bağlı değil (AFMG de kendi harita birimini kullanır). Y ekseni de
+       ekranla aynı yönde (aşağı pozitif) bırakılır ki QGIS'e alındığında
+       harita ters görünmesin diye kullanıcı ayrıca çevirmek zorunda
+       kalmasın — dosyanın crs alanı bunu açıkça belirtir. */
+    geojsonData: function () {
+      var feats = [];
+      function ring(pts) {
+        var r = pts.map(function (p) { return [round2(p[0]), round2(p[1])]; });
+        /* GeoJSON Polygon halkaları kapalı olmalı: ilk nokta = son nokta */
+        if (r.length && (r[0][0] !== r[r.length-1][0] || r[0][1] !== r[r.length-1][1])) r.push([r[0][0], r[0][1]]);
+        return r;
+      }
+      function round2(v) { return Math.round(v * 100) / 100; }
+      function feature(geom, props) { feats.push({ type:'Feature', geometry:geom, properties:props }); }
+
+      function addVector(layerId, fn) {
+        var L = Layers.get(layerId);
+        if (!L || !L.objects) return;
+        L.objects.forEach(fn);
+      }
+
+      addVector('rivers', function (o) {
+        if (o.kind === 'lake') {
+          feature({ type:'Polygon', coordinates:[ring(o.pts)] },
+                  { layer:'rivers', kind:'lake', name:o.name || null });
+        } else {
+          feature({ type:'LineString', coordinates:o.pts.map(function (p) { return [round2(p[0]), round2(p[1])]; }) },
+                  { layer:'rivers', kind:'river', name:o.name || null, width:o.width || null });
+        }
+      });
+
+      addVector('roads', function (o) {
+        feature({ type:'LineString', coordinates:o.pts.map(function (p) { return [round2(p[0]), round2(p[1])]; }) },
+                { layer:'roads', kind:'road', style:o.style || null, width:o.width || null });
+      });
+
+      addVector('territories', function (o) {
+        feature({ type:'Polygon', coordinates:[ring(o.pts)] }, {
+          layer:'territories', kind:o.kind || 'region', name:o.name || null,
+          government:o.government || null, culture:o.cultureKey || null,
+          capital_x: o.capital ? round2(o.capital.x) : null,
+          capital_y: o.capital ? round2(o.capital.y) : null
+        });
+      });
+
+      addVector('symbols', function (o) {
+        if (o.kind === 'group') return;   /* grup bir konum değil, kapsayıcı */
+        feature({ type:'Point', coordinates:[round2(o.x), round2(o.y)] }, {
+          layer:'symbols', symbol:o.sym || null, name:o.name || null,
+          population: (typeof o.population === 'number') ? o.population : null,
+          culture:o.cultureKey || null
+        });
+      });
+
+      addVector('resources', function (o) {
+        feature({ type:'Point', coordinates:[round2(o.x), round2(o.y)] },
+                { layer:'resources', kind:'resource', type:o.type || null });
+      });
+
+      addVector('labels', function (o) {
+        feature({ type:'Point', coordinates:[round2(o.x), round2(o.y)] },
+                { layer:'labels', kind:'label', text:o.text || '', preset:o.preset || null });
+      });
+
+      addVector('links', function (o) {
+        feature({ type:'Point', coordinates:[round2(o.x), round2(o.y)] },
+                { layer:'links', kind:'maplink', name:o.name || null, target:o.targetMapId || null });
+      });
+
+      return {
+        type:'FeatureCollection',
+        name: App.currentCanvasName || 'wayborne-map',
+        crs: { type:'name', properties:{ name:'wayborne:canvas-pixels' } },
+        canvas: { width:Cv.W, height:Cv.H, yAxis:'down' },
+        features: feats
+      };
+    },
+
+    geojson: function () {
+      var data = this.geojsonData();
+      if (!data.features.length) { UI.msg(UI.t('gis_empty')); return 0; }
+      var blob = new Blob([JSON.stringify(data, null, 1)], { type:'application/geo+json' });
+      download(blob, (App.currentCanvasName || 'harita') + '.geojson');
+      UI.msg(data.features.length + ' ' + UI.t('gis_done'));
+      return data.features.length;
+    },
+
     /* Izgarayı GERÇEK VEKTÖR olarak yazar. Kare ve nokta bir <pattern>
        ile tek seferde tanımlanır (kaç hücre olursa olsun birkaç satır);
        altıgen için de aynı yöntem kullanılır — desen karosu, sivri tepeli

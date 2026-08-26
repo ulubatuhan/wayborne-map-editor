@@ -177,6 +177,7 @@
     <button class="tb-btn" id="btn-export-png4" data-i18n-title="exp_png4_t">PNG 4×</button>
     <button class="tb-btn" id="btn-export-svg">SVG</button>
     <button class="tb-btn" id="btn-export-html" data-i18n-title="exp_html_t">HTML</button>
+    <button class="tb-btn" id="btn-export-gis" data-i18n-title="exp_gis_t">GeoJSON</button>
     <button class="tb-btn" id="btn-share-link" data-i18n-title="exp_share_t">
       <svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -209,6 +210,10 @@
     <option value="4096">4096 × 4096</option>
     <option value="8192">8192 × 8192</option>
   </select>
+
+  <label class="tb-accent" id="accent-wrap" data-i18n-title="accent_t">
+    <input type="color" id="accent-color" value="#c08a3e" aria-label="Accent colour">
+  </label>
 
   <div class="lang-switch" id="lang-switch">
     <button class="tb-btn lang" id="btn-lang" title="Language / Dil" aria-label="Language"><svg class="ico-svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><ellipse cx="10" cy="10" rx="3.2" ry="7.5"/><path d="M2.7 7.5h14.6M2.7 12.5h14.6"/></svg></button>
@@ -430,7 +435,15 @@
         <p class="hint" id="tt-edit-empty" data-i18n="h_stedit_none">Düzenlemek için haritadan ya da sağdaki "Bölgeler" sekmesinden bir bölge seç.</p>
         <div id="tt-edit-body" hidden>
           <label class="row"><span data-i18n="o_polname">Seçili bölgenin adı</span></label>
-          <input type="text" id="tt-name" class="sel" data-i18n-placeholder="o_polname_ph" placeholder="Devlet adı">
+          <div class="row-inline">
+            <input type="text" id="tt-name" class="sel" data-i18n-placeholder="o_polname_ph" placeholder="Devlet adı">
+            <button class="btn btn-icon" id="btn-tt-speak" data-i18n-title="o_speak" hidden>
+              <svg class="ico-svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 8v4h3l4 3V5L7 8H4z"/><path d="M14 7.5a4 4 0 0 1 0 5"/><path d="M16.3 5.4a7 7 0 0 1 0 9.2"/>
+              </svg>
+            </button>
+          </div>
           <div id="tt-state-fields" hidden>
             <label class="row"><span data-i18n="o_stgov">Hükümet biçimi</span></label>
             <select id="tt-gov" class="sel">
