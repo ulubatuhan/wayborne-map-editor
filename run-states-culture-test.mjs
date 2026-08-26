@@ -157,6 +157,59 @@ async function run() {
       }));
       check('başkent/liman en yüksek nüfuflu eğilimde', Sy.objects[0].population >= (Sy.objects[Sy.objects.length-1] ? Sy.objects[Sy.objects.length-1].population * 0.3 : 0));
 
+      /* ---------- DİNLER (ortak _growRegions çekirdeği) ---------- */
+      Layers.init(2048, 2048); Cv.setSize(2048,2048,false); History.clear();
+      Tools.generateLandmass('continent', 0.5, 42); Cv.render();
+      var tR = performance.now();
+      var nR = Tools.generateReligions(3, 555);
+      var relMs = performance.now() - tR;
+      check('generateReligions din bölgesi üretti', nR >= 2);
+      check('generateReligions bütçe içinde (<1000ms)', relMs < 1000);
+      var Trel = Layers.get('territories');
+      var rels = Trel.objects.filter(function (o) { return o.kind === 'religion'; });
+      check('din nesneleri kind:religion taşıyor', rels.length === nR);
+      check('her dinin adı var', rels.every(function (o) { return !!o.name; }));
+
+      /* üç görünüm birbirine karışmamalı */
+      Tools.generateStates(3, 0.3, 555);
+      Tools.generateCultures(3, 555);
+      Cv.politicalMode = 'religion';
+      var visRel = Trel.objects.filter(function (o) { return Cv.territoryVisibleInMode(o); });
+      check('religion modunda yalnızca dinler görünür',
+        visRel.length > 0 && visRel.every(function (o) { return o.kind === 'religion'; }));
+      Cv.politicalMode = 'state';
+      var visSt = Trel.objects.filter(function (o) { return Cv.territoryVisibleInMode(o); });
+      check('state modunda din ve kültür gizli',
+        visSt.length > 0 && !visSt.some(function (o) { return o.kind === 'culture' || o.kind === 'religion'; }));
+      Cv.politicalMode = 'culture';
+      var visCu = Trel.objects.filter(function (o) { return Cv.territoryVisibleInMode(o); });
+      check('culture modunda din gizli', !visCu.some(function (o) { return o.kind === 'religion'; }));
+      Cv.politicalMode = 'state';
+
+      /* determinizm */
+      Layers.init(2048, 2048); Cv.setSize(2048,2048,false); History.clear();
+      Tools.generateLandmass('continent', 0.5, 42); Cv.render();
+      Tools.generateReligions(3, 555);
+      var sigR1 = Layers.get('territories').objects.map(function (o) { return o.name; }).join('|');
+      Layers.init(2048, 2048); Cv.setSize(2048,2048,false); History.clear();
+      Tools.generateLandmass('continent', 0.5, 42); Cv.render();
+      Tools.generateReligions(3, 555);
+      var sigR2 = Layers.get('territories').objects.map(function (o) { return o.name; }).join('|');
+      check('din üretimi deterministik', sigR1 === sigR2);
+
+      /* ortak çekirdek: kültür üretimi refactor sonrası hâlâ çalışıyor */
+      Layers.init(2048, 2048); Cv.setSize(2048,2048,false); History.clear();
+      Tools.generateLandmass('continent', 0.5, 42); Cv.render();
+      var nCu = Tools.generateCultures(4, 555);
+      check('refactor sonrası generateCultures çalışıyor', nCu >= 2);
+      check('kültür nesneleri hâlâ kind:culture', Layers.get('territories').objects.every(function (o) {
+        return o.kind === 'culture';
+      }));
+
+      /* kara yokken çökmemeli */
+      Layers.init(256, 256); History.clear();
+      check('kara yokken generateReligions 0 döndürüyor', Tools.generateReligions(3, 1) === 0);
+
       /* ---------- DEVLET EDİTÖRÜ ---------- */
       Layers.init(2048, 2048); History.clear();
       Tools.generateLandmass('continent', 0.5, 42);

@@ -1947,8 +1947,12 @@
        olmadığı — renderMap'in 'territories' dalı ve dışa aktarımlar
        (PNG/SVG/HTML) aynı süzgeci kullanır. */
     territoryVisibleInMode: function (o) {
-      var isCulture = o.kind === 'culture';
-      return this.politicalMode === 'culture' ? isCulture : !isCulture;
+      /* 'state' varsayılan görünümdür ve kind'ı olmayan (elle çizilmiş)
+         bölgeleri de kapsar; kültür/din görünümleri yalnızca kendi
+         türlerini gösterir. Böylece üç görünüm birbirine karışmaz. */
+      if (this.politicalMode === 'culture')  return o.kind === 'culture';
+      if (this.politicalMode === 'religion') return o.kind === 'religion';
+      return o.kind !== 'culture' && o.kind !== 'religion';
     },
 
     /* Sembol lejantı: siyasi görünümden bağımsız, haritadaki sembol

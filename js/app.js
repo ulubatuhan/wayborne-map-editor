@@ -11,7 +11,7 @@
 
     brush:   { size:120, roughness:0.35, color:'#ded0ac' },
     landgen: { template:'continent', roughness:0.5, rivers:false, lakes:false, terrain:false },
-    stategen: { count:5, variety:0.35, cultureCount:4 },
+    stategen: { count:5, variety:0.35, cultureCount:4, religionCount:3 },
     citygen:  { district:'craftsmen', buildings:140, streetWidth:7, wall:false },
     sea:     { color:'#7ba8bd' },
     terrain: { type:'grassland', size:160, opacity:0.85, clip:true },
