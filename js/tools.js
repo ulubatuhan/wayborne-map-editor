@@ -268,6 +268,10 @@
          mantığını sessizce iptal etmemeli. */
       try { Cv.view.setPointerCapture(e.pointerId); } catch (ptrErr) {}
 
+      /* başkent seçme modu açıksa bu tık yalnızca başkenti taşır —
+         aktif araç ne olursa olsun başka hiçbir şey tetiklenmez */
+      if (this.capitalPick) { this.pickCapitalAt(p); return; }
+
       /* windrose tutamağı */
       if (App.windrose && App.windrose.visible && this.hitWindrose(p)) {
         var wb = JSON.parse(JSON.stringify(App.windrose));
@@ -2916,7 +2920,7 @@
         }
       }
 
-      var GOV = ['kingdom','empire','theocracy','republic','confederation','citystate'];
+      var GOV = this.GOVERNMENTS;
       var cultureKeys = Object.keys(Names.CULTURES);
       var lang = (typeof UI !== 'undefined' && UI.lang) || 'tr';
       var before = JSON.parse(JSON.stringify(Tv.objects));
@@ -3090,16 +3094,130 @@
       if (!Tv) return null;
       for (var i = 0; i < Tv.objects.length; i++) {
         var o = Tv.objects[i];
-        if (o.kind !== 'culture' || !o.pts || o.pts.length < 3) continue;
-        var inside = false, pts = o.pts;
-        for (var j = 0, k = pts.length-1; j < pts.length; k = j++) {
-          var xi = pts[j][0], yi = pts[j][1], xj = pts[k][0], yj = pts[k][1];
-          var hit = ((yi > y) !== (yj > y)) && (x < (xj-xi) * (y-yi) / (yj-yi) + xi);
-          if (hit) inside = !inside;
-        }
-        if (inside) return o.cultureKey;
+        if (o.kind !== 'culture') continue;
+        if (Geo.pointInPolygon(x, y, o.pts)) return o.cultureKey;
       }
       return null;
+    },
+
+    /* ================= DEVLET EDİTÖRÜ =================
+       Üretilen ya da elle çizilen bir bölgeyi "resmî devlet" hâline
+       getiren/çıkaran ve başkentini elle taşımayı sağlayan işlemler.
+       Hepsi tek bir History.pushVector adımı üretir, yani Ctrl+Z ile
+       geri alınır. Devlet nesnesinin şekli generateStates'in ürettiğiyle
+       birebir aynıdır (kind/government/capital/cultureKey), bu yüzden
+       lejant, Bölgeler listesi ve görünüm filtresi ek koda gerek
+       kalmadan dönüştürülmüş bölgeyi de kapsar. */
+    GOVERNMENTS: ['kingdom','empire','theocracy','republic','confederation','citystate'],
+
+    /* Bir bölge için makul bir başkent noktası: önce ağırlık merkezi;
+       dışbükey olmayan ya da kıyıya taşan bir bölgede bu nokta alanın
+       dışına veya denize düşebildiği için, o durumda bbox üzerinde kaba
+       bir ızgara taranıp hem poligonun içinde hem karada olan, merkeze
+       en yakın nokta seçilir. Hiçbiri bulunamazsa ağırlık merkezine
+       geri dönülür — başkent her hâlükârda tanımlı kalır. */
+    _defaultCapital: function (pts) {
+      var cx = 0, cy = 0, i;
+      for (i = 0; i < pts.length; i++) { cx += pts[i][0]; cy += pts[i][1]; }
+      cx /= pts.length; cy /= pts.length;
+      if (Geo.pointInPolygon(cx, cy, pts) && Cv.isOnLand(cx, cy)) return { x:cx, y:cy };
+
+      var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (i = 0; i < pts.length; i++) {
+        if (pts[i][0] < minX) minX = pts[i][0];
+        if (pts[i][0] > maxX) maxX = pts[i][0];
+        if (pts[i][1] < minY) minY = pts[i][1];
+        if (pts[i][1] > maxY) maxY = pts[i][1];
+      }
+      var N = 12, best = null;
+      for (var gy = 1; gy < N; gy++) {
+        for (var gx = 1; gx < N; gx++) {
+          var x = minX + (maxX-minX)*gx/N, y = minY + (maxY-minY)*gy/N;
+          if (!Geo.pointInPolygon(x, y, pts) || !Cv.isOnLand(x, y)) continue;
+          var d = Math.hypot(x-cx, y-cy);
+          if (!best || d < best.d) best = { x:x, y:y, d:d };
+        }
+      }
+      return best ? { x:best.x, y:best.y } : { x:cx, y:cy };
+    },
+
+    /* Seçili bölge nesnesini döndürür (yoksa null) — devlet editörünün
+       tüm işlemleri önce bundan geçer. */
+    _selectedTerritory: function () {
+      if (!App.selection || App.selection.layerId !== 'territories') return null;
+      return this.selected();
+    },
+
+    /* Bölge katmanına tek adımlık bir düzenleme yazar. mutate(o) nesneyi
+       yerinde değiştirir; öncesi/sonrası History'ye atomik olarak girer. */
+    _editTerritory: function (mutate, label) {
+      var o = this._selectedTerritory();
+      if (!o) return false;
+      var L = Layers.get('territories');
+      if (L.locked) { UI.msg(UI.t('locked')); return false; }
+      var before = JSON.parse(JSON.stringify(L.objects));
+      mutate(o);
+      History.pushVector('territories', before, JSON.parse(JSON.stringify(L.objects)), label);
+      UI.refreshHistory();
+      UI.refreshTerritoryList();
+      UI.refreshSelection();
+      Cv.requestRender();
+      return true;
+    },
+
+    setStateGovernment: function (govKey) {
+      if (this.GOVERNMENTS.indexOf(govKey) < 0) return false;
+      return this._editTerritory(function (o) { o.government = govKey; }, 'gov');
+    },
+
+    /* Elle çizilmiş bir bölgeyi devlete dönüştürür. Adı yoksa mevcut
+       hece tabanlı ad üreteciyle bir ad verilir; kültür, başkentin
+       düştüğü kültür bölgesinden okunur (yoksa ilk kültür). */
+    makeState: function () {
+      var o = this._selectedTerritory();
+      if (!o || o.kind) return false;   /* zaten devlet/kültür ise dokunma */
+      var self = this;
+      var lang = (typeof UI !== 'undefined' && UI.lang) || 'tr';
+      return this._editTerritory(function (t) {
+        var cap = self._defaultCapital(t.pts);
+        var ck = self.cultureAt(cap.x, cap.y) || Object.keys(Names.CULTURES)[0];
+        t.kind = 'state';
+        t.capital = cap;
+        t.cultureKey = ck;
+        t.government = t.government || 'kingdom';
+        if (!t.name) t.name = Names.generate(ck, 'region', lang, Math.floor(Math.random()*1e9));
+      }, 'makestate');
+    },
+
+    /* Devlet niteliklerini kaldırır: nesne yeniden sıradan, elle çizilmiş
+       bir bölge olur (poligon ve renkleri korunur). */
+    unmakeState: function () {
+      var o = this._selectedTerritory();
+      if (!o || o.kind !== 'state') return false;
+      return this._editTerritory(function (t) {
+        delete t.kind; delete t.government; delete t.capital; delete t.cultureKey;
+      }, 'unmakestate');
+    },
+
+    /* Başkent seçme modu: ayrı bir araç değil, kısa ömürlü bir yakalama
+       modu. "Başkenti haritadan seç" düğmesi açar, sıradaki tek sol tık
+       başkenti oraya taşıyıp modu kapatır — kullanıcı Bölge aracından
+       çıkmak zorunda kalmaz. Escape ile de iptal edilir. */
+    capitalPick: false,
+
+    setCapitalPick: function (on) {
+      this.capitalPick = !!on && !!this._selectedTerritory();
+      if (Cv.view) Cv.view.classList.toggle('capital-pick', this.capitalPick);
+      UI.refreshSelection();
+    },
+
+    pickCapitalAt: function (p) {
+      this.setCapitalPick(false);
+      var o = this._selectedTerritory();
+      if (!o || o.kind !== 'state') return;
+      if (!Cv.isOnLand(p.x, p.y)) { UI.msg(UI.t('st_capital_sea')); return; }
+      this._editTerritory(function (t) { t.capital = { x:p.x, y:p.y }; }, 'capital');
+      UI.msg(UI.t('st_capital_set'));
     },
 
     clearRasterLayer: function (id) {

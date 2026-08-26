@@ -16,6 +16,8 @@
 #view.pan{cursor:grab}
 #view.panning{cursor:grabbing}
 #view.pick{cursor:default}
+/* başkent seçme modu: sıradaki tık bir konum belirleyecek */
+#view.capital-pick{cursor:cell}
 
 #map-breadcrumb{
   position:absolute;top:12px;inset-inline-start:12px;z-index:6;

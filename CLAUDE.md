@@ -77,7 +77,8 @@ node run-refimg-scan-test.mjs        # Tools.scanReferenceImage over a synthetic
                                       # a wall-clock budget, and that cancelling touches no layer
 node run-perf-audit.mjs              # wall-clock budgets for every heavy tool/mechanic (landmass
                                       # generation × 3 templates, autoBiome, generateRivers, autoLakes,
-                                      # generateRoads, autoSettle, layer add, undo/redo, the reference-
+                                      # generateRoads, autoSettle, generateStates, generateCultures,
+                                      # layer add, undo/redo, the reference-
                                       # image scan) at the default 2048² canvas plus an 8192² stress
                                       # pass; asserts each single operation stays under 1s and the full
                                       # "random map" pipeline (landmass+rivers+lakes+biome) stays under
@@ -92,8 +93,10 @@ node run-states-culture-test.mjs     # Tools.generateStates/generateCultures (mu
                                       # flood-fill from capital/culture seeds, bounded to land, traced
                                       # into territories via Geo.traceContour): determinism (same seed
                                       # → same borders), capitals land on land, Cv.politicalMode view
-                                      # filter (state vs culture), perf budget, and autoSettle's new
-                                      # population field
+                                      # filter (state vs culture), perf budget, autoSettle's new
+                                      # population field, and the state editor (government change,
+                                      # capital picking incl. sea rejection, hand-drawn region →
+                                      # state and back) with undo/redo on every edit
 ```
 
 Two gotchas when writing more of these: **`requestAnimationFrame` is throttled in headless Chrome**, so
@@ -215,6 +218,10 @@ The progress overlay is `#scan-progress`, deliberately separate from `#modal`: t
 Because state/culture regions live in the *same* `territories` object list as hand-drawn regions rather than a separate raster overlay, showing one or the other is purely a **view filter**, not a re-render of different data: `Cv.politicalMode` (`'state'` | `'culture'`) and `Cv.territoryVisibleInMode(o)` decide, per object, whether it's drawn this frame — culture objects are hidden in `'state'` mode and vice versa, plain hand-drawn territories (no `kind`) are always treated as state-mode content. This was a deliberate performance constraint, not just a code-reuse convenience: an earlier design that considered rendering culture regions as a full-canvas raster overlay recomputed every frame would have reintroduced exactly the kind of steady-state FPS cost the render architecture (viewport clipping + composite caching) is built to avoid — see the "Performans tasarım kuralları" section of `docs/afmg-parity-plan.md` for the reasoning this was checked against before implementation. `UI.refreshTerritoryList` filters the Bölgeler-tab list through the same `territoryVisibleInMode` check (so the list always mirrors what's actually drawn) and shows each state's government type as a small subtitle (`.territory-gov`, `gov_<key>` DICT keys).
 
 `Tools.autoSettle` additionally computes a `population` figure per placed settlement (base range by tier — capital/port, town, village — × a coastal/slope suitability factor already used for placement × a capital-proximity bonus read from any existing `kind:'state'` objects' `capital` points) and tags each settlement with `Tools.cultureAt(x,y)` (a point-in-polygon test over `kind:'culture'` objects) for future use. Population works whether or not states have been generated yet (the proximity bonus is neutral at 1 if none exist), so the two features have no required ordering.
+
+The **state editor** (plan § #1c) makes all of this hand-editable rather than generate-only. `Tools.setStateGovernment` / `makeState` / `unmakeState` / `pickCapitalAt` all funnel through one private helper, `Tools._editTerritory(mutate, label)`, which snapshots the `territories` object array, applies `mutate(o)` in place, and pushes a single `History.pushVector` step — so every edit is one atomic Ctrl+Z, and no operation can forget to record history. `makeState` turns a plain hand-drawn territory into one shaped exactly like a generated state (`kind`/`government`/`capital`/`cultureKey`), which is why the legend, the Bölgeler list and the `politicalMode` filter pick it up with no extra code; `unmakeState` strips those fields and leaves the polygon untouched. Converting is deliberately refused for `kind:'culture'` objects (it would silently remove them from culture view) and for objects that are already states. `Tools._defaultCapital(pts)` picks the capital when converting: the centroid if it is both inside the ring and on land, otherwise a coarse bbox scan for the in-polygon, on-land cell nearest the centroid — a concave or coast-hugging region would otherwise get a capital in the sea or outside its own borders.
+
+Capital picking is **not a tool**: `Tools.capitalPick` is a short-lived capture flag checked at the very top of `onDown` (right after pointer capture), so the next single left click sets the capital regardless of the active tool and the user never has to leave the Bölge tool; `Escape` clears it through `UI.cancelOrDeselect` *before* the deselect branch, so cancelling keeps the region selected. `Cv.drawCapitalMark` renders the capital as a small star in political mode — without it, a hand-placed capital would be invisible data. One UI subtlety worth keeping: `UI.refreshTerritoryEditor()` runs at the **top** of `refreshSelection`, because that function has early returns for scale/multi/empty selections and the editor must reach the right state (especially "hidden") in all of them. It is also what finally syncs `#tt-name` to the selected object — that input was previously never populated, so selecting region B left region A's name in the box and typing there renamed B.
 
 **Deliberately out of scope for this pass** (tracked as follow-ups in `docs/afmg-parity-plan.md`): religions, provinces (sub-division of a state), a diplomacy/relations editor, wiring `cultureAt` into automatic settlement naming, an emblem/heraldry generator, a real climate/wind simulation feeding `autoBiome`, GIS (GeoJSON) export, and the zones/notes/namesbase/heightmap-template-editor quick wins — none of these are architecturally blocked, they were simply the next slice down the plan's priority order.
 

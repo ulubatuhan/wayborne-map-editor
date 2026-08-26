@@ -142,6 +142,20 @@
       return len;
     },
 
+    /* Nokta kapalı çokgenin içinde mi? (ışın atma / even-odd). pts
+       kapanışı içermese de olur. Kültür sorgusu (Tools.cultureAt) ve
+       başkent yerleştirme (Tools._defaultCapital) aynı testi paylaşır. */
+    pointInPolygon: function (x, y, pts) {
+      if (!pts || pts.length < 3) return false;
+      var inside = false;
+      for (var i = 0, j = pts.length-1; i < pts.length; j = i++) {
+        var xi = pts[i][0], yi = pts[i][1], xj = pts[j][0], yj = pts[j][1];
+        var hit = ((yi > y) !== (yj > y)) && (x < (xj-xi) * (y-yi) / (yj-yi) + xi);
+        if (hit) inside = !inside;
+      }
+      return inside;
+    },
+
     /* Kapalı bir çokgenin alanı (shoelace formülü, piksel²). pts kapanışı
        (son nokta = ilk nokta) içermese de olur — kapatan kenar zımnen
        eklenir. */
@@ -1199,6 +1213,7 @@
             if (this.political) {
               for (var jn = 0; jn < l.objects.length; jn++) {
                 if (!this.territoryVisibleInMode(l.objects[jn])) continue;
+                this.drawCapitalMark(ctx, l.objects[jn]);
                 this.drawTerritoryName(ctx, l.objects[jn]);
               }
             }
@@ -1880,6 +1895,31 @@
         return t.length < 2 ? '0'+t : t;
       };
       return '#' + f(r) + f(g) + f(b);
+    },
+
+    /* Başkent işareti: siyasi görünümde devletin başkentine küçük bir
+       yıldız. Sembol katmanındaki yerleşim sembollerinden bağımsızdır —
+       burada çizilen, devletin `capital` alanının kendisidir, yoksa elle
+       atanan bir başkent haritada hiç görünmezdi. */
+    drawCapitalMark: function (ctx, o) {
+      if (!o.capital) return;
+      var r = Math.max(5, Math.min(this.W, this.H) * 0.006);
+      var x = o.capital.x, y = o.capital.y;
+      ctx.save();
+      ctx.beginPath();
+      for (var i = 0; i < 10; i++) {
+        var ang = -Math.PI/2 + i*Math.PI/5;
+        var rad = (i % 2 === 0) ? r : r*0.42;
+        var px = x + Math.cos(ang)*rad, py = y + Math.sin(ang)*rad;
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fillStyle = '#fffaf0';
+      ctx.strokeStyle = o.borderColor || '#3a2b18';
+      ctx.lineWidth = Math.max(1, r*0.22);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
     },
 
     /* Devlet adlarını alan merkezine yazar. */

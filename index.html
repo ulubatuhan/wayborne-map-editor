@@ -424,9 +424,30 @@
         <label class="row"><span data-i18n="o_polfill">Dolgu yoğunluğu</span><b id="v-pol-fill">0.92</b></label>
         <input type="range" id="pol-fill" min="40" max="100" value="92">
         <button class="btn wide" id="btn-pol-colors" data-i18n="o_polcolors">Devlet renklerini otomatik ata</button>
-        <label class="row" style="margin-top:12px"><span data-i18n="o_polname">Seçili bölgenin adı</span></label>
-        <input type="text" id="tt-name" class="sel" data-i18n-placeholder="o_polname_ph" placeholder="Devlet adı">
         <p class="hint" data-i18n="h_political">Siyasi görünüm ayrı bir katman değil; çizdiğin bölgeleri devlet alanı olarak sunar. Fizikî ve siyasi görünüm arasında geçiş yapabilirsin.</p>
+
+        <h3 style="margin-top:20px" data-i18n="o_stedit">Seçili Bölge</h3>
+        <p class="hint" id="tt-edit-empty" data-i18n="h_stedit_none">Düzenlemek için haritadan ya da sağdaki "Bölgeler" sekmesinden bir bölge seç.</p>
+        <div id="tt-edit-body" hidden>
+          <label class="row"><span data-i18n="o_polname">Seçili bölgenin adı</span></label>
+          <input type="text" id="tt-name" class="sel" data-i18n-placeholder="o_polname_ph" placeholder="Devlet adı">
+          <div id="tt-state-fields" hidden>
+            <label class="row"><span data-i18n="o_stgov">Hükümet biçimi</span></label>
+            <select id="tt-gov" class="sel">
+              <option value="kingdom" data-i18n="gov_kingdom">Krallık</option>
+              <option value="empire" data-i18n="gov_empire">İmparatorluk</option>
+              <option value="theocracy" data-i18n="gov_theocracy">Teokrasi</option>
+              <option value="republic" data-i18n="gov_republic">Cumhuriyet</option>
+              <option value="confederation" data-i18n="gov_confederation">Konfederasyon</option>
+              <option value="citystate" data-i18n="gov_citystate">Şehir Devleti</option>
+            </select>
+            <label class="row"><span data-i18n="o_stcapital">Başkent</span><b id="v-tt-capital">—</b></label>
+            <button class="btn wide" id="btn-tt-capital" data-i18n="o_stcapital_pick">Başkenti haritadan seç</button>
+            <button class="btn wide" id="btn-tt-unstate" data-i18n="o_stunmake">Devlet olmaktan çıkar</button>
+          </div>
+          <button class="btn wide" id="btn-tt-makestate" data-i18n="o_stmake">Devlete dönüştür</button>
+          <p class="hint" id="tt-edit-hint" data-i18n="h_stedit">Elle çizdiğin bir bölgeyi devlete dönüştürünce ad, hükümet biçimi ve başkent kazanır; üretilen devletlerle aynı şekilde listelenir ve renklendirilir.</p>
+        </div>
 
         <h3 style="margin-top:20px" data-i18n="o_stategensec">Devlet &amp; Kültür Üretimi</h3>
         <label class="row"><span data-i18n="o_polmodesel">Görünüm</span></label>

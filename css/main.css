@@ -203,6 +203,9 @@ textarea{font-family:var(--f-display);font-size:13px}
 .btn:hover{background:var(--ink-500);border-color:var(--brass-dim)}
 .btn.wide{width:100%;margin-top:8px}
 .btn.primary{background:var(--brass-dim);border-color:var(--brass);color:#fff}
+/* Bir modu açıp bekleyen düğme (ör. "başkenti haritadan seç") — basılı
+   kaldığı, sıradaki tıkı beklediği görünsün. */
+.btn.active{background:var(--brass-dim);border-color:var(--brass);color:#fff}
 .btn.danger:hover{background:var(--danger);border-color:var(--danger);color:#fff}
 
 /* ---------- terrain swatches ---------- */

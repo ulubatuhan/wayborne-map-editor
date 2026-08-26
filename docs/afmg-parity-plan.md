@@ -1,13 +1,18 @@
 # AFMG paritesi — yapılabilir özellikler iş planı
 
-> **Durum (bu turda uygulandı):** Ortak altyapı (`Geo.traceContour`) ve
-> **#1 Devlet/Kültür simülasyonunun çekirdeği** (devlet üretimi, kültür
-> üretimi, `Cv.politicalMode` görünüm filtresi, `run-geo-contour-test.mjs`,
-> `run-states-culture-test.mjs`) ile **#2 Yerleşim nüfusu** hayata geçirildi
-> — bkz. `js/canvas.js`'teki `Geo.traceContour`, `js/tools.js`'teki
-> `Tools.generateStates`/`generateCultures`/`cultureAt`, ve CLAUDE.md'nin
+> **Durum (uygulandı):** Ortak altyapı (`Geo.traceContour`), **#1 Devlet/
+> Kültür simülasyonunun çekirdeği** (devlet üretimi, kültür üretimi,
+> `Cv.politicalMode` görünüm filtresi, `run-geo-contour-test.mjs`,
+> `run-states-culture-test.mjs`), **#1c devlet editörü** (hükümet biçimi
+> ve başkenti elle düzenleme, elle çizilen bölgeyi devlete dönüştürme ve
+> geri alma — hepsi tek adımlık undo ile) ile **#2 Yerleşim nüfusu**
+> hayata geçirildi
+> — bkz. `js/canvas.js`'teki `Geo.traceContour`/`Geo.pointInPolygon`/
+> `Cv.drawCapitalMark`, `js/tools.js`'teki `Tools.generateStates`/
+> `generateCultures`/`cultureAt`/`makeState`/`unmakeState`/
+> `setStateGovernment`/`pickCapitalAt`, ve CLAUDE.md'nin
 > "State / culture generation" bölümü. Aşağıdaki öğeler **bilinçli olarak
-> bu turun dışında bırakıldı**, mimari engel yok, sadece öncelik sırası
+> dışarıda bırakıldı**, mimari engel yok, sadece öncelik sırası
 > gereği ertelendi: #1'in dinler/eyaletler/diplomasi alt maddeleri,
 > `cultureAt`'in otomatik isim üretimine bağlanması, #4 (amblem), #5
 > (iklim simülasyonu), #6 (zones/notlar/isim-tabanı/yükselti-şablonu

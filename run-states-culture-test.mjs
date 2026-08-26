@@ -72,7 +72,7 @@ async function run() {
       await sleep(500);
     }
 
-    const testCode = `(function () {
+    const testCode = `(async function () {
       var results = [];
       function check(name, cond) { results.push(name + ': ' + (cond ? 'PASS' : 'FAIL')); }
 
@@ -157,10 +157,117 @@ async function run() {
       }));
       check('başkent/liman en yüksek nüfuflu eğilimde', Sy.objects[0].population >= (Sy.objects[Sy.objects.length-1] ? Sy.objects[Sy.objects.length-1].population * 0.3 : 0));
 
+      /* ---------- DEVLET EDİTÖRÜ ---------- */
+      Layers.init(2048, 2048); History.clear();
+      Tools.generateLandmass('continent', 0.5, 42);
+      Cv.render();   /* isOnLand önbelleği */
+      Tools.generateStates(4, 0.35, 313);
+      var Te = Layers.get('territories');
+      var st0 = Te.objects.filter(function (o) { return o.kind === 'state'; })[0];
+
+      /* hükümet biçimi elle değiştirilebiliyor + geri alınabiliyor */
+      App.selection = { layerId:'territories', id: st0.id };
+      var govBefore = st0.government;
+      var newGov = Tools.GOVERNMENTS.filter(function (g) { return g !== govBefore; })[0];
+      check('setStateGovernment başarıyla uygulandı', Tools.setStateGovernment(newGov) === true);
+      check('hükümet biçimi değişti', Tools.selected().government === newGov);
+      await History.undo();
+      check('hükümet değişikliği geri alınabiliyor',
+        Layers.get('territories').objects.filter(function (o) { return o.id === st0.id; })[0].government === govBefore);
+      await History.redo();
+      check('hükümet değişikliği yinelenebiliyor',
+        Layers.get('territories').objects.filter(function (o) { return o.id === st0.id; })[0].government === newGov);
+      check('geçersiz hükümet anahtarı reddediliyor', Tools.setStateGovernment('sultanlik') === false);
+
+      /* başkent elle taşınabiliyor — karada olmalı, denizde reddedilmeli */
+      App.selection = { layerId:'territories', id: st0.id };
+      var capBefore = JSON.parse(JSON.stringify(Tools.selected().capital));
+      /* devletin kendi sınırının bir noktası kesin karadadır */
+      var landPt = null, stp = Tools.selected().pts;
+      for (var pi2 = 0; pi2 < stp.length && !landPt; pi2++) {
+        if (Cv.isOnLand(stp[pi2][0], stp[pi2][1])) landPt = { x:stp[pi2][0], y:stp[pi2][1] };
+      }
+      Tools.setCapitalPick(true);
+      check('setCapitalPick modu açıldı', Tools.capitalPick === true);
+      Tools.pickCapitalAt(landPt);
+      check('başkent seçimi sonrası mod kapandı', Tools.capitalPick === false);
+      var capAfter = Layers.get('territories').objects.filter(function (o) { return o.id === st0.id; })[0].capital;
+      check('başkent yeni konuma taşındı', Math.round(capAfter.x) === Math.round(landPt.x) && Math.round(capAfter.y) === Math.round(landPt.y));
+      await History.undo();
+      check('başkent taşıması geri alınabiliyor',
+        Math.round(Layers.get('territories').objects.filter(function (o) { return o.id === st0.id; })[0].capital.x) === Math.round(capBefore.x));
+
+      /* denizdeki bir nokta başkent olarak reddedilmeli */
+      App.selection = { layerId:'territories', id: st0.id };
+      var seaPt = null;
+      for (var sy2 = 4; sy2 < 2048 && !seaPt; sy2 += 37) {
+        for (var sx2 = 4; sx2 < 2048 && !seaPt; sx2 += 37) {
+          if (!Cv.isOnLand(sx2, sy2)) seaPt = { x:sx2, y:sy2 };
+        }
+      }
+      var capBeforeSea = JSON.parse(JSON.stringify(Tools.selected().capital));
+      var histBeforeSea = History.index;
+      Tools.setCapitalPick(true);
+      Tools.pickCapitalAt(seaPt);
+      var capAfterSea = Layers.get('territories').objects.filter(function (o) { return o.id === st0.id; })[0].capital;
+      check('denizdeki nokta başkent olarak reddedildi',
+        Math.round(capAfterSea.x) === Math.round(capBeforeSea.x) && Math.round(capAfterSea.y) === Math.round(capBeforeSea.y));
+      check('reddedilen başkent History adımı üretmedi', History.index === histBeforeSea);
+
+      /* elle çizilmiş bölge -> devlete dönüştürme */
+      var manualPts = st0.pts.map(function (p) { return [p[0], p[1]]; });
+      var beforeManual = JSON.parse(JSON.stringify(Te.objects));
+      Layers.get('territories').objects.push({
+        id:'manual_state_test', pts:manualPts, color:'#4488cc',
+        opacity:0.3, borderColor:'#224466', borderWidth:2
+      });
+      History.pushVector('territories', beforeManual, JSON.parse(JSON.stringify(Layers.get('territories').objects)), 'manual');
+      App.selection = { layerId:'territories', id:'manual_state_test' };
+      check('makeState başarılı', Tools.makeState() === true);
+      var conv = Layers.get('territories').objects.filter(function (o) { return o.id === 'manual_state_test'; })[0];
+      check('dönüştürülen bölge kind:state oldu', conv.kind === 'state');
+      check('dönüştürülen bölge ad kazandı', !!conv.name && conv.name.length > 0);
+      check('dönüştürülen bölge hükümet biçimi kazandı', Tools.GOVERNMENTS.indexOf(conv.government) >= 0);
+      check('dönüştürülen bölgenin başkenti karada', !!conv.capital && Cv.isOnLand(conv.capital.x, conv.capital.y));
+      check('dönüştürülen bölge devlet görünümünde görünür', Cv.territoryVisibleInMode(conv));
+      check('zaten devlet olanı tekrar dönüştürmüyor', Tools.makeState() === false);
+
+      await History.undo();
+      check('dönüştürme geri alınabiliyor',
+        !Layers.get('territories').objects.filter(function (o) { return o.id === 'manual_state_test'; })[0].kind);
+      await History.redo();
+
+      /* devlet olmaktan çıkarma */
+      App.selection = { layerId:'territories', id:'manual_state_test' };
+      check('unmakeState başarılı', Tools.unmakeState() === true);
+      var rev = Layers.get('territories').objects.filter(function (o) { return o.id === 'manual_state_test'; })[0];
+      check('devlet nitelikleri kaldırıldı', !rev.kind && !rev.government && !rev.capital);
+      check('poligon korundu', rev.pts.length === manualPts.length);
+      check('devlet olmayanı çıkarmaya çalışmak reddediliyor', Tools.unmakeState() === false);
+
+      /* kültür bölgesi devlete dönüştürülemez (kind'i var) */
+      Tools.generateCultures(3, 313);
+      var cul0 = Layers.get('territories').objects.filter(function (o) { return o.kind === 'culture'; })[0];
+      App.selection = { layerId:'territories', id: cul0.id };
+      check('kültür bölgesi devlete dönüştürülemiyor', Tools.makeState() === false);
+
+      /* seçim yokken editör işlemleri sessizce başarısız olmalı, çökmemeli */
+      App.selection = null;
+      check('seçim yokken makeState çökmüyor', Tools.makeState() === false);
+      check('seçim yokken unmakeState çökmüyor', Tools.unmakeState() === false);
+      check('seçim yokken setStateGovernment çökmüyor', Tools.setStateGovernment('empire') === false);
+
+      /* başkent işareti render'ı hatasız */
+      Cv.political = true; Cv.politicalMode = 'state';
+      var okCapRender = true;
+      try { Cv.render(); } catch (e) { okCapRender = false; }
+      Cv.political = false;
+      check('başkent işareti ile render hatasız', okCapRender);
+
       return results.join('\\n');
     })()`;
 
-    const result = await evaluate(cdp, testCode);
+    const result = await evaluate(cdp, testCode, true);
     const lines = (result.result?.value || '').split('\n').filter(Boolean);
     let allPass = true;
     for (const line of lines) {

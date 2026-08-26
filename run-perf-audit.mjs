@@ -111,6 +111,8 @@ async function run() {
         await time('autoLakes(2048)', 1000, () => Tools.autoLakes(444));
         await time('generateRoads(2048)', 1000, () => Tools.generateRoads(444));
         await time('autoSettle(2048)', 1000, () => Tools.autoSettle(6, 444));
+        await time('generateStates(2048)', 1000, () => Tools.generateStates(5, 0.35, 444));
+        await time('generateCultures(2048)', 1000, () => Tools.generateCultures(4, 444));
 
         await time('TAM PIPELINE (kara+nehir+göl+biyom, 2048)', 2000, async () => {
           Tools.generateLandmass('continent', 0.5, 999, { withElevation: true });
