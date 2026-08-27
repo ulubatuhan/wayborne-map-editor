@@ -13,9 +13,10 @@
 > `setStateGovernment`/`pickCapitalAt`, ve CLAUDE.md'nin
 > "State / culture generation" bölümü. Aşağıdaki öğeler **bilinçli olarak
 > dışarıda bırakıldı**, mimari engel yok, sadece öncelik sırası
-> gereği ertelendi: geriye yalnızca `cultureAt`'in otomatik yerleşim
-> adlandırmasına bağlanması kaldı (#7 GIS export ve #9 TTS/URL
-> parametresi/tema de uygulandı). Aşağıdaki
+> gereği ertelendi — **bu listede artık bekleyen madde yok**: #4 amblem,
+> #5 iklim, #6 bölge/veri editörleri, #7 GIS export, #9 TTS/URL
+> parametresi/tema ve `cultureAt`'in otomatik yerleşim adlandırmasına
+> bağlanması da tamamlandı. Aşağıdaki
 > plan metni orijinal haliyle korunuyor — hangi kısmın yapıldığını
 > yukarıdaki durum notundan takip edin.
 >

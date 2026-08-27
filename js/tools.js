@@ -2940,6 +2940,11 @@
       }
       var self = this;
 
+      var Lb = Layers.get('labels');
+      var wantLabels = !!(App.settlegen && App.settlegen.labels) && Lb && !Lb.locked;
+      var beforeLabels = wantLabels ? JSON.parse(JSON.stringify(Lb.objects)) : null;
+      var lang = (typeof UI !== 'undefined' && UI.lang) || 'tr';
+
       var before = JSON.parse(JSON.stringify(Sy.objects));
       picked.forEach(function (c, idx) {
         var cat, sizeBase, popRange;
@@ -2952,15 +2957,40 @@
         var x = (c.gx+0.5)/sw*w, y = (c.gy+0.5)/sh*h;
         var suitability = Math.min(1.4, Math.max(0.4, c.score));
         var pop = Math.round((popRange[0] + rnd.next()*(popRange[1]-popRange[0])) * suitability * capitalBonus(x,y));
+        /* Ad, yerleşimin ÜZERİNDE durduğu kültür bölgesinin hece
+           havuzundan üretilir — kültür haritası çizilmişse aynı bölgedeki
+           yerleşimler birbirine benzer adlar alır, çizilmemişse
+           cultureAt null döner ve Names varsayılana düşer. Tohum
+           rnd'den geldiği için aynı tohumla aynı adlar çıkar. */
+        var ck = self.cultureAt(x, y);
+        var nm = Names.generate(ck || Names.allCultureKeys()[0],
+                                idx === 0 ? 'city' : 'settlement',
+                                lang, Math.floor(rnd.next()*1e9));
         Sy.objects.push({
           id:uid(), sym:def.id, x:x, y:y,
           size: sizeBase * (0.9 + rnd.next()*0.2), rot:0,
           hue:0, opacity:1, wear:0,
-          population:pop, cultureKey: self.cultureAt(x,y)
+          population:pop, cultureKey: ck, name: nm
         });
+        if (wantLabels) {
+          Lb.objects.push({
+            id:uid(), x:x, y:y + sizeBase*0.62, text:nm,
+            preset: idx === 0 ? 'city' : 'town',
+            size: idx === 0 ? 34 : 24, rot:0, curve:0, track:0, opacity:1
+          });
+        }
       });
 
-      History.pushVector('symbols', before, JSON.parse(JSON.stringify(Sy.objects)), 'settlegen');
+      if (wantLabels) {
+        /* İki vektör katmanı tek adımda: sembol ve onun etiketi ayrı
+           ayrı geri alınabilseydi ad ile sembol birbirinden kopardı. */
+        History.pushCombo([], { x:0, y:0, w:0, h:0 }, [
+          { layerId:'symbols', before:before, after:JSON.parse(JSON.stringify(Sy.objects)) },
+          { layerId:'labels',  before:beforeLabels, after:JSON.parse(JSON.stringify(Lb.objects)) }
+        ], 'settlegen');
+      } else {
+        History.pushVector('symbols', before, JSON.parse(JSON.stringify(Sy.objects)), 'settlegen');
+      }
       UI.refreshHistory();
       Cv.requestRender();
     },

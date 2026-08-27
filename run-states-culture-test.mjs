@@ -157,6 +157,57 @@ async function run() {
       }));
       check('başkent/liman en yüksek nüfuflu eğilimde', Sy.objects[0].population >= (Sy.objects[Sy.objects.length-1] ? Sy.objects[Sy.objects.length-1].population * 0.3 : 0));
 
+      /* Otomatik adlandırma: her yerleşim bir ad almalı, adlar tohuma
+         göre deterministik olmalı ve kültür bölgesi çizilmişse yerleşim
+         o kültürün hece havuzunu kullanmalı. */
+      check('autoSettle her yerleşime ad verdi', Sy.objects.every(function (o) {
+        return typeof o.name === 'string' && o.name.length > 2 && o.name.indexOf('undefined') < 0;
+      }));
+      var names1 = Sy.objects.map(function (o) { return o.name; }).join('|');
+      Layers.init(2048, 2048); History.clear();
+      Tools.generateLandmass('continent', 0.5, 55, { withElevation:true });
+      Tools.autoSettle(6, 55);
+      check('yerleşim adları aynı tohumda aynı',
+        Layers.get('symbols').objects.map(function (o) { return o.name; }).join('|') === names1);
+
+      /* Kültür bölgesi varken: yerleşimin cultureKey'i o bölgeden gelmeli.
+         cultureAt kara maskesini okuyan Cv.isOnLand önbelleğine bağlı,
+         bu yüzden önce bir render şart. */
+      Layers.init(2048, 2048); Cv.setSize(2048, 2048, false); History.clear();
+      Tools.generateLandmass('continent', 0.5, 55, { withElevation:true });
+      Cv.render();
+      Tools.generateCultures(4, 55);
+      Layers.get('symbols').objects.length = 0;
+      Tools.autoSettle(6, 55);
+      var withCulture = Layers.get('symbols').objects.filter(function (o) { return !!o.cultureKey; });
+      check('kültür haritası varken yerleşimler kültür kazandı', withCulture.length > 0);
+      check('yerleşimin kültürü gerçekten bulunduğu bölgenin kültürü',
+        withCulture.every(function (o) { return Tools.cultureAt(o.x, o.y) === o.cultureKey; }));
+
+      /* Etiket seçeneği: kapalıyken etiket katmanına dokunulmamalı,
+         açıkken sembol+etiket TEK undo adımı olmalı. */
+      Layers.init(2048, 2048); Cv.setSize(2048, 2048, false); History.clear();
+      Tools.generateLandmass('continent', 0.5, 55, { withElevation:true });
+      Cv.render();
+      var Lb = Layers.get('labels');
+      Lb.objects.length = 0;
+      Layers.get('symbols').objects.length = 0;
+      App.settlegen = { labels:false };
+      Tools.autoSettle(6, 77);
+      check('etiket seçeneği kapalıyken etiket üretilmiyor', Lb.objects.length === 0);
+      Layers.get('symbols').objects.length = 0;
+      App.settlegen = { labels:true };
+      History.clear();
+      Tools.autoSettle(6, 77);
+      check('etiket seçeneği açıkken her yerleşime etiket yazıldı',
+        Lb.objects.length === Layers.get('symbols').objects.length && Lb.objects.length > 0);
+      check('etiket metni yerleşim adıyla aynı',
+        !!Lb.objects[0] && Lb.objects[0].text === Layers.get('symbols').objects[0].name);
+      await History.undo();
+      check('sembol ve etiket tek adımda geri alınıyor',
+        Layers.get('labels').objects.length === 0 && Layers.get('symbols').objects.length === 0);
+      App.settlegen = { labels:false };
+
       /* ---------- DİNLER (ortak _growRegions çekirdeği) ---------- */
       Layers.init(2048, 2048); Cv.setSize(2048,2048,false); History.clear();
       Tools.generateLandmass('continent', 0.5, 42); Cv.render();

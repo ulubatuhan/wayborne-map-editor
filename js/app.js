@@ -15,6 +15,10 @@
        Yeni bir algoritma değil: şablon + pürüzlülük + nehir/göl/arazi
        seçimleri. Proje dosyasıyla birlikte taşınır. */
     landgenPresets: [],
+    /* Yerleşim üreteci: adlar her zaman verilir (nesnenin name alanı),
+       etiket olarak haritaya yazılması isteğe bağlı — bir etiket bulutu
+       herkesin istediği bir şey değil. */
+    settlegen: { labels:false },
     stategen: { count:5, variety:0.35, cultureCount:4, religionCount:3, provinceCount:3 },
     citygen:  { district:'craftsmen', buildings:140, streetWidth:7, wall:false },
     /* İklim: autoBiome'un enlem/nem hesabını yönlendiren parametreler.
