@@ -13,6 +13,10 @@
     landgen: { template:'continent', roughness:0.5, rivers:false, lakes:false, terrain:false },
     stategen: { count:5, variety:0.35, cultureCount:4, religionCount:3, provinceCount:3 },
     citygen:  { district:'craftsmen', buildings:140, streetWidth:7, wall:false },
+    /* İklim: autoBiome'un enlem/nem hesabını yönlendiren parametreler.
+       on=false iken autoBiome davranışı eskisiyle bit-bit aynıdır
+       (equator 0.5 + rüzgâr çarpanı yok). */
+    climate:  { on:false, equator:0.5, strength:0.6 },
     sea:     { color:'#7ba8bd' },
     terrain: { type:'grassland', size:160, opacity:0.85, clip:true },
     symbol:  { id:'ik_knight', size:72, rot:0, hue:0, opacity:1, wear:0, jitter:false,

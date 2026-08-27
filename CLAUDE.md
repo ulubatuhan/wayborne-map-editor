@@ -76,7 +76,8 @@ node run-refimg-scan-test.mjs        # Tools.scanReferenceImage over a synthetic
                                       # rivers/lakes counts, onProgress stage order + monotonicity,
                                       # a wall-clock budget, and that cancelling touches no layer
 node run-perf-audit.mjs              # wall-clock budgets for every heavy tool/mechanic (landmass
-                                      # generation × 3 templates, autoBiome, generateRivers, autoLakes,
+                                      # generation × 3 templates, autoBiome with and without the climate
+                                      # model, buildWindArrows, generateRivers, autoLakes,
                                       # generateRoads, autoSettle, generateStates, generateCultures,
                                       # layer add, undo/redo, the reference-
                                       # image scan) at the default 2048² canvas plus an 8192² stress
@@ -97,6 +98,12 @@ node run-citygen-test.mjs            # Tools.generateCity end to end (docs/city-
                                       # so the isometric projection survives, walls/gates, determinism,
                                       # a single atomic undo that removes the whole city, and the
                                       # phase-E render budget with 400+ symbols on screen
+node run-climate-test.mjs            # climate model: Tools.windDirAt band boundaries and its
+                                      # meridional component, the equator slider actually moving the
+                                      # biome bands, climate-off ≡ neutral-parameters equivalence
+                                      # (backward compatibility, diffed on the Terrain.scatter call
+                                      # log), determinism, directional drying on the two sides of a
+                                      # ridge, the wind-arrow cache's dirty-flag behaviour, perf budget
 node run-gis-export-test.mjs         # Exporter.geojsonData(): every vector layer mapped to the right
                                       # GeoJSON geometry (rivers/roads -> LineString, lakes/territories
                                       # -> closed Polygon, symbols/resources/labels/links -> Point),
@@ -246,6 +253,37 @@ The **state editor** (plan § #1c) makes all of this hand-editable rather than g
 Capital picking is **not a tool**: `Tools.capitalPick` is a short-lived capture flag checked at the very top of `onDown` (right after pointer capture), so the next single left click sets the capital regardless of the active tool and the user never has to leave the Bölge tool; `Escape` clears it through `UI.cancelOrDeselect` *before* the deselect branch, so cancelling keeps the region selected. `Cv.drawCapitalMark` renders the capital as a small star in political mode — without it, a hand-placed capital would be invisible data. One UI subtlety worth keeping: `UI.refreshTerritoryEditor()` runs at the **top** of `refreshSelection`, because that function has early returns for scale/multi/empty selections and the editor must reach the right state (especially "hidden") in all of them. It is also what finally syncs `#tt-name` to the selected object — that input was previously never populated, so selecting region B left region A's name in the box and typing there renamed B.
 
 
+
+### Climate model (`docs/afmg-parity-plan.md` § #5)
+
+`App.climate` (`{on, equator, strength}`) steers `autoBiome` without replacing any of it. Two things change when
+it is on: latitude is measured from a **user-placed equator row** rather than the canvas mid-line (`rowNorm =
+y/h - equator`, which reduces to the previous expression at `equator = 0.5`), and the moisture field is
+**multiplied** by a rain-shadow factor instead of being replaced. With `on:false` — or with `equator:0.5,
+strength:0` — the biome layout is byte-identical to the pre-climate behaviour, and `run-climate-test.mjs`
+asserts that equivalence directly by diffing the `Terrain.scatter` call log, so the compatibility claim cannot
+silently regress.
+
+`Tools.windDirAt(latSigned)` is the single source of truth for wind: a unit vector per latitude band (trades
+from the east and equatorward, westerlies from the west and poleward, polar easterlies from the east again),
+symmetric about the equator. `autoBiome`'s rain shadow and `Cv.buildWindArrows`'s on-map arrows both read it, so
+the arrow a user sees can never point differently from the direction the terrain actually dried in. Two
+subtleties are load-bearing here:
+
+- The shadow uses the **unwarped** `rowNorm`, not the `latWarp`-perturbed latitude the biome bands use. `latWarp`
+  exists to make band boundaries look hand-drawn; feeding it into the wind made the direction flip cell to cell,
+  which cancelled the shadow out entirely in aggregate (the first version of the directional test measured
+  0.487 vs 0.486 dry fraction on the two sides of a ridge — it now measures 0.513 vs 0.440) *and* made the arrows
+  a lie.
+- There is **no hemisphere parameter**. One was written, and then removed: in a model that is symmetric about the
+  equator, "north" vs "south" changes nothing anywhere — temperature depends on `|latSigned|` and the wind
+  vector's meridional component already flips with `latSigned`'s sign. Keeping the control would have been a dead
+  switch in eleven languages.
+
+The arrows follow **Kural B**: `Cv.windCanvas` + `Cv.windDirty`, rebuilt only when a climate parameter changes
+(~14ms at 2048²), composited each frame with one clipped `drawImage`. They are drawn in the view render next to
+the grid, not in `renderMap`, so they stay out of PNG/SVG/print output — they are a design aid, not map content.
+
 ### Emblems / heraldry (`js/emblem.js`)
 
 A state can carry an `emblem` field: a small spec object (`{shield, division, charge, field, field2, metal, seed}`),
@@ -286,7 +324,7 @@ Provinces take a different route on purpose. States grow *outward* over land, so
 
 Diplomacy is stored, not computed: `App.diplomacy["<idA>|<idB>"] = 'alliance'|'war'|'vassal'`, with the key always built from the sorted ids so `(A,B)` and `(B,A)` are the same record, and `'peace'` deliberately never stored (it is the default, so the table stays sparse). `History.pushDiplomacy` follows the existing scale/windrose pattern, and `Tools.pruneRelations` drops records pointing at states that no longer exist.
 
-**Deliberately out of scope for this pass** (tracked as follow-ups in `docs/afmg-parity-plan.md`): wiring `cultureAt` into automatic settlement naming, a real climate/wind simulation feeding `autoBiome`, and the zones/notes/namesbase/heightmap-template-editor quick wins — none of these are architecturally blocked, they were simply the next slice down the plan's priority order.
+**Deliberately out of scope for this pass** (tracked as follow-ups in `docs/afmg-parity-plan.md`): wiring `cultureAt` into automatic settlement naming and the zones/notes/namesbase/heightmap-template-editor quick wins — none of these are architecturally blocked, they were simply the next slice down the plan's priority order.
 
 - **`iso.js`** — the isometric building engine (`Iso.Scene`, `Iso.MAT`). Parallel projection `sx=(x-y)*0.866, sy=(x+y)*0.5-z`; solids are depth-sorted with the painter's algorithm. Produces `Sym.part()`-style path data normalized to a 0–100 box.
 - **`catalog.js` / `catalog2.js`** — composite isometric buildings built on top of `Iso.Scene`, organized by theme (`catalog2.js` loads second and pushes additional items + material variants into the same `IsoCatalog.ITEMS` table). Civic buildings (inn/tavern/library/shrine/well/stall/smithy/bakery) are generated from a shared `CIVIC_CULTURE` (5 regional material/roof signatures) × `CIVIC_TIER` (5 wealth levels, 1–5, driving scale + wing/accent additions) grid in `catalog2.js` — `civicLabel()` builds the `"<Bina> · <katman>.<isim> · <kültür>"` display name from the pair, so adding a new civic building type is one `CIVIC_CULTURE.forEach(cul => CIVIC_TIER.forEach(tier => reg(...)))` block reusing an existing scene-generator function shape. House variants (`ivh_*`, 9 materials × 6 roofs = 54) predate this grid and are labeled via a simpler `HOUSE_WALL`/`HOUSE_ROOF` → tier/culture mapping (`TIER_NAMES`) rather than driving geometry from it.

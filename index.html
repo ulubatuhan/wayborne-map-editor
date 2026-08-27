@@ -358,6 +358,17 @@
         <h3 style="margin-top:16px" data-i18n="o_biomegen">Biyomu otomatik ata</h3>
         <button class="btn wide" id="btn-biomegen" data-i18n="o_biomegen_go">🌍 Biyom ata</button>
         <p class="hint" data-i18n="h_biomegen">Yükselti ve enleme göre arazi katmanını otomatik doldurur; mevcut arazi katmanının yerine geçer.</p>
+
+        <h3 style="margin-top:16px" data-i18n="o_climate">İklim</h3>
+        <label class="chk"><input type="checkbox" id="cli-on"><span data-i18n="o_climate_on">İklim modelini kullan</span></label>
+        <div id="cli-body" hidden>
+          <label class="row"><span data-i18n="o_climate_eq">Ekvator konumu</span><b id="v-cli-eq">50%</b></label>
+          <input type="range" id="cli-eq" min="0" max="100" value="50">
+          <label class="row"><span data-i18n="o_climate_str">Yağış gölgesi etkisi</span><b id="v-cli-str">60%</b></label>
+          <input type="range" id="cli-str" min="0" max="100" value="60">
+          <label class="chk"><input type="checkbox" id="cli-wind"><span data-i18n="o_climate_wind">Rüzgâr oklarını göster</span></label>
+        </div>
+        <p class="hint" data-i18n="h_climate">Ekvatoru tuvalin ortasından kaydırarak tek yarımküreli ya da kutup haritaları yapabilirsin. Rüzgâr, dağların arkasında kalan hücrelerin nemini düşürür (yağış gölgesi), önündekileri nemlendirir — bir sonraki "Biyom ata" bunu hesaba katar.</p>
       </section>
 
       <!-- ELEVATION -->

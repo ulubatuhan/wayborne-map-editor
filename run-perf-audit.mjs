@@ -107,6 +107,12 @@ async function run() {
 
         Tools.generateLandmass('continent', 0.5, 444, { withElevation: true });
         await time('autoBiome(2048)', 1000, () => Tools.autoBiome(444));
+        await time('autoBiome + iklim(2048)', 1000, async () => {
+          App.climate = { on:true, equator:0.35, strength:0.85 };
+          await Tools.autoBiome(444);
+          App.climate = { on:false, equator:0.5, strength:0.6 };
+        });
+        await time('buildWindArrows(2048)', 100, () => { Cv.windDirty = true; Cv.buildWindArrows(); });
         await time('generateRivers(2048)', 1000, () => Tools.generateRivers(4, 444));
         await time('autoLakes(2048)', 1000, () => Tools.autoLakes(444));
         await time('generateRoads(2048)', 1000, () => Tools.generateRoads(444));

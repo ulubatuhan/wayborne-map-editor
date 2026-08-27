@@ -13,8 +13,8 @@
 > `setStateGovernment`/`pickCapitalAt`, ve CLAUDE.md'nin
 > "State / culture generation" bölümü. Aşağıdaki öğeler **bilinçli olarak
 > dışarıda bırakıldı**, mimari engel yok, sadece öncelik sırası
-> gereği ertelendi: `cultureAt`'in otomatik isim üretimine bağlanması, #5
-> (iklim simülasyonu), #6 (zones/notlar/isim-tabanı/yükselti-şablonu
+> gereği ertelendi: `cultureAt`'in otomatik isim üretimine bağlanması,
+> #6 (zones/notlar/isim-tabanı/yükselti-şablonu
 > editörleri), #7 (GIS export), #9 (TTS/URL parametresi/tema). Aşağıdaki
 > plan metni orijinal haliyle korunuyor — hangi kısmın yapıldığını
 > yukarıdaki durum notundan takip edin.
@@ -254,7 +254,18 @@ gerekmez.
 
 ---
 
-## #5 — İklim simülasyonu
+## #5 — İklim simülasyonu  ✅ uygulandı
+
+> **Uygulandı** (`App.climate`, `Tools.windDirAt`, `Cv.buildWindArrows`):
+> ekvator konumu + yağış gölgesi şiddeti + rüzgâr okları. Planın istediği
+> görsel A/B karşılaştırması yapıldı ve fayda doğrulandı (ekvatoru
+> kaydırmak tek yarımküreli/kutup haritalarını mümkün kılıyor; yağış
+> gölgesi bir sırtın rüzgâr-altı yüzünü ölçülebilir biçimde kurutuyor).
+> Plandaki "yarımküre" parametresi **kasıtlı olarak eklenmedi**: model
+> ekvatora göre tam simetrik olduğu için hiçbir şeyi değiştirmiyordu —
+> ayrıntı CLAUDE.md'nin "Climate model" bölümünde. Testler:
+> `run-climate-test.mjs`, perf satırları `run-perf-audit.mjs`.
+
 
 `autoBiome` şu an enlem (tuval y ekseni) + yükselti + nem-gürültüsü
 karışımı sezgisel bir bant mantığı kullanıyor (bkz. `CLAUDE.md`'deki
@@ -435,6 +446,6 @@ onunla ilgisiz — asıl gerekçe backend-yok ilkesiyle gerilim.)
 ## Açık sorular (uygulama öncesi karar gerektirir)
 
 1. **#1 kapsamı**: devlet + kültür + eyalet + diplomasi hepsi tek seferde mi, yoksa devlet+kültür ilk faz, eyalet/din/diplomasi ikinci faz mı?
-2. **#5 iklim simülasyonu**: mevcut biyom görünümünü gözle fark edilir şekilde iyileştirip iyileştirmeyeceği belirsiz — uygulamadan önce hızlı bir prototip/karşılaştırma mı yapılsın?
-3. **#4 amblem**: devlet sistemi (#1) olmadan bağımsız bir araç olarak mı başlansın, yoksa #1'i mi beklesin?
+2. ~~**#5 iklim simülasyonu**: mevcut biyom görünümünü gözle fark edilir şekilde iyileştirip iyileştirmeyeceği belirsiz — uygulamadan önce hızlı bir prototip/karşılaştırma mı yapılsın?~~ **Karara bağlandı:** A/B karşılaştırması yapıldı, fayda doğrulandı, uygulandı (bkz. #5 başlığı).
+3. ~~**#4 amblem**: devlet sistemi (#1) olmadan bağımsız bir araç olarak mı başlansın, yoksa #1'i mi beklesin?~~ **Karara bağlandı:** #1 hazır olduğu için doğrudan devlet editörüne bağlandı.
 4. **#9d Ollama**: yukarıdaki gerekçeyle atlanması öneriliyor — onaylanıyor mu?

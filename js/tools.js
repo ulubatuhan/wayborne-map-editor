@@ -2302,6 +2302,30 @@
       Cv.requestRender();
     },
 
+    /* Rüzgâr yönü: enlem bandına göre bir birim vektör.
+       Hadley/Ferrel/kutup hücrelerinin kaba bir yaklaşımı — tropiklerde
+       alizeler doğudan, orta enlemlerde batı rüzgârları, kutuplarda yine
+       doğulu; ayrıca alizeler ve kutup doğulusu ekvatora doğru, batı
+       rüzgârları kutba doğru meyleder (y bileşeni). autoBiome'un yağış
+       gölgesi ile Cv.buildWindArrows'un okları AYNI bu fonksiyonu okur,
+       böylece harita üstünde gördüğün ok ile arazinin kuruduğu yön
+       hiçbir zaman birbirinden ayrışamaz.
+
+       latSigned = ekvatora işaretli mesafe (±0.5); bantlar 0..1 enlem
+       ölçeğinde tanımlı olduğu için ×2. Model ekvatora göre tam simetrik
+       olduğundan ayrıca bir "yarımküre" parametresine gerek yoktur:
+       latSigned'ın işareti hangi yarımkürede olunduğunu zaten taşır. */
+    WIND_TILT: 0.45,
+
+    windDirAt: function (latSigned) {
+      var a = Math.abs(latSigned) * 2;
+      var sgn = latSigned >= 0 ? 1 : -1;      /* +1: ekvatorun altı (canvas'ta aşağısı) */
+      var t = this.WIND_TILT;
+      if (a < 0.33) return { x:-1, y:-t*sgn };   /* alizeler, ekvatora doğru */
+      if (a < 0.66) return { x: 1, y: t*sgn };   /* batı rüzgârları, kutba doğru */
+      return { x:-1, y:-t*sgn };                 /* kutup doğulusu, ekvatora doğru */
+    },
+
     /* ================= BİYOM OTOMATİK ATAMA =================
        Arazi katmanını, kara/deniz maskesi + yükselti verisine göre
        otomatik dolduruyor. Bant mantığı gerçek coğrafyadan ödünç:
@@ -2331,6 +2355,52 @@
       var ectx = ec.getContext('2d', { willReadFrequently:true });
       ectx.drawImage(Ev.canvas, 0, 0, sw, sh);
       var elev = ectx.getImageData(0, 0, sw, sh).data;
+
+      /* ---- İklim modeli ----
+         Kapalıyken (App.climate.on === false) hiçbir şeye dokunmaz:
+         ekvator tam ortada varsayılır ve rüzgâr çarpanı 1'dir, yani
+         çıktı eski davranışla birebir aynı kalır. Açıkken iki şey
+         değişir: (a) enlem artık tuvalin orta satırından değil,
+         kullanıcının koyduğu ekvator satırından ölçülür — kutup ya da
+         ekvator kuşağı haritası da tanımlanabilir; (b) nem alanı
+         rüzgâr yönünde yürüyerek "yağış gölgesi" ile çarpılır.
+
+         Rüzgâr, gerçek Hadley/Ferrel/kutup hücrelerinin kaba bir
+         yaklaşımı: tropiklerde alizeler doğudan batıya, orta enlemlerde
+         batı rüzgârları, kutuplarda yine doğudan. Tam bir atmosfer
+         simülasyonu değil — amaç dağların rüzgâr-altı yüzünü kurutup
+         rüzgâr-üstü yüzünü nemlendirmek, yani biyom bantlarını
+         topografyaya bağlamak. */
+      var CLI = (typeof App !== 'undefined' && App.climate) || { on:false, equator:0.5, strength:0.6 };
+      var cliOn = !!CLI.on;
+      var eqY = cliOn ? Math.max(0, Math.min(1, CLI.equator)) : 0.5;
+      var cliK = cliOn ? Math.max(0, Math.min(1, CLI.strength)) : 0;
+      /* Verilen ızgara hücresinin yükseltisi (0..1, deniz seviyesi 0). */
+      function elevAt(gx, gy) {
+        if (gx < 0 || gy < 0 || gx >= sw || gy >= sh) return 0;
+        var i = (gy*sw + gx) * 4;
+        var ea = elev[i+3] / 255;
+        var ht = ea > 0.02 ? (elev[i]*ea + 128*(1-ea)) : 128;
+        return Math.max(0, (ht - 128) / 127);
+      }
+
+      /* Yağış gölgesi çarpanı: rüzgâr yönünde birkaç hücre geriye bakıp
+         en yüksek engeli bul. Engel bu hücreden yüksekse nem düşer
+         (rüzgâr-altı), alçaksa hafifçe artar (rüzgâr-üstü/orografik). */
+      var SHADOW_STEPS = 5;
+      function rainFactor(gx, gy, e, latSigned) {
+        if (!cliOn) return 1;
+        var dir = Tools.windDirAt(latSigned);
+        var up = 0;
+        for (var k = 1; k <= SHADOW_STEPS; k++) {
+          /* Rüzgârın GELDİĞİ yöne bak: -dir. */
+          var eu = elevAt(Math.round(gx - dir.x*k), Math.round(gy - dir.y*k));
+          if (eu > up) up = eu;
+        }
+        var d = up - e;
+        var f = (d > 0) ? (1 - Math.min(0.8, d * 1.8)) : (1 + Math.min(0.35, -d * 0.7));
+        return 1 + (f - 1) * cliK;
+      }
 
       function pickBiome(e, lat, moist) {
         if (e > 0.62) {
@@ -2393,9 +2463,13 @@
                  sınırlarını kıvrımlı, elle çizilmiş hissi veren bir hâle
                  getiriyor (nem gürültüsünden farklı frekans/tohum, aksi
                  hâlde ikisi birbiriyle örtüşüp yine düzenli görünürdü). */
-              var rowNorm = (gy+0.5)/sh - 0.5;
+              /* Ekvator artık sabit orta satır değil: rowNorm ekvatora
+                 olan işaretli mesafe. eqY=0.5 iken ifade eski hâliyle
+                 aynıdır, dolayısıyla iklim kapalıyken hiçbir kayma yok. */
+              var rowNorm = (gy+0.5)/sh - eqY;
               var latWarp = rnd.fbm(gx/sw*0.9 + 50, gy/sh*0.9 + 50, 3, 0.5) * 0.38;
-              var lat = Math.max(0, Math.min(1, Math.abs(rowNorm + latWarp) * 2));
+              var latSigned = rowNorm + latWarp;
+              var lat = Math.max(0, Math.min(1, Math.abs(latSigned) * 2));
               /* Nem artık her hücrede bağımsız bir zar atışı (rnd.next())
                  değil, düşük frekanslı bir gürültü alanından örnekleniyor —
                  komşu hücreler benzer nem paylaşır. Önceki hâliyle bitişik
@@ -2404,6 +2478,17 @@
                  yerine "tuz-biber"/dama tahtası gibi görünen, birbirinden
                  kopuk kare bir mozaiğe yol açıyordu. */
               var moist = rnd.fbm(gx/sw*2.4, gy/sh*2.4, 3, 0.55) * 0.5 + 0.5;
+              /* Nem gürültüsünün yerini almaz, onu yönlendirir: aynı
+                 gürültü alanı dağların rüzgâr-altında kuruyup
+                 rüzgâr-üstünde nemleniyor. */
+              /* Rüzgâr bandı, biyom kuşaklarının dalgalı "latSigned"ini
+                 DEĞİL, ham ekvator mesafesini (rowNorm) kullanır: latWarp
+                 kuşak sınırlarını elle çizilmiş göstermek için var, oysa
+                 rüzgâr yönü hücreden hücreye zıplamamalı — hem fiziksel
+                 olarak yanlış olurdu hem de haritadaki rüzgâr okları
+                 (Cv.buildWindArrows, aynı ham enlemi kullanır) gerçekte
+                 uygulanan yönü göstermezdi. */
+              moist = Math.max(0, Math.min(1, moist * rainFactor(gx, gy, e, rowNorm)));
               var biome = pickBiome(e, lat, moist);
               /* Hücre merkezine küçük bir rastgele kayma: damgaların
                  kusursuz bir ızgaraya hizalanmasını bozar, sonuçta sert

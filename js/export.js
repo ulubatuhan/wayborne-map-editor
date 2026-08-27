@@ -720,6 +720,7 @@
         political:Cv.political, politicalFill:Cv.politicalFill,
         politicalMuteTerrain:Cv.politicalMuteTerrain, politicalLegend:Cv.politicalLegend,
         emblems:Cv.emblems,
+        climate:JSON.parse(JSON.stringify(App.climate)), windArrows:Cv.windArrows,
         symbolLegend:Cv.symbolLegend,
         gridType:Cv.gridType, gridSize:Cv.gridSize,
         gridColor:Cv.gridColor, gridOpacity:Cv.gridOpacity,
@@ -770,6 +771,9 @@
       if (d.politicalMuteTerrain !== undefined) Cv.politicalMuteTerrain = d.politicalMuteTerrain;
       if (d.politicalLegend !== undefined) Cv.politicalLegend = d.politicalLegend;
       if (d.emblems !== undefined) Cv.emblems = d.emblems;
+      if (d.climate) { App.climate = d.climate; }
+      if (d.windArrows !== undefined) Cv.windArrows = d.windArrows;
+      Cv.windDirty = true;
       if (d.symbolLegend !== undefined) Cv.symbolLegend = d.symbolLegend;
       if (d.gridType)  Cv.gridType  = d.gridType;
       if (d.gridSize)  Cv.gridSize  = d.gridSize;
@@ -795,6 +799,13 @@
       var _pm=document.getElementById('pol-mute');   if (_pm) _pm.checked = Cv.politicalMuteTerrain;
       var _pl=document.getElementById('pol-legend'); if (_pl) _pl.checked = Cv.politicalLegend;
       var _pe=document.getElementById('pol-emblem'); if (_pe) _pe.checked = Cv.emblems;
+      var _ci=document.getElementById('cli-on');   if (_ci) { _ci.checked = !!App.climate.on;
+        var _cb=document.getElementById('cli-body'); if (_cb) _cb.hidden = !App.climate.on; }
+      var _ce=document.getElementById('cli-eq');   if (_ce) { _ce.value = Math.round(App.climate.equator*100);
+        var _cel=document.getElementById('v-cli-eq'); if (_cel) _cel.textContent = Math.round(App.climate.equator*100) + '%'; }
+      var _cs=document.getElementById('cli-str');  if (_cs) { _cs.value = Math.round(App.climate.strength*100);
+        var _csl=document.getElementById('v-cli-str'); if (_csl) _csl.textContent = Math.round(App.climate.strength*100) + '%'; }
+      var _cw=document.getElementById('cli-wind'); if (_cw) _cw.checked = !!Cv.windArrows;
       var _sl=document.getElementById('chk-legend'); if (_sl) _sl.checked = Cv.symbolLegend;
       var _pf=document.getElementById('pol-fill');   if (_pf) _pf.value = Math.round(Cv.politicalFill*100);
       var _gt=document.getElementById('grid-type');  if (_gt) _gt.value = Cv.gridType;

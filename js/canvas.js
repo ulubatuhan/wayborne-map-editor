@@ -579,6 +579,9 @@
     _raf:0, _miniAt:0,
     shoreCanvas:null, shoreDirty:true,
     elevationCanvas:null, elevationDirty:true,
+    /* Rüzgâr okları: iklim parametrelerine bağlı, kare-başı maliyeti
+       olmayan bir yardımcı katman (bkz. buildWindArrows). */
+    windArrows:false, windCanvas:null, windDirty:true,
     seaColor:'#7ba8bd',
 
     init: function (w, h) {
@@ -610,6 +613,8 @@
       this.shoreCanvas = null;
       this.elevationDirty = true;
       this.elevationCanvas = null;
+      this.windDirty = true;
+      this.windCanvas = null;
       this.fit();
     },
 
@@ -1019,6 +1024,59 @@
       return tC;
     },
 
+    /* ---------- RÜZGÂR OKLARI ----------
+       autoBiome'un yağış-gölgesi hesabında kullandığı rüzgâr modelinin
+       görselleştirmesi: enlem bandına göre alizeler (doğudan), batı
+       rüzgârları ve kutup doğulusu. Tek bir önbellek canvas'ına çizilir
+       ve yalnızca iklim parametreleri değişince (windDirty) yeniden
+       üretilir — ok sayısı kare-başı maliyete hiç girmez, bu yüzden
+       ızgarayı sıklaştırmak FPS'i etkilemez. */
+    buildWindArrows: function () {
+      var W = this.W, H = this.H;
+      var c = this._getScratchCanvas('wind', W, H);
+      var x = c.getContext('2d');
+      x.clearRect(0, 0, W, H);
+
+      var CLI = (global.App && App.climate) || { equator:0.5 };
+      var eqY = Math.max(0, Math.min(1, CLI.equator));
+
+      var cols = 12, rows = Math.max(6, Math.round(12 * H/W));
+      var stepX = W/cols, stepY = H/rows;
+      var len = Math.min(stepX, stepY) * 0.55;
+      var lw = Math.max(1.5, Math.min(W, H) * 0.0016);
+
+      x.lineWidth = lw;
+      x.lineCap = 'round';
+      x.lineJoin = 'round';
+
+      for (var r = 0; r < rows; r++) {
+        var latSigned = (r + 0.5)/rows - eqY;
+        var a = Math.abs(latSigned) * 2;
+        /* Bantları burada TEKRAR tanımlamıyoruz: yön doğrudan
+           autoBiome'un kullandığı fonksiyondan geliyor. */
+        var d = (global.Tools && Tools.windDirAt) ? Tools.windDirAt(latSigned) : { x:-1, y:0 };
+        var ang = Math.atan2(d.y, d.x);
+        /* Ekvatora yakın bantlar daha soluk. */
+        x.strokeStyle = 'rgba(38,28,14,' + (0.22 + Math.min(0.28, a * 0.22)).toFixed(3) + ')';
+        for (var col = 0; col < cols; col++) {
+          var cx = (col + 0.5) * stepX, cy = (r + 0.5) * stepY;
+          x.save();
+          x.translate(cx, cy);
+          x.rotate(ang);
+          x.beginPath();
+          x.moveTo(-len/2, 0); x.lineTo(len/2, 0);
+          x.moveTo(len/2, 0);  x.lineTo(len/2 - len*0.28, -len*0.18);
+          x.moveTo(len/2, 0);  x.lineTo(len/2 - len*0.28,  len*0.18);
+          x.stroke();
+          x.restore();
+        }
+      }
+
+      this.windCanvas = c;
+      this.windDirty = false;
+      return c;
+    },
+
     /* ---------- ana render ---------- */
     render: function () {
       var ctx = this.ctx;
@@ -1059,6 +1117,14 @@
       ctx.strokeRect(0, 0, this.W, this.H);
 
       if (this.grid) this.drawGrid(ctx, v);
+      /* Kural B: oklar her karede yeniden çizilmez — iklim parametresi
+         değişmediği sürece tek bir drawImage. */
+      if (this.windArrows) {
+        if (this.windDirty || !this.windCanvas) this.buildWindArrows();
+        if (this.windCanvas && v.w > 0 && v.h > 0) {
+          ctx.drawImage(this.windCanvas, v.x0, v.y0, v.w, v.h, v.x0, v.y0, v.w, v.h);
+        }
+      }
       if (global.Tools) Tools.drawOverlay(ctx);
 
       ctx.restore();
