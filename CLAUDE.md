@@ -98,6 +98,12 @@ node run-citygen-test.mjs            # Tools.generateCity end to end (docs/city-
                                       # so the isometric projection survives, walls/gates, determinism,
                                       # a single atomic undo that removes the whole city, and the
                                       # phase-E render budget with 400+ symbols on screen
+node run-zones-notes-test.mjs        # zone types (hatch pattern cache, visible in every political
+                                      # view, undo), object notes on any vector layer (atomic undo,
+                                      # blank clears the field, anchor resolution), user-defined name
+                                      # cultures (validation, determinism, built-ins protected,
+                                      # project round-trip) and named landmass presets — plus the
+                                      # project-save and GeoJSON round-trip for all of them
 node run-climate-test.mjs            # climate model: Tools.windDirAt band boundaries and its
                                       # meridional component, the equator slider actually moving the
                                       # biome bands, climate-off ≡ neutral-parameters equivalence
@@ -253,6 +259,35 @@ The **state editor** (plan § #1c) makes all of this hand-editable rather than g
 Capital picking is **not a tool**: `Tools.capitalPick` is a short-lived capture flag checked at the very top of `onDown` (right after pointer capture), so the next single left click sets the capital regardless of the active tool and the user never has to leave the Bölge tool; `Escape` clears it through `UI.cancelOrDeselect` *before* the deselect branch, so cancelling keeps the region selected. `Cv.drawCapitalMark` renders the capital as a small star in political mode — without it, a hand-placed capital would be invisible data. One UI subtlety worth keeping: `UI.refreshTerritoryEditor()` runs at the **top** of `refreshSelection`, because that function has early returns for scale/multi/empty selections and the editor must reach the right state (especially "hidden") in all of them. It is also what finally syncs `#tt-name` to the selected object — that input was previously never populated, so selecting region B left region A's name in the box and typing there renamed B.
 
 
+
+
+### Zones, notes, custom name cultures, landmass presets (`docs/afmg-parity-plan.md` § #6)
+
+Four small editors that all reuse existing machinery rather than adding storage or render paths of their own:
+
+- **Zones.** A `territories` object may carry `zoneType` (one of `Cv.ZONE_TYPES`). `Cv.drawTerritory` returns early
+  for such an object and paints it with a hatch pattern instead — `Cv.zonePattern(type, color)` builds a 16×16 tile
+  once per type+colour and caches the `CanvasPattern` (building one per object per frame would have made cost scale
+  with region count). A typed zone is deliberately **outside** the political views: `territoryVisibleInMode` returns
+  true for it in all three modes, because a quarantine is not a state, a culture or a religion.
+- **Notes.** Any vector object may carry `note`. `Cv.drawNoteMarks` runs as a single pass after the layer loop
+  rather than inside each layer's branch — territories alone have two branches (political and physical), and a
+  per-branch copy would have drifted. Only a small folded-page mark is drawn, never the text: a long note would make
+  the map unreadable, so the text lives in the right panel. `Cv.objAnchor(o)` resolves both point-based (`x,y`) and
+  path-based (`pts`) objects to one anchor.
+- **Custom name cultures.** `Names.CUSTOM` sits in front of the built-in `CULTURES` table (`Names.culture(key)`
+  checks it first), so a user culture can shadow a built-in one for the session but can never damage it.
+  `Names.allCultureKeys()` is what the culture/religion generators iterate, so a user-defined culture can become a
+  region on the map, not just a name suggestion. `serializeCustom`/`applyCustom` round-trip through the project file
+  — these are project data, not a global setting.
+- **Landmass presets.** `App.landgenPresets` stores `{name, template, roughness, rivers, lakes, terrain}` and
+  `UI.refreshLandgenTemplates` appends them to the existing `#lg-template` select as `preset:<i>` options. This adds
+  no generation code at all: a preset is a named parameter set that `applyLandgenTemplate` writes back into
+  `App.landgen`, and generation still runs the same three templates.
+
+`Tools._editSelected(mutate, label)` is `_editTerritory`'s layer-agnostic sibling and is what makes the note editor
+one atomic undo step on whichever vector layer the selection happens to be in. The note textarea binds `change`,
+not `input` — per-keystroke history would make Ctrl+Z undo letter by letter.
 
 ### Climate model (`docs/afmg-parity-plan.md` § #5)
 

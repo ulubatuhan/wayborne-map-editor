@@ -3213,7 +3213,7 @@
       }
 
       var GOV = this.GOVERNMENTS;
-      var cultureKeys = Object.keys(Names.CULTURES);
+      var cultureKeys = Names.allCultureKeys();
       var lang = (typeof UI !== 'undefined' && UI.lang) || 'tr';
       var before = JSON.parse(JSON.stringify(Tv.objects));
       var minAreaCells = Math.max(3, sw*sh*0.0015);
@@ -3381,7 +3381,7 @@
       if (Tv.locked || !Tv.visible) { UI.msg(UI.t('locked')); return 0; }
 
       var rnd = this._noiseGrid((((cfg.seed >>> 0) + cfg.seedSalt) >>> 0) || Math.floor(Math.random()*4294967296));
-      var cultureKeys = Object.keys(Names.CULTURES);
+      var cultureKeys = Names.allCultureKeys();
       var count = Math.max(2, Math.min(cultureKeys.length, Math.round(cfg.count) || cfg.defaultCount));
 
       /* hangi kültür hangi bölgeye düşecek — tohuma göre karıştır */
@@ -3399,7 +3399,7 @@
 
       res.regions.forEach(function (reg) {
         var ck = shuffled[reg.seedIndex % shuffled.length];
-        var cdef = Names.CULTURES[ck];
+        var cdef = Names.culture(ck);
         var base = cfg.kind === 'religion'
           ? Names.generate(ck, 'region', lang, Math.floor(rnd.next()*1e9))
           : (global.i18nName ? global.i18nName('nameculture_'+ck, cdef.tr, cdef.en, lang)
@@ -3515,7 +3515,7 @@
       var lang = (typeof UI !== 'undefined' && UI.lang) || 'tr';
       return this._editTerritory(function (t) {
         var cap = self._defaultCapital(t.pts);
-        var ck = self.cultureAt(cap.x, cap.y) || Object.keys(Names.CULTURES)[0];
+        var ck = self.cultureAt(cap.x, cap.y) || Names.allCultureKeys()[0];
         t.kind = 'state';
         t.capital = cap;
         t.cultureKey = ck;
@@ -4313,6 +4313,42 @@
       Object.keys(props).forEach(function (k) { o[k] = props[k]; });
       Cv.requestRender();
       return true;
+    },
+
+    /* Seçili herhangi bir vektör nesnesine tek adımlık düzenleme yazar.
+       _editTerritory'nin katmandan bağımsız kardeşi: bölge editörü
+       yalnızca territories'e bakar, bu ise seçim hangi vektör
+       katmanındaysa oraya yazar. */
+    _editSelected: function (mutate, label) {
+      if (!App.selection || App.selection.multi || App.selection.layerId === 'scale') return false;
+      var L = Layers.get(App.selection.layerId);
+      if (!L || L.type !== 'vector') return false;
+      if (L.locked) { UI.msg(UI.t('locked')); return false; }
+      var o = this.selected();
+      if (!o) return false;
+      var before = JSON.parse(JSON.stringify(L.objects));
+      mutate(o);
+      History.pushVector(L.id, before, JSON.parse(JSON.stringify(L.objects)), label);
+      UI.refreshHistory();
+      Cv.requestRender();
+      return true;
+    },
+
+    /* Nota boş metin verilirse alan tamamen silinir — boş bir string
+       bırakmak haritada "not var" işareti çizdirmeye devam ederdi. */
+    setObjectNote: function (text) {
+      text = String(text == null ? '' : text);
+      return this._editSelected(function (o) {
+        if (text.trim()) o.note = text; else delete o.note;
+      }, 'note');
+    },
+
+    /* Bölge tipi (zone). '' verilirse tip kaldırılır. */
+    setZoneType: function (type) {
+      if (type && Cv.ZONE_TYPES.indexOf(type) < 0) return false;
+      return this._editTerritory(function (o) {
+        if (type) o.zoneType = type; else delete o.zoneType;
+      }, 'zone');
     },
 
     commitSelectionEdit: function (beforeArr, label) {

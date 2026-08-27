@@ -293,6 +293,10 @@ textarea{font-family:var(--f-display);font-size:13px}
 .emblem-prev{width:96px;height:96px;flex:0 0 auto;border:1px solid var(--line);border-radius:6px;background:rgba(0,0,0,.12)}
 .emblem-btns{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
 .emblem-btns .btn{width:100%}
+/* İsim tabanı editörü: katlanır blok, kapalıyken panel şişmesin */
+.nm-custom{margin:6px 0;border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+.nm-custom > summary{cursor:pointer;font-size:12px;letter-spacing:.02em;opacity:.85}
+.nm-custom .sel{width:100%;margin:4px 0}
 .row-inline > .sel{flex:1;min-width:0}
 .btn-icon{flex:none;width:32px;display:inline-flex;align-items:center;justify-content:center;padding:0}
 .maptree-item{

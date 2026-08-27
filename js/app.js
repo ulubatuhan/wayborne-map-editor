@@ -11,6 +11,10 @@
 
     brush:   { size:120, roughness:0.35, color:'#ded0ac' },
     landgen: { template:'continent', roughness:0.5, rivers:false, lakes:false, terrain:false },
+    /* Kullanıcının adlandırıp sakladığı kara-üretim parametre kümeleri.
+       Yeni bir algoritma değil: şablon + pürüzlülük + nehir/göl/arazi
+       seçimleri. Proje dosyasıyla birlikte taşınır. */
+    landgenPresets: [],
     stategen: { count:5, variety:0.35, cultureCount:4, religionCount:3, provinceCount:3 },
     citygen:  { district:'craftsmen', buildings:140, streetWidth:7, wall:false },
     /* İklim: autoBiome'un enlem/nem hesabını yönlendiren parametreler.

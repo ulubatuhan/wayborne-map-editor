@@ -1431,6 +1431,13 @@
         }
       }
 
+      /* --- notlar: not iliştirilmiş her vektör nesnesinin yanında
+         küçük bir işaret. Tek bir geçiş hâlinde, katman döngüsünün
+         dışında: her katmanın kendi çizim dalına ayrı ayrı not kodu
+         eklemek yerine (bölgelerin siyasi/fizikî iki ayrı dalı var)
+         nesne türünden bağımsız tek bir yerde yapılıyor. */
+      if (this.notes) this.drawNoteMarks(ctx);
+
       /* --- siyasi harita lejantı --- */
       if (this.political && this.politicalLegend) this.drawPoliticalLegend(ctx);
       if (this.symbolLegend) this.drawSymbolLegend(ctx);
@@ -1956,6 +1963,118 @@
     },
 
     /* ---------- bölge/toprak (territory) dolgusu ---------- */
+    /* ---------- NOTLAR ----------
+       Herhangi bir vektör nesnesine serbest metin notu iliştirilebilir
+       (`o.note`). Not metnin kendisi haritaya yazılmaz — uzun bir not
+       haritayı okunmaz hâle getirirdi; yalnızca "burada bir not var"
+       diyen küçük bir sayfa işareti çizilir, metin sağ panelde okunur. */
+    notes: true,
+
+    /* Nesnenin haritadaki tutamak noktası. Nokta tabanlı nesnelerde
+       doğrudan x,y; yol tabanlı olanlarda nokta ortalaması. */
+    objAnchor: function (o) {
+      if (o.x !== undefined && o.y !== undefined) return { x:o.x, y:o.y };
+      var pts = o.pts;
+      if (!pts || !pts.length) return null;
+      var cx = 0, cy = 0;
+      for (var i = 0; i < pts.length; i++) { cx += pts[i][0]; cy += pts[i][1]; }
+      return { x:cx/pts.length, y:cy/pts.length };
+    },
+
+    drawNoteMarks: function (ctx) {
+      var r = Math.max(6, Math.min(this.W, this.H) * 0.007);
+      for (var i = 0; i < Layers.list.length; i++) {
+        var l = Layers.list[i];
+        if (l.type !== 'vector' || !l.visible || !l.objects) continue;
+        for (var j = 0; j < l.objects.length; j++) {
+          var o = l.objects[j];
+          if (!o.note) continue;
+          if (l.id === 'territories' && !this.territoryVisibleInMode(o)) continue;
+          var a = this.objAnchor(o);
+          if (!a) continue;
+          this.drawNoteMark(ctx, a.x + r*1.3, a.y - r*1.3, r);
+        }
+      }
+    },
+
+    /* Küçük katlanmış sayfa: köşesi kıvrık bir dikdörtgen + iki satır. */
+    drawNoteMark: function (ctx, x, y, r) {
+      var w = r*1.5, h = r*1.9, fold = r*0.6;
+      ctx.save();
+      ctx.translate(x - w/2, y - h/2);
+      ctx.beginPath();
+      ctx.moveTo(0, 0); ctx.lineTo(w - fold, 0); ctx.lineTo(w, fold);
+      ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
+      ctx.fillStyle = 'rgba(252,246,228,0.94)';
+      ctx.strokeStyle = '#3a2b18';
+      ctx.lineWidth = Math.max(1, r*0.16);
+      ctx.fill(); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(w - fold, 0); ctx.lineTo(w - fold, fold); ctx.lineTo(w, fold);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(w*0.2, h*0.55); ctx.lineTo(w*0.8, h*0.55);
+      ctx.moveTo(w*0.2, h*0.75); ctx.lineTo(w*0.65, h*0.75);
+      ctx.lineWidth = Math.max(1, r*0.13);
+      ctx.stroke();
+      ctx.restore();
+    },
+
+    /* ---------- BÖLGE TİPLERİ (zones) ----------
+       Elle çizilen bir bölgeye bir "tip" verilebilir; tip yalnızca bir
+       etiket değil, kendi tarama deseni ve rengiyle çizilir — böylece
+       savaş bölgesi ile av sahası haritada bakışta ayrılır. Ayrı bir
+       katman yok: aynı territories nesnesinin bir alanı. */
+    ZONE_TYPES: ['war','anomaly','forbidden','hunting','quarantine','sacred','trade'],
+    ZONE_STYLES: {
+      war:        { color:'#a33227', hatch:'diag'  },
+      anomaly:    { color:'#6b3d8c', hatch:'dot'   },
+      forbidden:  { color:'#2f2a26', hatch:'cross' },
+      hunting:    { color:'#4a6b34', hatch:'diag'  },
+      quarantine: { color:'#b08321', hatch:'dot'   },
+      sacred:     { color:'#2f6b7a', hatch:'back'  },
+      trade:      { color:'#8a5a1f', hatch:'cross' }
+    },
+
+    /* Desenler tip+renk başına bir kez üretilip saklanır: her karede
+       yeni bir CanvasPattern kurmak bölge sayısıyla doğrusal bir maliyet
+       eklerdi, oysa desen içeriği yalnızca tipe/renge bağlı. */
+    _zonePatterns: {},
+    zonePattern: function (type, color) {
+      var st = this.ZONE_STYLES[type];
+      if (!st) return null;
+      var col = color || st.color;
+      var key = type + '|' + col;
+      if (this._zonePatterns[key]) return this._zonePatterns[key];
+
+      var S = 16;
+      var c = document.createElement('canvas'); c.width = S; c.height = S;
+      var x = c.getContext('2d');
+      x.strokeStyle = col; x.fillStyle = col;
+      x.lineWidth = 2; x.lineCap = 'round';
+      if (st.hatch === 'dot') {
+        x.beginPath(); x.arc(S*0.5, S*0.5, 2.2, 0, Math.PI*2); x.fill();
+      } else if (st.hatch === 'cross') {
+        x.beginPath(); x.moveTo(0, S/2); x.lineTo(S, S/2);
+        x.moveTo(S/2, 0); x.lineTo(S/2, S); x.stroke();
+      } else if (st.hatch === 'back') {
+        x.beginPath(); x.moveTo(0, 0); x.lineTo(S, S);
+        x.moveTo(-S/2, S/2); x.lineTo(S/2, S*1.5);
+        x.moveTo(S/2, -S/2); x.lineTo(S*1.5, S/2); x.stroke();
+      } else {
+        x.beginPath(); x.moveTo(S, 0); x.lineTo(0, S);
+        x.moveTo(S*1.5, S/2); x.lineTo(S/2, S*1.5);
+        x.moveTo(S/2, -S/2); x.lineTo(-S/2, S/2); x.stroke();
+      }
+      /* Desen bir bağlamdan üretilir ama bağlama bağlı değildir —
+         dışa aktarım için kurulan geçici canvas'ta da geçerli. Cv.init
+         çalışmamışsa (izole testler) desen canvas'ının kendi bağlamını
+         kullanırız, böylece null önbelleğe yazılmaz. */
+      var pat = (this.ctx || x).createPattern(c, 'repeat');
+      if (pat) this._zonePatterns[key] = pat;
+      return pat;
+    },
+
     drawTerritory: function (ctx, o) {
       if (!o.pts || o.pts.length < 3) return;
       var pts = this.lakeSmoothPts(o, 24);
@@ -1963,6 +2082,26 @@
       ctx.lineJoin = 'round';
       var path = Geo.polyPath(pts);
       path.closePath();
+
+      /* Bölge tipi varsa siyasi/fizikî ayrımı yapmadan aynı biçimde
+         çizilir: bu bir devlet alanı değil, bir uyarı işaretlemesidir. */
+      if (o.zoneType && this.ZONE_STYLES[o.zoneType]) {
+        var zst = this.ZONE_STYLES[o.zoneType];
+        var zcol = o.color || zst.color;
+        ctx.globalAlpha *= (o.opacity === undefined ? 0.22 : o.opacity);
+        ctx.fillStyle = zcol;
+        ctx.fill(path);
+        ctx.globalAlpha = Math.min(1, (o.opacity === undefined ? 0.22 : o.opacity) * 2.6);
+        var pat = this.zonePattern(o.zoneType, zcol);
+        if (pat) { ctx.fillStyle = pat; ctx.fill(path); }
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = o.borderColor || zcol;
+        ctx.lineWidth = Math.max(2, o.borderWidth || 2);
+        ctx.setLineDash([ctx.lineWidth*4, ctx.lineWidth*3]);
+        ctx.stroke(path);
+        ctx.restore();
+        return;
+      }
 
       if (this.political) {
         /* SİYASİ GÖRÜNÜM: devlet alanı opak, sınır düz ve belirgin.
@@ -2017,6 +2156,11 @@
       /* 'state' varsayılan görünümdür ve kind'ı olmayan (elle çizilmiş)
          bölgeleri de kapsar; kültür/din görünümleri yalnızca kendi
          türlerini gösterir. Böylece üç görünüm birbirine karışmaz. */
+      /* Bölge tipi (zoneType) atanmış alanlar siyasi bir birim değil,
+         harita üstü bir işaretlemedir (savaş bölgesi, karantina, av
+         sahası...) — bu yüzden ÜÇ görünümde de görünür, hiçbirine ait
+         değildir. */
+      if (o.zoneType) return true;
       if (this.politicalMode === 'culture')  return o.kind === 'culture';
       if (this.politicalMode === 'religion') return o.kind === 'religion';
       return o.kind !== 'culture' && o.kind !== 'religion';

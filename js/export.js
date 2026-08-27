@@ -442,7 +442,12 @@
         return r;
       }
       function round2(v) { return Math.round(v * 100) / 100; }
-      function feature(geom, props) { feats.push({ type:'Feature', geometry:geom, properties:props }); }
+      /* Not alanı her nesne türünde aynı anlama geldiği için tek bir
+         yerde ekleniyor — her addVector çağrısında tekrar etmesin. */
+      function feature(geom, props, o) {
+        if (o && o.note) props.note = o.note;
+        feats.push({ type:'Feature', geometry:geom, properties:props });
+      }
 
       function addVector(layerId, fn) {
         var L = Layers.get(layerId);
@@ -453,16 +458,16 @@
       addVector('rivers', function (o) {
         if (o.kind === 'lake') {
           feature({ type:'Polygon', coordinates:[ring(o.pts)] },
-                  { layer:'rivers', kind:'lake', name:o.name || null });
+                  { layer:'rivers', kind:'lake', name:o.name || null }, o);
         } else {
           feature({ type:'LineString', coordinates:o.pts.map(function (p) { return [round2(p[0]), round2(p[1])]; }) },
-                  { layer:'rivers', kind:'river', name:o.name || null, width:o.width || null });
+                  { layer:'rivers', kind:'river', name:o.name || null, width:o.width || null }, o);
         }
       });
 
       addVector('roads', function (o) {
         feature({ type:'LineString', coordinates:o.pts.map(function (p) { return [round2(p[0]), round2(p[1])]; }) },
-                { layer:'roads', kind:'road', style:o.style || null, width:o.width || null });
+                { layer:'roads', kind:'road', style:o.style || null, width:o.width || null }, o);
       });
 
       addVector('territories', function (o) {
@@ -470,8 +475,9 @@
           layer:'territories', kind:o.kind || 'region', name:o.name || null,
           government:o.government || null, culture:o.cultureKey || null,
           capital_x: o.capital ? round2(o.capital.x) : null,
-          capital_y: o.capital ? round2(o.capital.y) : null
-        });
+          capital_y: o.capital ? round2(o.capital.y) : null,
+          zone: o.zoneType || null
+        }, o);
       });
 
       addVector('symbols', function (o) {
@@ -480,22 +486,22 @@
           layer:'symbols', symbol:o.sym || null, name:o.name || null,
           population: (typeof o.population === 'number') ? o.population : null,
           culture:o.cultureKey || null
-        });
+        }, o);
       });
 
       addVector('resources', function (o) {
         feature({ type:'Point', coordinates:[round2(o.x), round2(o.y)] },
-                { layer:'resources', kind:'resource', type:o.type || null });
+                { layer:'resources', kind:'resource', type:o.type || null }, o);
       });
 
       addVector('labels', function (o) {
         feature({ type:'Point', coordinates:[round2(o.x), round2(o.y)] },
-                { layer:'labels', kind:'label', text:o.text || '', preset:o.preset || null });
+                { layer:'labels', kind:'label', text:o.text || '', preset:o.preset || null }, o);
       });
 
       addVector('links', function (o) {
         feature({ type:'Point', coordinates:[round2(o.x), round2(o.y)] },
-                { layer:'links', kind:'maplink', name:o.name || null, target:o.targetMapId || null });
+                { layer:'links', kind:'maplink', name:o.name || null, target:o.targetMapId || null }, o);
       });
 
       return {
@@ -721,6 +727,9 @@
         politicalMuteTerrain:Cv.politicalMuteTerrain, politicalLegend:Cv.politicalLegend,
         emblems:Cv.emblems,
         climate:JSON.parse(JSON.stringify(App.climate)), windArrows:Cv.windArrows,
+        notes:Cv.notes,
+        landgenPresets:JSON.parse(JSON.stringify(App.landgenPresets || [])),
+        customCultures:(global.Names ? Names.serializeCustom() : {}),
         symbolLegend:Cv.symbolLegend,
         gridType:Cv.gridType, gridSize:Cv.gridSize,
         gridColor:Cv.gridColor, gridOpacity:Cv.gridOpacity,
@@ -773,6 +782,9 @@
       if (d.emblems !== undefined) Cv.emblems = d.emblems;
       if (d.climate) { App.climate = d.climate; }
       if (d.windArrows !== undefined) Cv.windArrows = d.windArrows;
+      if (d.notes !== undefined) Cv.notes = d.notes;
+      App.landgenPresets = d.landgenPresets || [];
+      if (global.Names) Names.applyCustom(d.customCultures || {});
       Cv.windDirty = true;
       if (d.symbolLegend !== undefined) Cv.symbolLegend = d.symbolLegend;
       if (d.gridType)  Cv.gridType  = d.gridType;
@@ -806,6 +818,8 @@
       var _cs=document.getElementById('cli-str');  if (_cs) { _cs.value = Math.round(App.climate.strength*100);
         var _csl=document.getElementById('v-cli-str'); if (_csl) _csl.textContent = Math.round(App.climate.strength*100) + '%'; }
       var _cw=document.getElementById('cli-wind'); if (_cw) _cw.checked = !!Cv.windArrows;
+      var _nt=document.getElementById('note-show'); if (_nt) _nt.checked = !!Cv.notes;
+      if (global.UI) { UI.refreshLandgenTemplates(); UI.buildCultureList(); }
       var _sl=document.getElementById('chk-legend'); if (_sl) _sl.checked = Cv.symbolLegend;
       var _pf=document.getElementById('pol-fill');   if (_pf) _pf.value = Math.round(Cv.politicalFill*100);
       var _gt=document.getElementById('grid-type');  if (_gt) _gt.value = Cv.gridType;

@@ -341,6 +341,11 @@
           </svg>
           <span data-i18n="o_landgen_go">Üret</span>
         </button>
+        <div class="row2">
+          <button class="btn" id="btn-lg-save" data-i18n="o_lgsave">Şablon olarak kaydet</button>
+          <button class="btn danger" id="btn-lg-del" data-i18n="o_lgdel">Şablonu sil</button>
+        </div>
+        <p class="hint" data-i18n="h_lgpreset">Kaydedilen şablon, o anki pürüzlülük ve nehir/göl/arazi seçimlerini adıyla saklar ve yukarıdaki listeye eklenir; proje dosyasıyla birlikte taşınır.</p>
         <p class="hint" data-i18n="h_landgen">Mevcut kara katmanının yerine geçer. Aynı ayarlarla tekrar tıklayınca yeni bir rastgele sonuç üretir.</p>
       </section>
 
@@ -456,6 +461,19 @@
               </svg>
             </button>
           </div>
+          <label class="row"><span data-i18n="o_zonetype">Bölge tipi</span></label>
+          <select id="tt-zone" class="sel">
+            <option value="" data-i18n="o_zone_none">— yok (siyasi bölge) —</option>
+            <option value="war" data-i18n="o_zone_war">Savaş bölgesi</option>
+            <option value="anomaly" data-i18n="o_zone_anomaly">Anomali</option>
+            <option value="forbidden" data-i18n="o_zone_forbidden">Yasak bölge</option>
+            <option value="hunting" data-i18n="o_zone_hunting">Av sahası</option>
+            <option value="quarantine" data-i18n="o_zone_quarantine">Karantina</option>
+            <option value="sacred" data-i18n="o_zone_sacred">Kutsal alan</option>
+            <option value="trade" data-i18n="o_zone_trade">Ticaret bölgesi</option>
+          </select>
+          <p class="hint" data-i18n="h_zonetype">Tip verilen bir bölge devlet/kültür/din görünümlerinin hiçbirine ait olmaz; kendi tarama deseniyle her görünümde çizilir.</p>
+
           <div id="tt-state-fields" hidden>
             <label class="row"><span data-i18n="o_stgov">Hükümet biçimi</span></label>
             <select id="tt-gov" class="sel">
@@ -631,6 +649,19 @@
         </div>
         <button class="btn wide" id="btn-nm-gen" data-i18n="o_namegen">🎲 Ad öner</button>
         <div id="nm-suggest" class="nm-suggest"></div>
+        <details class="nm-custom">
+          <summary data-i18n="o_nb_edit">Kendi kültürünü ekle</summary>
+          <input type="text" id="nb-name" class="sel" data-i18n-placeholder="o_nb_name" placeholder="Kültür adı">
+          <input type="text" id="nb-bas" class="sel" data-i18n-placeholder="o_nb_bas" placeholder="Başlangıç heceleri: Ash, Bram, Dun">
+          <input type="text" id="nb-orta" class="sel" data-i18n-placeholder="o_nb_orta" placeholder="Ara sesler: a, e, i">
+          <input type="text" id="nb-son" class="sel" data-i18n-placeholder="o_nb_son" placeholder="Bitiş heceleri: ford, dale, ton">
+          <label class="chk"><input type="checkbox" id="nb-birlesik" checked><span data-i18n="o_nb_birlesik">Birleşik (Ashford) — kapalıysa akıcı (Valeria)</span></label>
+          <div class="row2">
+            <button class="btn" id="btn-nb-add" data-i18n="o_nb_add">Ekle</button>
+            <button class="btn danger" id="btn-nb-del" data-i18n="o_nb_del">Seçili kültürü sil</button>
+          </div>
+          <p class="hint" data-i18n="h_nb">Eklediğin kültür bu projeye özeldir, proje dosyasıyla birlikte kaydedilir ve kültür/din üretecinde de kullanılabilir.</p>
+        </details>
         <label class="row"><span data-i18n="o_preset">Stil şablonu</span></label>
         <select id="lb-preset" class="sel"></select>
         <div id="lb-preview-wrap"><canvas id="lb-preview" width="220" height="64"></canvas></div>
@@ -736,6 +767,11 @@
         <div class="row2" style="margin-top:4px">
           <button class="btn" id="btn-group"   data-i18n="o_group"   style="display:none">Grupla</button>
           <button class="btn" id="btn-ungroup" data-i18n="o_ungroup" style="display:none">Grubu çöz</button>
+        </div>
+        <div id="note-box" hidden>
+          <label class="row"><span data-i18n="o_note">Not</span></label>
+          <textarea id="sel-note" rows="3" data-i18n-placeholder="o_note_ph" placeholder="Bu nesneyle ilgili notun…"></textarea>
+          <label class="chk"><input type="checkbox" id="note-show" checked><span data-i18n="o_note_show">Not işaretlerini haritada göster</span></label>
         </div>
         <p class="hint" style="margin-top:6px">Shift+tık: çoklu seçim. Boş alana sürükle: kare seçim.</p>
 

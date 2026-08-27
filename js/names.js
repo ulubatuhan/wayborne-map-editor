@@ -91,9 +91,20 @@
     };
   }
 
+  /* Kullanıcı tanımlı kültürler. Yerleşik 7 kültür sabit kalır; buraya
+     eklenenler proje-özeldir (Exporter proje kaydıyla gelir/gider), bu
+     yüzden ayrı bir tabloda tutulup arama sırasında ÖNCE bakılır — bir
+     kullanıcı kültürü yerleşik bir anahtarı gölgeleyebilir ama onu
+     kalıcı olarak bozamaz. */
+  var CUSTOM = {};
+
+  function culture(key) {
+    return CUSTOM[key] || CULTURES[key] || CULTURES.western;
+  }
+
   /* Tek bir kök ad üretir (coğrafi ek olmadan) */
   function stem(cultureKey, rnd) {
-    var c = CULTURES[cultureKey] || CULTURES.western;
+    var c = culture(cultureKey);
     var a = pick(c.bas, rnd);
     var b = pick(c.son, rnd);
     if (c.birlesik) {
@@ -108,14 +119,63 @@
 
   var Names = {
     CULTURES: CULTURES,
+    CUSTOM: CUSTOM,
+    culture: culture,
+
+    /* Yerleşik + kullanıcı kültürlerinin anahtarları. Kültür/din
+       üreteci bunu okur, böylece kullanıcının eklediği kültür de
+       haritada bir bölge olarak çıkabilir. */
+    allCultureKeys: function () {
+      var keys = Object.keys(CULTURES).filter(function (k) { return !CUSTOM[k]; });
+      return keys.concat(Object.keys(CUSTOM));
+    },
 
     cultureList: function (lang) {
-      return Object.keys(CULTURES).map(function (k) {
+      var out = Object.keys(CULTURES).filter(function (k) { return !CUSTOM[k]; }).map(function (k) {
         var c = CULTURES[k];
         var n = global.i18nName ? global.i18nName('nameculture_' + k, c.tr, c.en, lang)
                                 : (lang === 'tr' ? c.tr : c.en);
-        return { key:k, name:n };
+        return { key:k, name:n, custom:false };
       });
+      /* Kullanıcı kültürlerinin çevirisi yok — kendi verdiği ad her
+         dilde aynen görünür (kullanıcı katmanı adlarıyla aynı kural). */
+      Object.keys(CUSTOM).forEach(function (k) {
+        out.push({ key:k, name:CUSTOM[k].tr || k, custom:true });
+      });
+      return out;
+    },
+
+    /* ---- kullanıcı tanımlı kültürler ----
+       Hece havuzları virgülle ayrılmış metinden gelir; boş bir havuz
+       üreteci bozacağı için burada reddedilir (pick() boş diziden
+       undefined döndürür ve ad "undefined" olurdu). */
+    addCustomCulture: function (key, def) {
+      key = String(key || '').trim();
+      if (!key) return false;
+      var bas = (def.bas || []).filter(Boolean);
+      var son = (def.son || []).filter(Boolean);
+      var orta = (def.orta || []).filter(Boolean);
+      if (!bas.length || !son.length) return false;
+      if (!def.birlesik && !orta.length) orta = ['a','e','i','o','u'];
+      CUSTOM[key] = {
+        tr: def.name || key, en: def.name || key,
+        bas: bas, orta: orta, son: son, birlesik: !!def.birlesik
+      };
+      return true;
+    },
+
+    removeCustomCulture: function (key) {
+      if (!CUSTOM[key]) return false;
+      delete CUSTOM[key];
+      return true;
+    },
+
+    /* Proje kaydı için: sade bir nesne kopyası / geri yükleme. */
+    serializeCustom: function () { return JSON.parse(JSON.stringify(CUSTOM)); },
+    applyCustom: function (obj) {
+      Object.keys(CUSTOM).forEach(function (k) { delete CUSTOM[k]; });
+      if (!obj) return;
+      Object.keys(obj).forEach(function (k) { CUSTOM[k] = obj[k]; });
     },
 
     /* Bir ad üret. feature: settlement/city/river/mountain/forest/region/sea/lake */

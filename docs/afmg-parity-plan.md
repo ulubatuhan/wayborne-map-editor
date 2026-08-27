@@ -13,9 +13,9 @@
 > `setStateGovernment`/`pickCapitalAt`, ve CLAUDE.md'nin
 > "State / culture generation" bölümü. Aşağıdaki öğeler **bilinçli olarak
 > dışarıda bırakıldı**, mimari engel yok, sadece öncelik sırası
-> gereği ertelendi: `cultureAt`'in otomatik isim üretimine bağlanması,
-> #6 (zones/notlar/isim-tabanı/yükselti-şablonu
-> editörleri), #7 (GIS export), #9 (TTS/URL parametresi/tema). Aşağıdaki
+> gereği ertelendi: geriye yalnızca `cultureAt`'in otomatik yerleşim
+> adlandırmasına bağlanması kaldı (#7 GIS export ve #9 TTS/URL
+> parametresi/tema de uygulandı). Aşağıdaki
 > plan metni orijinal haliyle korunuyor — hangi kısmın yapıldığını
 > yukarıdaki durum notundan takip edin.
 >
@@ -319,7 +319,18 @@ parametresi değişince önbellek yenileniyor, değişmeyince yenilenmiyor).
 
 ---
 
-## #6 — Bölge/veri editör araçları
+## #6 — Bölge/veri editör araçları  ✅ uygulandı
+
+> **Uygulandı**: dördü de. Bölge tipleri (`Cv.ZONE_TYPES`/`ZONE_STYLES`/
+> `zonePattern`, `Tools.setZoneType`), notlar (`o.note`,
+> `Tools.setObjectNote`/`_editSelected`, `Cv.drawNoteMarks`), kullanıcı
+> tanımlı isim kültürleri (`Names.CUSTOM`/`addCustomCulture`/
+> `allCultureKeys`, kültür-din üretecinde de kullanılabilir) ve
+> adlandırılmış kara-üretim şablonları (`App.landgenPresets`,
+> `UI.refreshLandgenTemplates`/`applyLandgenTemplate`). Hepsi proje
+> kaydına ve — zone/not için — GeoJSON çıktısına taşınıyor. Testler:
+> `run-zones-notes-test.mjs` (47 doğrulama).
+
 
 Dördü de küçük, birbirinden bağımsız, hızlı kazanım — tek fazda birlikte
 yapılabilir:
