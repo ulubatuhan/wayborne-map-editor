@@ -365,6 +365,66 @@ async function run() {
       check('seçim yokken unmakeState çökmüyor', Tools.unmakeState() === false);
       check('seçim yokken setStateGovernment çökmüyor', Tools.setStateGovernment('empire') === false);
 
+      /* ---- arma (heraldik) üreteci ---- */
+      check('Emblem modülü yüklü', typeof Emblem !== 'undefined');
+      var e1 = Emblem.generate(4242), e2 = Emblem.generate(4242), e3 = Emblem.generate(9001);
+      check('arma deterministik (aynı tohum → aynı arma)', JSON.stringify(e1) === JSON.stringify(e2));
+      check('farklı tohum farklı arma', JSON.stringify(e1) !== JSON.stringify(e3));
+      check('arma geçerli kalkan/bölünme/motif seçiyor',
+        !!Emblem.SHIELDS[e1.shield] && (e1.division in Emblem.DIVISIONS) && !!Emblem.CHARGES[e1.charge]);
+      /* tinctür kuralı: zemin renk havuzundan, motif metal havuzundan */
+      var tincHex = Emblem.TINCTURE.map(function (t) { return t.hex; });
+      var metalHex = Emblem.METAL.map(function (t) { return t.hex; });
+      var ruleOK = true;
+      for (var es = 0; es < 200; es++) {
+        var sp = Emblem.generate(es * 7919);
+        if (tincHex.indexOf(sp.field) < 0 || tincHex.indexOf(sp.field2) < 0 ||
+            metalHex.indexOf(sp.metal) < 0 || sp.field === sp.field2) { ruleOK = false; break; }
+      }
+      check('tinctür kuralı 200 armada korunuyor', ruleOK);
+      var ec = Emblem.toCanvas(e1, 64);
+      var ed = ec.getContext('2d').getImageData(0, 0, 64, 64).data;
+      var painted = 0;
+      for (var ep = 3; ep < ed.length; ep += 4) if (ed[ep] > 0) painted++;
+      check('arma gerçekten canvasa çiziliyor', painted > 64 * 64 * 0.3);
+
+      /* devlete arma atama + geri alma */
+      var st0 = Layers.get('territories').objects.filter(function (o) { return o.kind === 'state'; })[0];
+      App.selection = { layerId:'territories', id: st0.id };
+      check('rollEmblem devlete arma veriyor', Tools.rollEmblem(1234) === true);
+      var stE = Layers.get('territories').objects.filter(function (o) { return o.id === st0.id; })[0];
+      check('arma nesnede saklanıyor', !!stE.emblem && stE.emblem.seed === 1234);
+      await History.undo();
+      check('arma atama geri alınabiliyor',
+        !Layers.get('territories').objects.filter(function (o) { return o.id === st0.id; })[0].emblem);
+      await History.redo();
+      App.selection = { layerId:'territories', id: st0.id };
+      check('clearEmblem armayı kaldırıyor', Tools.clearEmblem() === true);
+      check('arması olmayanda clearEmblem reddediyor', Tools.clearEmblem() === false);
+      App.selection = { layerId:'territories', id: st0.id };
+      Tools.rollEmblem(1234);
+      /* devlet olmaktan çıkarınca arma da gitmeli — arma bir devlet niteliği */
+      App.selection = { layerId:'territories', id: st0.id };
+      Tools.unmakeState();
+      check('unmakeState armayı da temizliyor',
+        !Layers.get('territories').objects.filter(function (o) { return o.id === st0.id; })[0].emblem);
+      await History.undo();
+      App.selection = { layerId:'territories', id: st0.id };
+
+      /* devlet olmayan bir bölgeye arma verilemez */
+      App.selection = { layerId:'territories', id:'manual_state_test' };
+      check('devlet olmayan bölgeye arma verilemiyor', Tools.rollEmblem(7) === false);
+
+      /* arma render'ı ve görünürlük anahtarı */
+      var stE2 = Layers.get('territories').objects.filter(function (o) { return o.kind === 'state'; })[0];
+      App.selection = { layerId:'territories', id: stE2.id };
+      Tools.rollEmblem(55);
+      Cv.political = true; Cv.politicalMode = 'state'; Cv.emblems = true;
+      var okEmbRender = true;
+      try { Cv.render(); Cv.emblems = false; Cv.render(); } catch (e) { okEmbRender = false; }
+      Cv.emblems = true; Cv.political = false;
+      check('arma ile render hatasız (açık ve kapalı)', okEmbRender);
+
       /* başkent işareti render'ı hatasız */
       Cv.political = true; Cv.politicalMode = 'state';
       var okCapRender = true;
@@ -376,6 +436,7 @@ async function run() {
     })()`;
 
     const result = await evaluate(cdp, testCode, true);
+    if (result.exceptionDetails) console.error('EVAL HATASI:', JSON.stringify(result.exceptionDetails).slice(0, 1200));
     const lines = (result.result?.value || '').split('\n').filter(Boolean);
     let allPass = true;
     for (const line of lines) {

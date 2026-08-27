@@ -426,6 +426,7 @@
         <label class="chk"><input type="checkbox" id="pol-on"><span data-i18n="o_polmode">Siyasi görünüm</span></label>
         <label class="chk"><input type="checkbox" id="pol-mute" checked><span data-i18n="o_polmute">Arazi dokusunu sustur</span></label>
         <label class="chk"><input type="checkbox" id="pol-legend" checked><span data-i18n="o_pollegend">Lejant göster</span></label>
+        <label class="chk"><input type="checkbox" id="pol-emblem" checked><span data-i18n="o_polemblem">Armaları göster</span></label>
         <label class="row"><span data-i18n="o_polfill">Dolgu yoğunluğu</span><b id="v-pol-fill">0.92</b></label>
         <input type="range" id="pol-fill" min="40" max="100" value="92">
         <button class="btn wide" id="btn-pol-colors" data-i18n="o_polcolors">Devlet renklerini otomatik ata</button>
@@ -456,6 +457,16 @@
             </select>
             <label class="row"><span data-i18n="o_stcapital">Başkent</span><b id="v-tt-capital">—</b></label>
             <button class="btn wide" id="btn-tt-capital" data-i18n="o_stcapital_pick">Başkenti haritadan seç</button>
+            <label class="row"><span data-i18n="o_stemblem">Arma</span></label>
+            <div class="emblem-row">
+              <canvas id="tt-emblem-prev" class="emblem-prev" width="96" height="96"></canvas>
+              <div class="emblem-btns">
+                <button class="btn" id="btn-tt-emblem" data-i18n="o_stemblem_gen">Arma üret</button>
+                <button class="btn" id="btn-tt-emblem-png" data-i18n="o_stemblem_png">PNG indir</button>
+                <button class="btn" id="btn-tt-emblem-clear" data-i18n="o_stemblem_clear">Armayı kaldır</button>
+              </div>
+            </div>
+            <p class="hint" data-i18n="h_stemblem">Arma kodla çizilir; tohumu devletle birlikte kaydedilir, aynı tohum her zaman aynı armayı verir. Siyasi görünümde başkentin yanında görünür.</p>
             <button class="btn wide" id="btn-tt-unstate" data-i18n="o_stunmake">Devlet olmaktan çıkar</button>
           </div>
           <button class="btn wide" id="btn-tt-makestate" data-i18n="o_stmake">Devlete dönüştür</button>
@@ -917,6 +928,7 @@
 <script src="js/catalog.js"></script>
 <script src="js/catalog2.js"></script>
 <script src="js/symbols.js"></script>
+<script src="js/emblem.js"></script>
 <script src="js/i18n-names.js"></script>
 <script src="js/names.js"></script>
 <script src="js/history.js"></script>

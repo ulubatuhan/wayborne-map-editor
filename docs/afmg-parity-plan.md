@@ -13,8 +13,7 @@
 > `setStateGovernment`/`pickCapitalAt`, ve CLAUDE.md'nin
 > "State / culture generation" bölümü. Aşağıdaki öğeler **bilinçli olarak
 > dışarıda bırakıldı**, mimari engel yok, sadece öncelik sırası
-> gereği ertelendi: #1'in dinler/eyaletler/diplomasi alt maddeleri,
-> `cultureAt`'in otomatik isim üretimine bağlanması, #4 (amblem), #5
+> gereği ertelendi: `cultureAt`'in otomatik isim üretimine bağlanması, #5
 > (iklim simülasyonu), #6 (zones/notlar/isim-tabanı/yükselti-şablonu
 > editörleri), #7 (GIS export), #9 (TTS/URL parametresi/tema). Aşağıdaki
 > plan metni orijinal haliyle korunuyor — hangi kısmın yapıldığını
@@ -214,7 +213,16 @@ bir test satırı gerekmiyor, mevcut `run-fps.mjs` senaryoları yeterli.
 
 ---
 
-## #4 — Amblem / heraldik üreteci
+## #4 — Amblem / heraldik üreteci  ✅ uygulandı
+
+> **Uygulandı** (`js/emblem.js`): 6 kalkan biçimi, 9 bölünme düzeni, 14
+> motif, tinctür kuralına uyan renk seçimi, tohumlu ve deterministik
+> üretim. `Tools.rollEmblem`/`clearEmblem` armayı seçili devlete tek
+> adımlık undo ile yazar, `Cv.drawEmblem` siyasi görünümde başkentin
+> üstüne basar (`Cv.emblems` anahtarıyla kapatılabilir), panelde
+> önizleme ve 512² PNG indirme var. Testler
+> `run-states-culture-test.mjs` içinde.
+
 
 **Neden mümkün**: proje zaten "her şey kodda üretiliyor" ilkesiyle
 çalışıyor (`iso.js`'teki izometrik bina üretimi, `symbols.js`'teki 894

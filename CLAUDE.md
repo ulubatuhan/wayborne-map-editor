@@ -116,7 +116,9 @@ node run-states-culture-test.mjs     # Tools.generateStates/generateCultures (mu
                                       # filter (state vs culture), perf budget, autoSettle's new
                                       # population field, and the state editor (government change,
                                       # capital picking incl. sea rejection, hand-drawn region →
-                                      # state and back) with undo/redo on every edit
+                                      # state and back) with undo/redo on every edit, plus the heraldry generator
+                                      # (determinism, the rule of tincture over 200 specs, assigning/clearing an
+                                      # emblem on a state and rendering with it on and off)
 ```
 
 Two gotchas when writing more of these: **`requestAnimationFrame` is throttled in headless Chrome**, so
@@ -131,7 +133,7 @@ Anything they don't cover still wants a manual pass: run the server, open the ap
 Everything hangs off `window` as a set of singleton modules, each an IIFE assigning to `global.<Name>`. `index.html` loads them via plain `<script>` tags in a load-bearing order (no module system, no dynamic imports):
 
 ```
-iso.js → catalog.js → catalog2.js → symbols.js → i18n-names.js → names.js → history.js → layers.js → canvas.js → tools.js → export.js → ui.js → app.js
+iso.js → catalog.js → catalog2.js → symbols.js → emblem.js → i18n-names.js → names.js → history.js → layers.js → canvas.js → tools.js → export.js → ui.js → app.js
 ```
 
 This order matters: later files reference globals defined by earlier ones (e.g. `catalog2.js` pushes into `IsoCatalog.ITEMS` created by `catalog.js`; `Layers`, `Cv`, `Tools` etc. are read by `ui.js` and `app.js` at init time).
@@ -243,6 +245,31 @@ The **state editor** (plan § #1c) makes all of this hand-editable rather than g
 
 Capital picking is **not a tool**: `Tools.capitalPick` is a short-lived capture flag checked at the very top of `onDown` (right after pointer capture), so the next single left click sets the capital regardless of the active tool and the user never has to leave the Bölge tool; `Escape` clears it through `UI.cancelOrDeselect` *before* the deselect branch, so cancelling keeps the region selected. `Cv.drawCapitalMark` renders the capital as a small star in political mode — without it, a hand-placed capital would be invisible data. One UI subtlety worth keeping: `UI.refreshTerritoryEditor()` runs at the **top** of `refreshSelection`, because that function has early returns for scale/multi/empty selections and the editor must reach the right state (especially "hidden") in all of them. It is also what finally syncs `#tt-name` to the selected object — that input was previously never populated, so selecting region B left region A's name in the box and typing there renamed B.
 
+
+### Emblems / heraldry (`js/emblem.js`)
+
+A state can carry an `emblem` field: a small spec object (`{shield, division, charge, field, field2, metal, seed}`),
+not an image. `Emblem.generate(seed)` picks one of 6 shield outlines, 9 divisions and 14 charges, all `Path2D`
+strings in the same 0–100 box `Sym` uses, and picks colours under the real heraldic **rule of tincture** — the
+field always comes from the colour pool (gules/azure/vert/sable/purpure) and the charge always from the metal pool
+(or/argent), with the two field colours forced to differ. That single constraint is what makes the output read as
+heraldry rather than as two random colours, and it is asserted over 200 generated specs in
+`run-states-culture-test.mjs`. Generation is deterministic from the seed, so a project save carries only the spec.
+
+`Emblem.draw(ctx, spec, x, y, size)` is the one drawing path used by both the panel preview
+(`UI.refreshEmblemPreview`) and the map (`Cv.drawEmblem`, which places the arms just above the capital star in
+political mode, gated on `Cv.emblems`) — the preview can therefore never drift from what the map shows.
+`Emblem.toCanvas(spec, size)` backs the 512² PNG download. `Tools.rollEmblem`/`clearEmblem` go through
+`_editTerritory`, so every emblem change is one atomic undo step, and `unmakeState` deletes the emblem along with
+the other state-only fields.
+
+The charge silhouettes were **checked by rendering them**, not by trusting the path data: a first pass produced a
+hammer that read as the letter T, a lion that read as a skull, a boar that read as a cloud and an eagle that read
+as a starburst. They were redrawn (beast head in profile, asymmetric war hammer, quadruped boar, displayed eagle
+with swept wings) and re-rendered until each is legible at ~110px, which is roughly the size they appear at on the
+map. Any new charge should get the same treatment — a single-colour silhouette is much less forgiving than a
+multi-part symbol.
+
 ### City generation (`docs/city-generation-plan.md`)
 
 `Tools.generateCity(boundary, opts)` turns a closed polygon — in the UI, the currently selected `territories` object — into a dense medieval city. It follows Watabou's **block-centric** model rather than Parish&Müller's road-centric L-system, because our input is already an area the user drew: streets are *derived from block shape*, not the other way round.
@@ -259,7 +286,7 @@ Provinces take a different route on purpose. States grow *outward* over land, so
 
 Diplomacy is stored, not computed: `App.diplomacy["<idA>|<idB>"] = 'alliance'|'war'|'vassal'`, with the key always built from the sorted ids so `(A,B)` and `(B,A)` are the same record, and `'peace'` deliberately never stored (it is the default, so the table stays sparse). `History.pushDiplomacy` follows the existing scale/windrose pattern, and `Tools.pruneRelations` drops records pointing at states that no longer exist.
 
-**Deliberately out of scope for this pass** (tracked as follow-ups in `docs/afmg-parity-plan.md`): wiring `cultureAt` into automatic settlement naming, an emblem/heraldry generator, a real climate/wind simulation feeding `autoBiome`, and the zones/notes/namesbase/heightmap-template-editor quick wins — none of these are architecturally blocked, they were simply the next slice down the plan's priority order.
+**Deliberately out of scope for this pass** (tracked as follow-ups in `docs/afmg-parity-plan.md`): wiring `cultureAt` into automatic settlement naming, a real climate/wind simulation feeding `autoBiome`, and the zones/notes/namesbase/heightmap-template-editor quick wins — none of these are architecturally blocked, they were simply the next slice down the plan's priority order.
 
 - **`iso.js`** — the isometric building engine (`Iso.Scene`, `Iso.MAT`). Parallel projection `sx=(x-y)*0.866, sy=(x+y)*0.5-z`; solids are depth-sorted with the painter's algorithm. Produces `Sym.part()`-style path data normalized to a 0–100 box.
 - **`catalog.js` / `catalog2.js`** — composite isometric buildings built on top of `Iso.Scene`, organized by theme (`catalog2.js` loads second and pushes additional items + material variants into the same `IsoCatalog.ITEMS` table). Civic buildings (inn/tavern/library/shrine/well/stall/smithy/bakery) are generated from a shared `CIVIC_CULTURE` (5 regional material/roof signatures) × `CIVIC_TIER` (5 wealth levels, 1–5, driving scale + wing/accent additions) grid in `catalog2.js` — `civicLabel()` builds the `"<Bina> · <katman>.<isim> · <kültür>"` display name from the pair, so adding a new civic building type is one `CIVIC_CULTURE.forEach(cul => CIVIC_TIER.forEach(tier => reg(...)))` block reusing an existing scene-generator function shape. House variants (`ivh_*`, 9 materials × 6 roofs = 54) predate this grid and are labeled via a simpler `HOUSE_WALL`/`HOUSE_ROOF` → tier/culture mapping (`TIER_NAMES`) rather than driving geometry from it.

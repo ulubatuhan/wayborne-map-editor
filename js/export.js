@@ -719,6 +719,7 @@
         parchment:Cv.parchment, grid:Cv.grid,
         political:Cv.political, politicalFill:Cv.politicalFill,
         politicalMuteTerrain:Cv.politicalMuteTerrain, politicalLegend:Cv.politicalLegend,
+        emblems:Cv.emblems,
         symbolLegend:Cv.symbolLegend,
         gridType:Cv.gridType, gridSize:Cv.gridSize,
         gridColor:Cv.gridColor, gridOpacity:Cv.gridOpacity,
@@ -768,6 +769,7 @@
       if (d.politicalFill !== undefined) Cv.politicalFill = d.politicalFill;
       if (d.politicalMuteTerrain !== undefined) Cv.politicalMuteTerrain = d.politicalMuteTerrain;
       if (d.politicalLegend !== undefined) Cv.politicalLegend = d.politicalLegend;
+      if (d.emblems !== undefined) Cv.emblems = d.emblems;
       if (d.symbolLegend !== undefined) Cv.symbolLegend = d.symbolLegend;
       if (d.gridType)  Cv.gridType  = d.gridType;
       if (d.gridSize)  Cv.gridSize  = d.gridSize;
@@ -792,6 +794,7 @@
       var _po=document.getElementById('pol-on');     if (_po) _po.checked = Cv.political;
       var _pm=document.getElementById('pol-mute');   if (_pm) _pm.checked = Cv.politicalMuteTerrain;
       var _pl=document.getElementById('pol-legend'); if (_pl) _pl.checked = Cv.politicalLegend;
+      var _pe=document.getElementById('pol-emblem'); if (_pe) _pe.checked = Cv.emblems;
       var _sl=document.getElementById('chk-legend'); if (_sl) _sl.checked = Cv.symbolLegend;
       var _pf=document.getElementById('pol-fill');   if (_pf) _pf.value = Math.round(Cv.politicalFill*100);
       var _gt=document.getElementById('grid-type');  if (_gt) _gt.value = Cv.gridType;

@@ -3446,7 +3446,28 @@
       if (!o || o.kind !== 'state') return false;
       return this._editTerritory(function (t) {
         delete t.kind; delete t.government; delete t.capital; delete t.cultureKey;
+        delete t.emblem;
       }, 'unmakestate');
+    },
+
+    /* ---- Arma ----
+       Arma nesnenin üzerinde bir tanım (spec) olarak durur; çizim
+       Emblem modülünde. Böylece proje kaydı hiçbir görsel taşımaz,
+       yalnızca "hangi kalkan, hangi bölünme, hangi motif, hangi
+       renkler" bilgisini taşır. */
+    rollEmblem: function (seed) {
+      var o = this._selectedTerritory();
+      if (!o || o.kind !== 'state') return false;
+      if (typeof Emblem === 'undefined') return false;
+      var sd = (seed === undefined) ? Math.floor(Math.random() * 1e9) : (seed >>> 0);
+      var spec = Emblem.generate(sd);
+      return this._editTerritory(function (t) { t.emblem = spec; }, 'emblem');
+    },
+
+    clearEmblem: function () {
+      var o = this._selectedTerritory();
+      if (!o || !o.emblem) return false;
+      return this._editTerritory(function (t) { delete t.emblem; }, 'emblem');
     },
 
     /* Başkent seçme modu: ayrı bir araç değil, kısa ömürlü bir yakalama

@@ -1307,6 +1307,7 @@
               for (var jn = 0; jn < l.objects.length; jn++) {
                 if (!this.territoryVisibleInMode(l.objects[jn])) continue;
                 this.drawCapitalMark(ctx, l.objects[jn]);
+                this.drawEmblem(ctx, l.objects[jn]);
                 this.drawTerritoryName(ctx, l.objects[jn]);
               }
             }
@@ -2017,6 +2018,21 @@
       ctx.fill();
       ctx.stroke();
       ctx.restore();
+    },
+
+    /* Siyasi görünümde armaları göster/gizle (Cv.political ile birlikte
+       çalışır; arması olmayan devlet zaten hiçbir şey çizmez). */
+    emblems: true,
+
+    /* Armayı başkentin hemen üstüne basar — başkent yoksa çizilmez,
+       çünkü arma bir konuma değil bir merkeze aittir. Emblem modülü
+       yüklü değilse sessizce atlanır (izole test ortamları için). */
+    drawEmblem: function (ctx, o) {
+      if (!this.emblems || !o.emblem || !o.capital) return;
+      if (typeof Emblem === 'undefined') return;
+      var size = Math.max(22, Math.min(this.W, this.H) * 0.028);
+      var r = Math.max(5, Math.min(this.W, this.H) * 0.006);
+      Emblem.draw(ctx, o.emblem, o.capital.x, o.capital.y - r - size * 0.62, size);
     },
 
     /* Devlet adlarını alan merkezine yazar. */
