@@ -3191,6 +3191,101 @@
       });
     },
 
+    /* ================= EYALETLER (devlet alt bölünmesi) =================
+       Devletler kara üzerinde büyüyerek oluşur; eyaletler ise var olan bir
+       devletin İÇİNİ böler. Bu yüzden burada Dijkstra değil, şehir
+       üretiminin blok bölücüsü (_subdivide) kullanılıyor: devletin
+       poligonunu OBB uzun ekseninden hedef parça sayısına inene kadar
+       kesmek, kara maskesini yeniden örneklemeden doğru sonucu veriyor
+       (devlet poligonu zaten karayla sınırlı). Eyalet sınırları böylece
+       ait olduğu devletin sınırının dışına asla taşmaz. */
+    generateProvinces: function (perState, seed) {
+      var Tv = Layers.get('territories');
+      if (!Tv) return 0;
+      if (Tv.locked || !Tv.visible) { UI.msg(UI.t('locked')); return 0; }
+
+      var states = Tv.objects.filter(function (o) { return o.kind === 'state'; });
+      if (!states.length) { UI.msg(UI.t('prov_nostate')); return 0; }
+
+      var rnd = this._noiseGrid((((seed >>> 0) + 0xc2b2ae35) >>> 0) || Math.floor(Math.random()*4294967296));
+      var want = Math.max(2, Math.min(8, Math.round(perState) || 3));
+      var lang = (typeof UI !== 'undefined' && UI.lang) || 'tr';
+      var before = JSON.parse(JSON.stringify(Tv.objects));
+      var self = this, newObjs = [];
+
+      states.forEach(function (st) {
+        var area = Geo.polygonArea(st.pts);
+        if (area < 2000) return;                    /* bölmeye değmeyecek kadar küçük */
+        var res = self._subdivide(st.pts, area / want, rnd, 0.18, want * 3);
+        if (res.pieces.length < 2) return;          /* bölünemedi: eyalet üretme */
+        res.pieces.forEach(function (poly, i) {
+          if (Geo.polygonArea(poly) < area * 0.04) return;   /* kırıntı parça */
+          /* Devlet sınırları kıyıyı izlediği için sıkça İÇBÜKEYdir ve
+             Sutherland-Hodgman içbükey bir çokgeni yarı-düzlemle kestiğinde
+             ayrı kalması gereken parçaları kesme çizgisi boyunca birleşik
+             tek bir çokgen olarak döndürebilir; böyle bir parçanın ağırlık
+             merkezi devletin dışına düşer. Eyalet, ait olduğu devletin
+             dışına taşmamalı — bu parçaları at. */
+          var pc = Geo.polygonCentroid(poly);
+          if (!Geo.pointInPolygon(pc[0], pc[1], st.pts)) return;
+          newObjs.push({
+            id:uid(), pts:poly, kind:'province',
+            parentState: st.id,
+            name: Names.generate(st.cultureKey || 'western', 'region', lang, Math.floor(rnd.next()*1e9)),
+            color: st.color, borderColor: st.borderColor,
+            borderWidth: Math.max(1, (st.borderWidth || 2) - 1), opacity: 0.55
+          });
+        });
+      });
+
+      if (!newObjs.length) { UI.msg(UI.t('prov_none')); return 0; }
+      Tv.objects = Tv.objects.concat(newObjs);
+      History.pushVector('territories', before, JSON.parse(JSON.stringify(Tv.objects)), 'provincegen');
+      UI.refreshHistory();
+      if (UI.refreshTerritoryList) UI.refreshTerritoryList();
+      Cv.requestRender();
+      return newObjs.length;
+    },
+
+    /* ================= DİPLOMASİ =================
+       Hesaplanan bir şey değil, saklanan bir ilişki tablosu:
+       App.diplomacy["<idA>|<idB>"] = 'war' | 'peace' | 'alliance' | 'vassal'.
+       Anahtar her zaman id'leri sıralayarak kurulur ki (A,B) ve (B,A)
+       aynı kaydı göstersin. */
+    DIPLO_STATES: ['peace','alliance','war','vassal'],
+
+    _diploKey: function (a, b) { return a < b ? a + '|' + b : b + '|' + a; },
+
+    getRelation: function (a, b) {
+      if (a === b) return null;
+      return (App.diplomacy && App.diplomacy[this._diploKey(a,b)]) || 'peace';
+    },
+
+    setRelation: function (a, b, rel) {
+      if (a === b || this.DIPLO_STATES.indexOf(rel) < 0) return false;
+      if (!App.diplomacy) App.diplomacy = {};
+      var key = this._diploKey(a, b);
+      var before = JSON.parse(JSON.stringify(App.diplomacy));
+      if (rel === 'peace') delete App.diplomacy[key];   /* varsayılanı saklama */
+      else App.diplomacy[key] = rel;
+      History.pushDiplomacy(before, JSON.parse(JSON.stringify(App.diplomacy)), 'diplomacy');
+      UI.refreshHistory();
+      return true;
+    },
+
+    /* Bir devlet silindiğinde ona ait ilişkileri de temizler — yoksa
+       tablo, artık var olmayan id'lere işaret eden kayıtlarla şişer. */
+    pruneRelations: function () {
+      if (!App.diplomacy) return;
+      var Tv = Layers.get('territories');
+      var alive = {};
+      (Tv ? Tv.objects : []).forEach(function (o) { if (o.kind === 'state') alive[o.id] = 1; });
+      Object.keys(App.diplomacy).forEach(function (k) {
+        var parts = k.split('|');
+        if (!alive[parts[0]] || !alive[parts[1]]) delete App.diplomacy[k];
+      });
+    },
+
     /* generateCultures ve generateReligions'ın ortak gövdesi: ikisi de
        kültür anahtarlarından adlandırılmış, kara üzerinde eşit koşullarda
        büyüyen bölgeler üretir; yalnızca nesnenin `kind`'ı, rengi ve

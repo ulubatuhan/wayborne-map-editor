@@ -2045,7 +2045,13 @@
       var L = Layers.get('territories');
       if (!L || !L.visible) return;
       var self = this;
-      var items = L.objects.filter(function (o) { return o.name && self.territoryVisibleInMode(o); });
+      /* Eyaletler lejanta girmez: ait oldukları devletin rengini
+         paylaştıkları için satırları aynı renk kutucuğunu tekrar eder ve
+         hiçbir bilgi taşımaz — lejant renk→ad eşlemesidir, devletler
+         onun asıl siyasi birimidir. */
+      var items = L.objects.filter(function (o) {
+        return o.name && o.kind !== 'province' && self.territoryVisibleInMode(o);
+      });
       if (!items.length) return;
 
       var pad = Math.max(10, this.W * 0.006);

@@ -481,6 +481,27 @@
         <label class="row" style="margin-top:12px"><span data-i18n="o_recount">Din sayısı</span><b id="v-re-count">3</b></label>
         <input type="range" id="re-count" min="2" max="7" value="3">
         <button class="btn wide" id="btn-religiongen" data-i18n="o_religiongen_go">Din üret</button>
+        <label class="row" style="margin-top:12px"><span data-i18n="o_provcount">Devlet başına eyalet</span><b id="v-prov-count">3</b></label>
+        <input type="range" id="prov-count" min="2" max="8" value="3">
+        <button class="btn wide" id="btn-provgen" data-i18n="o_provgen_go">Eyalet üret</button>
+        <p class="hint" data-i18n="h_provgen">Her devletin kendi sınırlarını alt bölgelere ayırır; eyalet sınırları ait olduğu devletin dışına taşmaz.</p>
+
+        <h3 style="margin-top:20px" data-i18n="o_diplosec">Diplomasi</h3>
+        <p class="hint" id="diplo-empty" data-i18n="h_diplo_none">İlişki tanımlamak için en az iki devlet gerekiyor.</p>
+        <div id="diplo-body" hidden>
+          <label class="row"><span data-i18n="o_diplo_a">Devlet A</span></label>
+          <select id="diplo-a" class="sel"></select>
+          <label class="row"><span data-i18n="o_diplo_b">Devlet B</span></label>
+          <select id="diplo-b" class="sel"></select>
+          <label class="row"><span data-i18n="o_diplo_rel">İlişki</span></label>
+          <select id="diplo-rel" class="sel">
+            <option value="peace" data-i18n="rel_peace">Barış</option>
+            <option value="alliance" data-i18n="rel_alliance">İttifak</option>
+            <option value="war" data-i18n="rel_war">Savaş</option>
+            <option value="vassal" data-i18n="rel_vassal">Vasallık</option>
+          </select>
+          <ul class="territory-list" id="diplo-list"></ul>
+        </div>
 
         <h3 style="margin-top:20px" data-i18n="o_citysec">Şehir Üretimi</h3>
         <p class="hint" id="city-need-sel" data-i18n="h_city_nosel">Önce bir bölge seç — şehir o bölgenin sınırları içine üretilir.</p>

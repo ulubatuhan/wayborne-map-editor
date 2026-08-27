@@ -730,6 +730,7 @@
         exportReference:App.exportReference,
         scale:App.scale,
         windrose:App.windrose,
+        diplomacy:App.diplomacy,
         customSymbols: Sym.serializeCustom(),
         maps: App.maps,
         layers: App.maps.root || Layers.serialize(true)
@@ -784,6 +785,7 @@
       App.exportReference = !!d.exportReference;
       if (d.scale) App.scale = d.scale;
       if (d.windrose) App.windrose = d.windrose;
+      App.diplomacy = d.diplomacy || {};
 
       document.getElementById('chk-parchment').checked = Cv.parchment;
       document.getElementById('chk-grid').checked = Cv.grid;

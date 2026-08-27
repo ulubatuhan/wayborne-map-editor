@@ -11,7 +11,7 @@
 
     brush:   { size:120, roughness:0.35, color:'#ded0ac' },
     landgen: { template:'continent', roughness:0.5, rivers:false, lakes:false, terrain:false },
-    stategen: { count:5, variety:0.35, cultureCount:4, religionCount:3 },
+    stategen: { count:5, variety:0.35, cultureCount:4, religionCount:3, provinceCount:3 },
     citygen:  { district:'craftsmen', buildings:140, streetWidth:7, wall:false },
     sea:     { color:'#7ba8bd' },
     terrain: { type:'grassland', size:160, opacity:0.85, clip:true },
@@ -35,6 +35,10 @@
     scale:   { visible:true, x:120, y:1880, len:420, size:26, segs:4, label:'200 km' },
     windrose:{ visible:false, x:0, y:0, size:120, style:'classic', color:'#3a2b18' },
     snap:    { enabled:false, size:64 },
+
+    /* Devletler arası ilişkiler: "<idA>|<idB>" -> 'alliance'|'war'|'vassal'.
+       'peace' varsayılan olduğu için hiç saklanmaz (tablo seyrek kalsın). */
+    diplomacy: {},
 
     /* ================= ÇOKLU HARİTA (dünya ↔ bölge bağlantısı) =================
        Tek bir Layers/Cv/History dokümanı her zaman "aktif" haritadır. Bir bağlantı

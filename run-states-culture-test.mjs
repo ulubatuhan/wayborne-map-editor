@@ -210,6 +210,61 @@ async function run() {
       Layers.init(256, 256); History.clear();
       check('kara yokken generateReligions 0 döndürüyor', Tools.generateReligions(3, 1) === 0);
 
+      /* ---------- EYALETLER ---------- */
+      Layers.init(2048, 2048); Cv.setSize(2048,2048,false); History.clear();
+      Tools.generateLandmass('continent', 0.5, 42); Cv.render();
+      check('devlet yokken eyalet üretilmiyor', Tools.generateProvinces(3, 1) === 0);
+      Tools.generateStates(4, 0.3, 42);
+      var stCount = Layers.get('territories').objects.filter(function (o) { return o.kind === 'state'; }).length;
+      var histBeforeProv = History.stack.length;
+      var nP = Tools.generateProvinces(3, 42);
+      check('eyalet üretildi', nP > 0);
+      check('eyalet tek History adımı üretti', History.stack.length - histBeforeProv === 1);
+      var provs = Layers.get('territories').objects.filter(function (o) { return o.kind === 'province'; });
+      check('eyalet nesneleri kind:province', provs.length === nP);
+      check('her eyaletin adı ve bağlı devleti var', provs.every(function (o) { return !!o.name && !!o.parentState; }));
+      check('devletler korundu (eyalet üstüne eklenir)',
+        Layers.get('territories').objects.filter(function (o) { return o.kind === 'state'; }).length === stCount);
+      /* eyalet, ait olduğu devletin sınırının dışına taşmamalı */
+      var stById = {};
+      Layers.get('territories').objects.forEach(function (o) { if (o.kind === 'state') stById[o.id] = o; });
+      var escaped = 0;
+      provs.forEach(function (p) {
+        var parent = stById[p.parentState];
+        if (!parent) return;
+        var c = Geo.polygonCentroid(p.pts);
+        if (!Geo.pointInPolygon(c[0], c[1], parent.pts)) escaped++;
+      });
+      check('eyaletlerin merkezi kendi devletinin içinde', escaped === 0);
+      await History.undo();
+      check('eyalet üretimi geri alınabiliyor',
+        Layers.get('territories').objects.filter(function (o) { return o.kind === 'province'; }).length === 0);
+      await History.redo();
+
+      /* ---------- DİPLOMASİ ---------- */
+      App.diplomacy = {};
+      var dStates = Layers.get('territories').objects.filter(function (o) { return o.kind === 'state'; });
+      var A = dStates[0].id, B = dStates[1].id;
+      check('varsayılan ilişki barış', Tools.getRelation(A, B) === 'peace');
+      check('ilişki kurulabiliyor', Tools.setRelation(A, B, 'war') === true);
+      check('ilişki okunuyor', Tools.getRelation(A, B) === 'war');
+      check('ilişki simetrik (A,B == B,A)', Tools.getRelation(B, A) === 'war');
+      check('kendisiyle ilişki reddediliyor', Tools.setRelation(A, A, 'war') === false);
+      check('geçersiz ilişki tipi reddediliyor', Tools.setRelation(A, B, 'kanka') === false);
+      await History.undo();
+      check('ilişki değişikliği geri alınabiliyor', Tools.getRelation(A, B) === 'peace');
+      await History.redo();
+      check('ilişki değişikliği yinelenebiliyor', Tools.getRelation(A, B) === 'war');
+      Tools.setRelation(A, B, 'peace');
+      check('barışa dönünce kayıt silinir (tablo seyrek kalır)',
+        Object.keys(App.diplomacy).length === 0);
+      /* ölü devlete ait kayıt temizlenmeli */
+      Tools.setRelation(A, B, 'alliance');
+      App.diplomacy['olmayan1|olmayan2'] = 'war';
+      Tools.pruneRelations();
+      check('ölü devletlerin ilişkileri temizlendi',
+        !App.diplomacy['olmayan1|olmayan2'] && Tools.getRelation(A, B) === 'alliance');
+
       /* ---------- DEVLET EDİTÖRÜ ---------- */
       Layers.init(2048, 2048); History.clear();
       Tools.generateLandmass('continent', 0.5, 42);

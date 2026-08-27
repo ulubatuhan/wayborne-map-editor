@@ -143,6 +143,14 @@
       });
     },
 
+    /* Diplomasi tablosu düz bir nesne — ölçek/windrose ile aynı desen. */
+    pushDiplomacy: function (beforeObj, afterObj, label) {
+      this.push({
+        kind:'diplomacy', label:label || 'diplomacy',
+        before: JSON.stringify(beforeObj), after: JSON.stringify(afterObj)
+      });
+    },
+
     pushWindrose: function (beforeObj, afterObj, label) {
       this.push({
         kind:'windrose', label:label || 'windrose',
@@ -220,6 +228,11 @@
 
       if (entry.kind === 'scale') {
         if (global.App) App.scale = JSON.parse(entry[pick]);
+        return Promise.resolve();
+      }
+
+      if (entry.kind === 'diplomacy') {
+        if (global.App) App.diplomacy = JSON.parse(entry[pick]);
         return Promise.resolve();
       }
 
